@@ -5,7 +5,12 @@
       "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\ovdu2\\\\_ChiarJE\\\\developare\\\\_claude_code\\\\v3-oneSku\\\\docs\\\\specs\")",
       "PowerShell(Move-Item \"C:\\\\Users\\\\ovdu2\\\\_ChiarJE\\\\developare\\\\_claude_code\\\\v3-oneSku\\\\ONESKU_ARCHITECTURE.md\" \"C:\\\\Users\\\\ovdu2\\\\_ChiarJE\\\\developare\\\\_claude_code\\\\v3-oneSku\\\\docs\\\\ARCHITECTURE.md\")",
       "PowerShell(Move-Item \"C:\\\\Users\\\\ovdu2\\\\_ChiarJE\\\\developare\\\\_claude_code\\\\v3-oneSku\\\\STATUS.md\" \"C:\\\\Users\\\\ovdu2\\\\_ChiarJE\\\\developare\\\\_claude_code\\\\v3-oneSku\\\\docs\\\\STATUS.md\")",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(cp /root/.claude/uploads/f1a27aea-8044-5763-afc1-b6c48e6c205a/a308ec8b-SPEC_LocalFilter_v3.md docs/specs/SPEC_LocalFilter_v3.md)",
+      "Bash(cp /root/.claude/uploads/f1a27aea-8044-5763-afc1-b6c48e6c205a/97443410-SPEC_DatabaseSchema_v3.md docs/specs/SPEC_DatabaseSchema_v3.md)",
+      "Bash(cp /root/.claude/uploads/f1a27aea-8044-5763-afc1-b6c48e6c205a/c96558ee-SPEC_CatalogPage_v3.md docs/specs/SPEC_CatalogPage_v3.md)",
+      "Bash(git rm *)",
+      "Bash(git add *)"
     ]
   }
 }
