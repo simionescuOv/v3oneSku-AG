@@ -62,7 +62,7 @@ export default function CategoryPage() {
   const { filteredItems: matches, showCreate } = usePicker({
     mode: 'inline',
     items: categoryProducts,
-    labelFn: (p) => p.name,
+    labelFn: (p) => p.nameId,
     query: searchQuery,
     multiSelect: false,
     allowCreate: true,
@@ -116,9 +116,13 @@ export default function CategoryPage() {
     }
   }
 
-  const handleDelete = () => {
-    deleteCategory(categoryId)
+  const handleDelete = async () => {
+    const res = await deleteCategory(categoryId)
     setDeleteOpen(false)
+    if (!res.ok) {
+      showToast(res.error)
+      return
+    }
     closeCatalogMenu()
     routerNavigate('/catalog')
   }
@@ -213,7 +217,7 @@ export default function CategoryPage() {
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-zinc-400 text-sm leading-relaxed">
             Niciun produs în această categorie.<br />
-            Scrie un nume în bara de căutare ca să adaugi primul produs.
+            Scrie orice în bara de căutare ca să adaugi primul produs.
           </p>
         </div>
       ) : (
@@ -227,7 +231,7 @@ export default function CategoryPage() {
               className="w-full flex items-center gap-3 px-4 py-3.5 text-left text-blue-400 active:bg-zinc-900"
             >
               <Plus size={18} className="shrink-0" />
-              <span className="text-sm">Adaugă „{searchQuery.trim()}"</span>
+              <span className="text-sm">Adaugă produs nou</span>
             </button>
           )}
           {matches.length === 0 && !showCreate && (
@@ -308,7 +312,6 @@ export default function CategoryPage() {
         open={formOpen}
         onClose={() => setFormOpen(false)}
         categoryId={categoryId}
-        initialName={searchQuery.trim()}
         showToast={showToast}
         onCreated={() => { clearSearch() }}
       />

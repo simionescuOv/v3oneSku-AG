@@ -5,29 +5,30 @@ import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 
 // Formular de adăugare produs — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
-// Câmpurile se generează din schema categoriei: text → input; single_choice →
-// chips de opțiuni (cu posibilitatea de a adăuga o valoare nouă în listă, §5.2).
-export default function ProductFormSheet({ open, onClose, categoryId, initialName, showToast, onCreated }) {
+// Fără câmp de nume: NameID e generat server-side (imuabil, needitabil de
+// user) — vezi SPEC_DatabaseSchema_v3 §6.1. Câmpurile se generează din schema
+// categoriei: text → input; single_choice → chips de opțiuni.
+export default function ProductFormSheet({ open, onClose, categoryId, showToast, onCreated }) {
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const attributeOptions = useCatalogStore((s) => s.attributeOptions)
   const addAttributeOption = useCatalogStore((s) => s.addAttributeOption)
   const addProduct = useCatalogStore((s) => s.addProduct)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
 
-  const [name, setName] = useState('')
   const [values, setValues] = useState({})
   const [listPrice, setListPrice] = useState('')
   const [optionDrafts, setOptionDrafts] = useState({})
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setBottomBarHidden(open)
     if (open) {
-      setName(initialName ?? '')
       setValues({})
       setListPrice('')
       setOptionDrafts({})
+      setSaving(false)
     }
-  }, [open, initialName, setBottomBarHidden])
+  }, [open, setBottomBarHidden])
 
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
 
@@ -42,28 +43,31 @@ export default function ProductFormSheet({ open, onClose, categoryId, initialNam
 
   const setValue = (attrId, val) => setValues((prev) => ({ ...prev, [attrId]: val }))
 
-  const handleAddOption = (attrId) => {
+  const handleAddOption = async (attrId) => {
     const draft = (optionDrafts[attrId] ?? '').trim()
     if (!draft) return
-    const ok = addAttributeOption(attrId, draft)
-    if (!ok) {
-      showToast('Există deja această valoare')
+    const res = await addAttributeOption(attrId, draft)
+    if (!res.ok) {
+      showToast(res.error)
       return
     }
     setValue(attrId, draft)
     setOptionDrafts((prev) => ({ ...prev, [attrId]: '' }))
   }
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     // Păstrăm doar atributele completate (nu trimitem chei goale).
     const cleaned = Object.fromEntries(
       Object.entries(values).filter(([, v]) => v != null && String(v).trim() !== '')
     )
-    const ok = addProduct(categoryId, name, cleaned, listPrice)
-    if (!ok) {
-      showToast('Există deja un produs cu acest nume')
+    setSaving(true)
+    const res = await addProduct(categoryId, cleaned, listPrice)
+    setSaving(false)
+    if (!res.ok) {
+      showToast(res.error)
       return
     }
+    showToast(res.data ? `Produs creat: ${res.data}` : 'Produs creat')
     onCreated?.()
     onClose()
   }
@@ -72,16 +76,6 @@ export default function ProductFormSheet({ open, onClose, categoryId, initialNam
     <BottomSheet open={open} onClose={onClose}>
       <div className="px-4 pb-6 overflow-y-auto max-h-[80dvh]">
         <h2 className="text-sm font-medium text-zinc-200 mb-3 text-center">Produs nou</h2>
-
-        <label className="block text-xs text-zinc-500 mb-1">Nume</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Numele produsului"
-          autoComplete="off"
-          className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
-        />
 
         {attrs.map((a) => (
           <div key={a.id} className="mt-4">
@@ -156,10 +150,10 @@ export default function ProductFormSheet({ open, onClose, categoryId, initialNam
           </button>
           <button
             onClick={handleCreate}
-            disabled={!name.trim()}
+            disabled={saving}
             className={[
               'flex-1 h-11 rounded-xl text-sm font-medium',
-              name.trim() ? 'bg-blue-600 text-white active:bg-blue-700' : 'bg-zinc-700 text-zinc-500',
+              saving ? 'bg-zinc-700 text-zinc-500' : 'bg-blue-600 text-white active:bg-blue-700',
             ].join(' ')}
           >
             Creează

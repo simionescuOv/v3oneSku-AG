@@ -322,16 +322,16 @@ export default function CatalogPage() {
     setCollapsedFolderIds(new Set(allFolderIds.filter((id) => !keepOpen.has(id))))
   }, [nodes, getAncestorFolders])
 
-  const handleCreateFromSearch = useCallback(() => {
+  const handleCreateFromSearch = useCallback(async () => {
     const name = searchQuery.trim()
     if (!name) return
     // Gardă hard: re-verifică unicitatea globală chiar înainte de creare.
-    if (nodes.some((n) => normalize(n.name) === normalize(name))) {
+    if (nodes.some((n) => n.type === 'category' && normalize(n.name) === normalize(name))) {
       showToast(`Există deja „${name}"`)
       return
     }
-    const ok = addCategory(name, currentFolderId)
-    if (!ok) showToast(`Există deja „${name}"`)
+    const res = await addCategory(name, currentFolderId)
+    if (!res.ok) showToast(res.error)
     else {
       if (SHOW_ACTION_TOASTS) showToast(`„${name}" adăugată`)
       collapseAllExcept(currentFolderId)
@@ -348,17 +348,25 @@ export default function CatalogPage() {
   }, [selectionMode, isSearching, currentChildren, searchQuery])
 
   // ── Organize — pas „Organize < N >" (SPEC_MutareCrossFolder §3.3) ─────────────
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     if (selectionMode !== 'move') return
     const ids = [...selectedNodeIds]
     const allRoot = ids.every((id) => nodes.find((n) => n.id === id)?.parentId === null)
-    const tempId = createTempFolder()
-    moveNodes(ids, tempId)
+    const tempId = await createTempFolder()
+    if (!tempId) {
+      showToast('Eroare la pornirea mutării')
+      return
+    }
+    const res = await moveNodes(ids, tempId)
+    if (!res.ok) {
+      showToast(res.error)
+      return
+    }
     setTempFolderId(tempId)
     setPendingMoveCount(ids.length)
     setAllRootSelection(allRoot)
     setDestinationPickerOpen(true)
-  }, [selectionMode, selectedNodeIds, nodes, createTempFolder, moveNodes])
+  }, [selectionMode, selectedNodeIds, nodes, createTempFolder, moveNodes, showToast])
 
   const finalizeMove = useCallback((updatedFolderId, subfolderName) => {
     setDestinationPickerOpen(false)
@@ -372,23 +380,27 @@ export default function CatalogPage() {
     }
   }, [pendingMoveCount, clearSelection, showToast, collapseAllExcept])
 
-  const handleDestinationPicked = useCallback((destinationId, _label, skipQuestion) => {
+  const handleDestinationPicked = useCallback(async (destinationId, _label, skipQuestion) => {
     destinationIdRef.current = destinationId
-    moveNodes([tempFolderId], destinationId)
     setDestinationPickerOpen(false)
+    const res = await moveNodes([tempFolderId], destinationId)
+    if (!res.ok) {
+      showToast(res.error)
+      return
+    }
     setSkipSubgroupQuestion(!!skipQuestion)
     setSubgroupSheetOpen(true)
-  }, [tempFolderId, moveNodes])
+  }, [tempFolderId, moveNodes, showToast])
 
-  const handleSubgroupNo = useCallback(() => {
-    dissolveTempFolder(tempFolderId)
+  const handleSubgroupNo = useCallback(async () => {
+    await dissolveTempFolder(tempFolderId)
     finalizeMove(destinationIdRef.current, null)
   }, [tempFolderId, dissolveTempFolder, finalizeMove])
 
-  const handleSubgroupYes = useCallback((name) => {
-    const ok = promoteTempFolder(tempFolderId, name)
-    if (!ok) {
-      showToast(`Există deja „${name}"`)
+  const handleSubgroupYes = useCallback(async (name) => {
+    const res = await promoteTempFolder(tempFolderId, name)
+    if (!res.ok) {
+      showToast(res.error)
       return
     }
     finalizeMove(tempFolderId, name.trim())

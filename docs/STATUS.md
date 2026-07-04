@@ -4,6 +4,75 @@
 
 ---
 
+## Sesiunea 2 — Migrare Supabase (Catalog ca sursă de adevăr)
+
+### Ce s-a schimbat
+
+- **Schema DB completă** în `supabase/migrations/` (15 fișiere, ordonate): tenants,
+  categories (+ `normalize_name` + unicitate globală normalizată + reguli de arbore +
+  `is_temp`), global_attributes (+ options), category_attributes (+ options + `filterable`
+  + validare tip global), products (+ `name_id` imuabil + `tags` + `attributes` jsonb +
+  `list_price`), `filter_idx` (+ funcții rebuild global/categorie/spațiu + trigger-e),
+  RPC-uri de Catalog (create_category, move_node, delete_folder, soft_delete_category,
+  restore_from_trash, group_nodes, get_valid_move_targets, mutare cross-folder), generator
+  NameID, create_product, RPC-uri de schemă (create_category_attribute,
+  add_category_attribute_option), tabele de bază StockHub (spaces, space_products,
+  transactions, transaction_items) + `add_product_to_space`, seed tenant.
+- **Toate migrațiile au fost validate local** pe un Postgres 16 efemer (aplicare completă
+  de la zero + teste funcționale ale fiecărui RPC + teste de paritate `normalize_name` ↔
+  `normalize()` din `src/lib/search.js` — vezi `supabase/tests/normalize_name_parity.sql`).
+  Nu au fost aplicate pe niciun proiect Supabase real (fără credențiale disponibile în acest
+  mediu) — vezi „Pași de setup” mai jos.
+- **`src/lib/supabaseClient.js`** — client Supabase citind `VITE_SUPABASE_URL` /
+  `VITE_SUPABASE_ANON_KEY` din env (`.env.example` documentează variabilele).
+- **`useCatalogStore.js` refactorizat**: Supabase e sursa de adevăr, Zustand e cache local.
+  `fetchCatalog()` populează cache-ul; citirile derivate (`getChildren`, `getBreadcrumb`,
+  `getAncestorFolders`, `getValidMoveDestinations`) rămân sincrone peste cache; toate
+  mutațiile trec prin `supabase.rpc(...)` și reîmprospătează cache-ul după succes.
+- **`src/mock/products.js` șters** — nu mai există mock de Catalog. `src/mock/spaces.js`
+  rămâne (StockHub e explicit în afara scope-ului acestei sesiuni).
+- **NameID**: `ProductFormSheet` nu mai are câmp de nume — produsul se creează cu atribute +
+  preț opțional, iar `name_id`-ul (generat server-side) apare pe card imediat după salvare.
+  `ProductCard` / `CategoryPage` afișează `product.nameId`.
+- **`nameExistsGlobally`** relaxat: verifică doar `node_type = 'category'` — folderele sunt
+  libere (verificare optimistă client-side; autoritatea reală e indexul unic din DB).
+
+### Decizii/devieri semnalate (nu blocante, dar de revizuit)
+
+1. **Rebuild `filter_idx` prin trigger** (nu RPC explicit) — ales conform recomandării
+   utilizatorului. Trigger-ele nu diferențiază "a fost atins un atribut filterable?" înainte
+   de rebuild — rebuild-ul rulează la orice mutație de produs/atribut din categoria
+   afectată (+ global). Corectitudine garantată (rebuild integral, idempotent), cost de
+   compute puțin mai mare decât strict necesar — acceptabil la scara vizată.
+2. **`groupNodes`** nu mai reface logica „reutilizează folderul rădăcină existent cu același
+   nume” din store-ul vechi (era necesară în v2, unde folderele aveau unicitate; în v3
+   folderele sunt libere, deci două foldere cu același nume sunt o stare validă, nu o
+   eroare de evitat).
+3. **`promote_temp_folder`** (SPEC_MutareCrossFolder) prinde `unique_violation`, dar
+   folderele nu au nicio constrângere de unicitate în v3 (doar categoriile) — codul de
+   eroare există ca plasă de siguranță, dar practic nu se va declanșa niciodată cât timp
+   folderele rămân libere. Comportament neschimbat față de intenția v3 (folderele sunt
+   libere), doar semnalat aici pentru transparență.
+4. **`moveNodes`** (mutare mai multor noduri) rămâne o buclă client-side de apeluri
+   `move_node` secvențiale, nu o singură tranzacție DB — la scara actuală (mutare într-un
+   folder temporar nou-creat), anti-ciclul nu poate eșua la mijlocul buclei, deci riscul de
+   stare parțială e practic nul. Dacă apare un caz de utilizare cu mutare multiplă spre o
+   destinație arbitrară (nu temp folder), ar merita un RPC `move_nodes` atomic.
+
+### Pași de setup (de făcut de utilizator)
+
+1. Creează un proiect Supabase nou.
+2. Rulează migrațiile din `supabase/migrations/` în ordine (SQL Editor sau
+   `supabase db push` cu Supabase CLI conectat la proiect).
+3. Copiază `.env.example` → `.env.local`, completează `VITE_SUPABASE_URL` și
+   `VITE_SUPABASE_ANON_KEY` din Settings → API.
+4. `npm install && npm run dev` — Catalogul ar trebui să pornească gol (fără categorii),
+   gata de prima categorie/produs create prin UI.
+5. Opțional: rulează `supabase/tests/normalize_name_parity.sql` pe proiectul tău pentru
+   a confirma paritatea de normalizare.
+
+---
+
 ## Sesiunea 1 — Schelă inițială
 
 ### Structura de foldere
@@ -96,7 +165,9 @@ src/
 - [ ] Clonare automată la prima apariție produs în Space
 
 ### Infrastructură
-- [ ] Conectare Supabase (Auth + PostgreSQL)
-- [ ] Persistență Zustand via Supabase
+- [x] Schema DB + RPC-uri + `filter_idx` scrise ca migrații versionate (`supabase/migrations/`)
+- [x] `useCatalogStore` refactorizat: Supabase sursă de adevăr, Zustand cache local
+- [ ] Proiect Supabase real creat + migrații aplicate (de făcut de utilizator, vezi „Pași de setup”)
+- [ ] Auth — încă pe tenant fix hardcodat (`00000000-...0001`)
 - [ ] PWA manifest + service worker
 - [ ] Users / Roles (TBD în arhitectură)
