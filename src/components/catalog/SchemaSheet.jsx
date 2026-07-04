@@ -43,10 +43,10 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
     .filter((o) => o.attributeId === activeAttrId)
     .sort((a, b) => a.position - b.position)
 
-  const handleAddAttr = () => {
-    const ok = addAttribute(categoryId, attrName, attrType)
-    if (!ok) {
-      showToast('Există deja un atribut cu acest nume')
+  const handleAddAttr = async () => {
+    const res = await addAttribute(categoryId, attrName, attrType)
+    if (!res.ok) {
+      showToast(res.error)
       return
     }
     setAttrName('')
@@ -54,10 +54,10 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
     setView('list')
   }
 
-  const handleAddOption = () => {
-    const ok = addAttributeOption(activeAttrId, optionValue)
-    if (!ok) {
-      showToast('Există deja această valoare')
+  const handleAddOption = async () => {
+    const res = await addAttributeOption(activeAttrId, optionValue)
+    if (!res.ok) {
+      showToast(res.error)
       return
     }
     setOptionValue('')

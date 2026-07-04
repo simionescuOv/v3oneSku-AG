@@ -1,16 +1,24 @@
 import { create } from 'zustand'
-import { mockNodes, mockProducts, mockCategoryAttributes, mockAttributeOptions } from '../mock/products'
+import { supabase } from '../lib/supabaseClient'
+import { DEFAULT_TENANT_ID } from '../lib/tenant'
 import { normalize } from '../lib/search'
 
-// Numele oricărui nod (folder SAU categorie) e unic în tot catalogul tenantului,
-// indiferent de parentId și type (unicitate globală — vezi IMPL_GrupareMutare).
+// Supabase e sursa unică de adevăr (SPEC_DatabaseSchema_v3); Zustand e doar
+// cache local populat prin fetch și invalidat după fiecare mutație. Citirile
+// derivate (getChildren, getBreadcrumb, getValidMoveDestinations etc.) rămân
+// sincrone, calculate peste cache-ul local — doar mutațiile trec prin RPC.
+
+const TENANT_ID = DEFAULT_TENANT_ID
+
+// Numele de CATEGORIE e unic global per tenant (nu și folderele — libere,
+// SPEC_DatabaseSchema_v3 §3.1). Verificare optimistă client-side pentru UX;
+// autoritatea reală e indexul unic din DB (`uq_categories_global_name`).
 function nameExistsGlobally(nodes, name, exceptId = null) {
   const target = normalize(name.trim())
-  return nodes.some((n) => n.id !== exceptId && normalize(n.name) === target)
+  return nodes.some(
+    (n) => n.id !== exceptId && n.type === 'category' && normalize(n.name) === target
+  )
 }
-
-let _nextId = 100
-const genId = (prefix) => `${prefix}-${++_nextId}`
 
 function getDescendantIds(nodes, id) {
   const result = new Set()
@@ -26,23 +34,68 @@ function getDescendantIds(nodes, id) {
   return result
 }
 
+async function callRpc(fn, params) {
+  const { data, error } = await supabase.rpc(fn, params)
+  if (error) return { ok: false, error: error.message }
+  return { ok: true, data }
+}
+
+// ── Mapare snake_case (DB) → camelCase (contractul consumat de componente) ──
+const mapNode = (row) => ({
+  id: row.id,
+  type: row.node_type,
+  name: row.name,
+  parentId: row.parent_id,
+  position: row.position,
+  isTemp: row.is_temp,
+  deletedAt: row.deleted_at,
+})
+
+const mapProduct = (row) => ({
+  id: row.id,
+  categoryId: row.category_id,
+  nameId: row.name_id,
+  attributes: row.attributes ?? {},
+  tags: row.tags ?? [],
+  listPrice: row.list_price,
+  deletedAt: row.deleted_at,
+})
+
+const mapCategoryAttribute = (row) => ({
+  id: row.id,
+  categoryId: row.category_id,
+  name: row.name,
+  type: row.attribute_type,
+  filterable: row.filterable,
+  globalAttributeId: row.global_attribute_id,
+  position: row.position,
+})
+
+const mapAttributeOption = (row) => ({
+  id: row.id,
+  attributeId: row.attribute_id,
+  value: row.value,
+  position: row.position,
+})
+
 export const useCatalogStore = create((set, get) => ({
-  nodes: [...mockNodes],
+  nodes: [],
   trash: [],
-  // ── Produse + schemă de atribute per categorie (SPEC_DatabaseSchema_v2 §4-6) ─
-  products: [...mockProducts],
-  categoryAttributes: [...mockCategoryAttributes],
-  attributeOptions: [...mockAttributeOptions],
+  products: [],
+  categoryAttributes: [],
+  attributeOptions: [],
+  loading: false,
+  loaded: false,
+  loadError: null,
+
   currentFolderId: null,
   treeExpanded: false,
   toggleTreeExpanded: () => set((s) => ({ treeExpanded: !s.treeExpanded })),
 
   // ── Selection mode (Grupare / Mutare) ───────────────────────────────
-  selectionMode: null,          // null | 'group' | 'move'
-  selectedNodeIds: new Set(),   // Set<id>
+  selectionMode: null,
+  selectedNodeIds: new Set(),
 
-  // „Mutare" și „Grupare" pornesc la nivelul curent (fold); utilizatorul poate
-  // activa manual Unfold dacă vrea să aleagă elemente din tot catalogul.
   enterSelectionMode: (mode) =>
     set({ selectionMode: mode, selectedNodeIds: new Set() }),
 
@@ -56,7 +109,64 @@ export const useCatalogStore = create((set, get) => ({
 
   clearSelection: () => set({ selectionMode: null, selectedNodeIds: new Set() }),
 
-  // ── Navigation ──────────────────────────────────────────────────────
+  // ── Fetch (Supabase → cache local) ───────────────────────────────────
+  fetchCatalog: async () => {
+    set({ loading: true, loadError: null })
+    const [nodesRes, productsRes, attrsRes, optsRes] = await Promise.all([
+      supabase
+        .from('categories')
+        .select('*')
+        .eq('tenant_id', TENANT_ID)
+        .eq('is_temp', false)
+        .is('deleted_at', null)
+        .order('position'),
+      supabase
+        .from('products')
+        .select('*')
+        .eq('tenant_id', TENANT_ID)
+        .is('deleted_at', null),
+      supabase
+        .from('category_attributes')
+        .select('*')
+        .eq('tenant_id', TENANT_ID)
+        .order('position'),
+      supabase
+        .from('category_attribute_options')
+        .select('*')
+        .eq('tenant_id', TENANT_ID)
+        .order('position'),
+    ])
+
+    const firstError = [nodesRes, productsRes, attrsRes, optsRes].find((r) => r.error)?.error
+    if (firstError) {
+      set({ loading: false, loadError: firstError.message })
+      return { ok: false, error: firstError.message }
+    }
+
+    set({
+      nodes: nodesRes.data.map(mapNode),
+      products: productsRes.data.map(mapProduct),
+      categoryAttributes: attrsRes.data.map(mapCategoryAttribute),
+      attributeOptions: optsRes.data.map(mapAttributeOption),
+      loading: false,
+      loaded: true,
+    })
+    return { ok: true }
+  },
+
+  fetchTrash: async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('tenant_id', TENANT_ID)
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false })
+    if (error) return { ok: false, error: error.message }
+    set({ trash: data.map(mapNode) })
+    return { ok: true }
+  },
+
+  // ── Navigation (client-side, peste cache) ────────────────────────────
   navigate: (folderId) => set({ currentFolderId: folderId }),
 
   navigateUp: () => {
@@ -66,7 +176,7 @@ export const useCatalogStore = create((set, get) => ({
     set({ currentFolderId: current?.parentId ?? null })
   },
 
-  // ── Derived helpers (not reactive — call inside actions) ─────────────
+  // ── Derived helpers (sincrone, peste cache-ul local) ─────────────────
   getBreadcrumb: () => {
     const { nodes, currentFolderId } = get()
     if (!currentFolderId) return []
@@ -83,16 +193,13 @@ export const useCatalogStore = create((set, get) => ({
 
   getChildren: (parentId) => {
     const { nodes } = get()
-    // Folderele temporare (SPEC_MutareCrossFolder §1.1) nu sunt niciodată vizibile.
     const children = nodes.filter((n) => n.parentId === parentId && !n.isTemp)
-    // folders first, then categories
     return [
       ...children.filter((n) => n.type === 'folder'),
       ...children.filter((n) => n.type === 'category'),
     ]
   },
 
-  // Lanțul de foldere-părinte (root → părinte direct), excluzând nodul însuși
   getAncestorFolders: (nodeId) => {
     const { nodes } = get()
     const node = nodes.find((n) => n.id === nodeId)
@@ -108,118 +215,6 @@ export const useCatalogStore = create((set, get) => ({
     return chain
   },
 
-  // ── CRUD ─────────────────────────────────────────────────────────────
-  addCategory: (name, parentId = null) => {
-    const { nodes } = get()
-    if (nameExistsGlobally(nodes, name)) return false
-    const newNode = { id: genId('c'), type: 'category', name: name.trim(), parentId, products: 0 }
-    set({ nodes: [...nodes, newNode] })
-    return true
-  },
-
-  addFolder: (name, parentId = null) => {
-    const { nodes } = get()
-    if (nameExistsGlobally(nodes, name)) return false
-    const newNode = { id: genId('f'), type: 'folder', name: name.trim(), parentId }
-    set({ nodes: [...nodes, newNode] })
-    return true
-  },
-
-  renameNode: (id, name) => {
-    set((s) => ({
-      nodes: s.nodes.map((n) => n.id === id ? { ...n, name: name.trim() } : n),
-    }))
-  },
-
-  // Soft delete category → trash
-  deleteCategory: (id) => {
-    const { nodes, trash } = get()
-    const node = nodes.find((n) => n.id === id)
-    if (!node) return
-    set({
-      nodes: nodes.filter((n) => n.id !== id),
-      trash: [...trash, node],
-    })
-  },
-
-  // Hard delete folder → promote children to folder's parent
-  deleteFolder: (id) => {
-    set((s) => {
-      const folder = s.nodes.find((n) => n.id === id)
-      if (!folder) return {}
-      const newParent = folder.parentId
-      return {
-        nodes: s.nodes
-          .filter((n) => n.id !== id)
-          .map((n) => n.parentId === id ? { ...n, parentId: newParent } : n),
-      }
-    })
-  },
-
-  restoreFromTrash: (id) => {
-    set((s) => {
-      const node = s.trash.find((n) => n.id === id)
-      if (!node) return {}
-      return {
-        trash: s.trash.filter((n) => n.id !== id),
-        nodes: [...s.nodes, { ...node, parentId: null }], // always to root
-      }
-    })
-  },
-
-  permanentDelete: (id) => {
-    set((s) => ({ trash: s.trash.filter((n) => n.id !== id) }))
-  },
-
-  // ── Group (only at root, creates/uses folder) ────────────────────────
-  // SPEC_CatalogPage_v2 §6.1: disponibilă doar la rădăcină, minim 2 elemente.
-  // Numele e unic global (IMPL_GrupareMutare §A1) — exceptând reutilizarea
-  // unui folder rădăcină existent cu același nume (nu e o coliziune nouă).
-  // Returnează false dacă pre-condițiile nu sunt îndeplinite.
-  groupNodes: (ids, folderName) => {
-    const { nodes } = get()
-    if (!Array.isArray(ids) || ids.length < 2) return false
-    const allAtRoot = ids.every((id) => {
-      const node = nodes.find((n) => n.id === id)
-      return node && node.parentId === null
-    })
-    if (!allAtRoot) return false
-    const existingRootFolder = nodes.find(
-      (n) => n.type === 'folder' && n.parentId === null && normalize(n.name) === normalize(folderName.trim())
-    )
-    if (!existingRootFolder && nameExistsGlobally(nodes, folderName)) return false
-    set((s) => {
-      let folder = existingRootFolder
-      let next = s.nodes
-      if (!folder) {
-        folder = { id: genId('f'), type: 'folder', name: folderName.trim(), parentId: null }
-        next = [...next, folder]
-      }
-      return {
-        nodes: next.map((n) => ids.includes(n.id) ? { ...n, parentId: folder.id } : n),
-      }
-    })
-    return true
-  },
-
-  // ── Move ─────────────────────────────────────────────────────────────
-  moveNodes: (ids, targetParentId) => {
-    const { nodes } = get()
-    // Anti-cycle: reject if any id is an ancestor of targetParentId
-    for (const id of ids) {
-      const descendants = getDescendantIds(nodes, id)
-      descendants.add(id)
-      if (targetParentId && descendants.has(targetParentId)) return false
-    }
-    set((s) => ({
-      nodes: s.nodes.map((n) => ids.includes(n.id) ? { ...n, parentId: targetParentId } : n),
-    }))
-    return true
-  },
-
-  // Folderele valide ca destinație de mutare pentru un nod (exclude nodul însuși
-  // și descendenții lui). Semnătură aliniată la SPEC_CatalogRPC §1.1
-  // (`get_valid_move_targets(p_node_id)`) — un singur nod.
   getValidMoveDestinations: (nodeId) => {
     const { nodes } = get()
     const excluded = getDescendantIds(nodes, nodeId)
@@ -227,78 +222,131 @@ export const useCatalogStore = create((set, get) => ({
     return nodes.filter((n) => n.type === 'folder' && !n.isTemp && !excluded.has(n.id))
   },
 
-  // ── Mutare cross-folder (Unfold mode) — SPEC_MutareCrossFolder §2-3 ──
-  // Echivalentul client-side al RPC-urilor create/dissolve/promote/cleanup_temp_folder.
-  createTempFolder: () => {
-    const tempId = genId('temp')
-    const tempNode = { id: tempId, type: 'folder', name: tempId, parentId: null, isTemp: true }
-    set((s) => ({ nodes: [...s.nodes, tempNode] }))
-    return tempId
-  },
-
-  dissolveTempFolder: (tempFolderId) => {
-    set((s) => {
-      const temp = s.nodes.find((n) => n.id === tempFolderId && n.isTemp)
-      if (!temp) return {}
-      const parentId = temp.parentId
-      return {
-        nodes: s.nodes
-          .filter((n) => n.id !== tempFolderId)
-          .map((n) => n.parentId === tempFolderId ? { ...n, parentId } : n),
-      }
+  // ── CRUD categorii/foldere (RPC + refetch) ───────────────────────────
+  addCategory: async (name, parentId = null) => {
+    const trimmed = name.trim()
+    if (nameExistsGlobally(get().nodes, trimmed)) {
+      return { ok: false, error: `Categoria „${trimmed}” există deja` }
+    }
+    const res = await callRpc('create_category', {
+      p_tenant_id: TENANT_ID, p_parent_id: parentId, p_name: trimmed, p_node_type: 'category',
     })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
   },
 
-  promoteTempFolder: (tempFolderId, newName) => {
-    const { nodes } = get()
+  addFolder: async (name, parentId = null) => {
+    const res = await callRpc('create_category', {
+      p_tenant_id: TENANT_ID, p_parent_id: parentId, p_name: name.trim(), p_node_type: 'folder',
+    })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
+  },
+
+  // Soft delete category → Trash (server-side)
+  deleteCategory: async (id) => {
+    const res = await callRpc('soft_delete_category', { p_tenant_id: TENANT_ID, p_category_id: id })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
+  },
+
+  // Hard delete folder → promovare copii la părintele folderului
+  deleteFolder: async (id) => {
+    const res = await callRpc('delete_folder', { p_tenant_id: TENANT_ID, p_folder_id: id })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
+  },
+
+  restoreFromTrash: async (id) => {
+    const res = await callRpc('restore_from_trash', { p_tenant_id: TENANT_ID, p_category_id: id })
+    if (!res.ok) return res
+    await Promise.all([get().fetchCatalog(), get().fetchTrash()])
+    return res
+  },
+
+  // ── Group (doar la rădăcină) ──────────────────────────────────────────
+  groupNodes: async (ids, folderName) => {
+    if (!Array.isArray(ids) || ids.length < 2) {
+      return { ok: false, error: 'Gruparea necesită minim 2 elemente' }
+    }
+    const res = await callRpc('group_nodes', {
+      p_tenant_id: TENANT_ID, p_node_ids: ids, p_folder_name: folderName.trim(),
+    })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
+  },
+
+  // ── Move ─────────────────────────────────────────────────────────────
+  moveNodes: async (ids, targetParentId) => {
+    for (const id of ids) {
+      const res = await callRpc('move_node', {
+        p_tenant_id: TENANT_ID, p_node_id: id, p_new_parent_id: targetParentId,
+      })
+      if (!res.ok) {
+        await get().fetchCatalog()
+        return res
+      }
+    }
+    await get().fetchCatalog()
+    return { ok: true }
+  },
+
+  // ── Mutare cross-folder (Unfold mode) — SPEC_MutareCrossFolder ───────
+  createTempFolder: async () => {
+    const res = await callRpc('create_temp_folder', { p_tenant_id: TENANT_ID })
+    if (!res.ok) return null
+    await get().fetchCatalog()
+    return res.data
+  },
+
+  dissolveTempFolder: async (tempFolderId) => {
+    const res = await callRpc('dissolve_temp_folder', { p_tenant_id: TENANT_ID, p_folder_id: tempFolderId })
+    await get().fetchCatalog()
+    return res
+  },
+
+  promoteTempFolder: async (tempFolderId, newName) => {
     const trimmed = newName.trim()
-    if (!trimmed) return false
-    if (nameExistsGlobally(nodes, trimmed, tempFolderId)) return false
-    set((s) => ({
-      nodes: s.nodes.map((n) => n.id === tempFolderId ? { ...n, isTemp: false, name: trimmed } : n),
-    }))
-    return true
-  },
-
-  cleanupTempFolders: () => {
-    set((s) => {
-      const tempIds = new Set(s.nodes.filter((n) => n.isTemp).map((n) => n.id))
-      if (tempIds.size === 0) return {}
-      return {
-        nodes: s.nodes
-          .filter((n) => !tempIds.has(n.id))
-          .map((n) => tempIds.has(n.parentId) ? { ...n, parentId: null } : n),
-      }
+    if (!trimmed) return { ok: false, error: 'Numele nu poate fi gol' }
+    const res = await callRpc('promote_temp_folder', {
+      p_tenant_id: TENANT_ID, p_folder_id: tempFolderId, p_new_name: trimmed,
     })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
   },
 
-  // ── Produse (pagina categoriei) ──────────────────────────────────────────────
+  cleanupTempFolders: async () => {
+    await callRpc('cleanup_temp_folders', { p_tenant_id: TENANT_ID })
+    await get().fetchCatalog()
+  },
+
+  // ── Produse (pagina categoriei) ───────────────────────────────────────
   getProductsByCategory: (categoryId) => {
     const { products } = get()
     return products.filter((p) => p.categoryId === categoryId && !p.deletedAt)
   },
 
-  // Numele produsului e unic în interiorul categoriei (nu global ca nodurile).
-  addProduct: (categoryId, name, attributes = {}, listPrice = null) => {
-    const { products } = get()
-    const trimmed = name.trim()
-    if (!trimmed) return false
-    const exists = products.some(
-      (p) => p.categoryId === categoryId && !p.deletedAt && normalize(p.name) === normalize(trimmed)
-    )
-    if (exists) return false
-    const newProduct = {
-      id: genId('prod'),
-      categoryId,
-      name: trimmed,
-      attributes,
-      listPrice: listPrice === '' || listPrice == null ? null : Number(listPrice),
-    }
-    set({ products: [...products, newProduct] })
-    return true
+  // name_id e generat server-side (RPC) — clientul nu trimite niciodată un nume.
+  addProduct: async (categoryId, attributes = {}, listPrice = null, tags = []) => {
+    const res = await callRpc('create_product', {
+      p_tenant_id: TENANT_ID,
+      p_category_id: categoryId,
+      p_attributes: attributes,
+      p_tags: tags,
+      p_list_price: listPrice === '' || listPrice == null ? null : Number(listPrice),
+    })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
   },
 
-  // ── Schema de atribute a categoriei ──────────────────────────────────────────
+  // ── Schema de atribute a categoriei ────────────────────────────────────
   getCategoryAttributes: (categoryId) => {
     const { categoryAttributes } = get()
     return categoryAttributes
@@ -313,38 +361,21 @@ export const useCatalogStore = create((set, get) => ({
       .sort((a, b) => a.position - b.position)
   },
 
-  // Nume atribut unic în categorie (SPEC_DatabaseSchema_v2 §4, uq_category_attributes_name).
-  addAttribute: (categoryId, name, type) => {
-    const { categoryAttributes } = get()
-    const trimmed = name.trim()
-    if (!trimmed || !['text', 'single_choice'].includes(type)) return false
-    const siblings = categoryAttributes.filter((a) => a.categoryId === categoryId)
-    if (siblings.some((a) => normalize(a.name) === normalize(trimmed))) return false
-    const newAttr = {
-      id: genId('attr'),
-      categoryId,
-      name: trimmed,
-      type,
-      position: siblings.length,
-    }
-    set({ categoryAttributes: [...categoryAttributes, newAttr] })
-    return true
+  addAttribute: async (categoryId, name, type) => {
+    const res = await callRpc('create_category_attribute', {
+      p_tenant_id: TENANT_ID, p_category_id: categoryId, p_name: name, p_attribute_type: type,
+    })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
   },
 
-  // Valoare unică în cadrul atributului (SPEC_DatabaseSchema_v2 §5, uq_attribute_options_value).
-  addAttributeOption: (attributeId, value) => {
-    const { attributeOptions } = get()
-    const trimmed = value.trim()
-    if (!trimmed) return false
-    const siblings = attributeOptions.filter((o) => o.attributeId === attributeId)
-    if (siblings.some((o) => normalize(o.value) === normalize(trimmed))) return false
-    const newOption = {
-      id: genId('opt'),
-      attributeId,
-      value: trimmed,
-      position: siblings.length,
-    }
-    set({ attributeOptions: [...attributeOptions, newOption] })
-    return true
+  addAttributeOption: async (attributeId, value) => {
+    const res = await callRpc('add_category_attribute_option', {
+      p_tenant_id: TENANT_ID, p_attribute_id: attributeId, p_value: value,
+    })
+    if (!res.ok) return res
+    await get().fetchCatalog()
+    return res
   },
 }))

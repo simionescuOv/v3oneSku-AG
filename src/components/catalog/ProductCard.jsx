@@ -10,7 +10,7 @@ export default function ProductCard({ product, meta, onTap }) {
     >
       <Package size={18} className="text-blue-400 shrink-0" />
       <span className="flex-1 min-w-0">
-        <span className="block text-sm text-zinc-100 truncate">{product.name}</span>
+        <span className="block text-sm text-zinc-100 truncate">{product.nameId}</span>
         {meta && <span className="block text-xs text-zinc-500 truncate">{meta}</span>}
       </span>
       {product.listPrice != null && (

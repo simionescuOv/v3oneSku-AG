@@ -31,20 +31,17 @@ export default function GroupNameSheet({ open, onClose, showToast, suppressSucce
 
   const ids = [...selectedNodeIds]
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const trimmed = name.trim()
     if (!trimmed) return
-    const ok = groupNodes(ids, trimmed)
-    if (!ok) {
-      showToast('Un folder cu acest nume există deja')
+    const res = await groupNodes(ids, trimmed)
+    if (!res.ok) {
+      showToast(res.error)
       inputRef.current?.focus()
       return
     }
     if (!suppressSuccessToast) showToast(`Folder „${trimmed}" creat cu ${ids.length} elemente`)
-    const folder = useCatalogStore.getState().nodes.find(
-      (n) => n.type === 'folder' && n.parentId === null && n.name === trimmed
-    )
-    onGrouped?.(folder?.id)
+    onGrouped?.(res.data)
     onClose()
     clearSelection()
   }

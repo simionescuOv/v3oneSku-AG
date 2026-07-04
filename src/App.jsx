@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AppShell from './components/shell/AppShell'
 import HomePage from './pages/HomePage'
@@ -8,8 +9,17 @@ import StockHubPage from './pages/StockHubPage'
 import StorefrontPage from './pages/StorefrontPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import { useCatalogStore } from './store/useCatalogStore'
 
 export default function App() {
+  const fetchCatalog = useCatalogStore((s) => s.fetchCatalog)
+
+  // Supabase e sursa unică de adevăr — cache-ul local se populează o singură
+  // dată la pornirea aplicației; mutațiile ulterioare îl reîmprospătează.
+  useEffect(() => {
+    fetchCatalog()
+  }, [fetchCatalog])
+
   return (
     <BrowserRouter>
       <Routes>
