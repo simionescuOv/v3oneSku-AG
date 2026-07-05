@@ -1,24 +1,17 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { X, LogOut } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
-import { useAuthStore } from '../../store/useAuthStore'
 import { NAV_ITEMS } from '../../lib/navItems'
 
 export default function SideMenu() {
   const open = useAppStore((s) => s.sideMenuOpen)
   const close = useAppStore((s) => s.closeSideMenu)
-  const signOut = useAuthStore((s) => s.signOut)
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
   const handleNav = (path) => {
     navigate(path)
     close()
-  }
-
-  const handleLogout = () => {
-    close()
-    signOut()
   }
 
   if (!open) return null
@@ -64,17 +57,6 @@ export default function SideMenu() {
             )
           })}
         </nav>
-
-        {/* Logout */}
-        <div className="border-t border-zinc-800 py-3">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-5 py-3.5 text-sm font-medium text-red-400 hover:bg-zinc-800/60 transition-colors"
-          >
-            <LogOut size={20} />
-            Deconectare
-          </button>
-        </div>
       </div>
     </>
   )
