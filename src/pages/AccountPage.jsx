@@ -7,7 +7,6 @@ export default function AccountPage() {
   const role = useAuthStore((s) => s.role)
   const signOut = useAuthStore((s) => s.signOut)
 
-  const displayName = user?.user_metadata?.full_name || user?.email
   const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : '—'
 
   return (
@@ -18,7 +17,7 @@ export default function AccountPage() {
       <div className="max-w-sm rounded-lg border border-zinc-800 divide-y divide-zinc-800">
         <div className="px-5 py-4">
           <p className="text-xs text-zinc-500">Cont Google</p>
-          <p className="text-sm font-medium text-zinc-100">{displayName ?? '—'}</p>
+          <p className="text-sm font-medium text-zinc-100">{user?.email ?? '—'}</p>
         </div>
         <div className="px-5 py-4">
           <p className="text-xs text-zinc-500">Tenant</p>
