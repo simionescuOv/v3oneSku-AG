@@ -8,4 +8,13 @@
 -- tenanți noi) e o funcționalitate de produs separată — nu se construiește
 -- aici (task-ul curent e strict Auth + RLS). Când se implementează, se va crea
 -- un tenant demo dedicat, populat deliberat, nu acest artefact de dev.
+--
+-- Ștergere explicită, în ordine, înainte de tenant: cascada FK de pe
+-- `category_attributes`/`products` declanșează triggere de rebuild
+-- `filter_idx` (§7.1 SPEC_DatabaseSchema_v3) care ar insera cu un
+-- `tenant_id` deja șters dacă am lăsa totul pe seama `on delete cascade`
+-- direct pe `tenants`.
+delete from filter_idx where tenant_id = '00000000-0000-0000-0000-000000000001';
+delete from category_attributes where tenant_id = '00000000-0000-0000-0000-000000000001';
+delete from products where tenant_id = '00000000-0000-0000-0000-000000000001';
 delete from tenants where id = '00000000-0000-0000-0000-000000000001';
