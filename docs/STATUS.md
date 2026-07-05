@@ -4,6 +4,47 @@
 
 ---
 
+## Triaj — cereri oprite pentru planificare (2026-07-05)
+
+### Cerere: atributul special `tags` la configurarea schemei categoriei
+
+**Ce a cerut userul:** implementarea atributului special `tags` în configurarea
+schemei categoriei (SchemaSheet).
+
+**De ce m-am oprit (regula de triaj din CLAUDE.md):**
+- **Semnalul 2** — cererea nu e determinată de spec-uri, ba chiar le contrazice
+  parțial: `ARCHITECTURE.md` §5.2 spune explicit *„`Tags` NU este un field type
+  în schema categoriei. Este un sistem separat, global (§5.4)."* Tags e un
+  „atribut predefinit prezent pe orice produs" (`SPEC_LocalFilter_v3.md` §5.2).
+  Cum ar apărea în SchemaSheet (rând special read-only? doar în formularul de
+  produs? deloc în schemă?) nu e specificat nicăieri — ar însemna să aleg eu
+  între variante nespecificate.
+- **Semnalul 3** — risc de coliziune cu anti-pattern fixat: spec-ul cere la
+  adăugarea unui tag **prefix search anti-duplicare** (ARCHITECTURE §5.4), dar
+  interzice **search propriu în bottom-sheet** (SPEC_CatalogPage_v3 §6,
+  SPEC_Picker_v2 §6 — căutarea curge doar prin BottomBar). ProductFormSheet /
+  SchemaSheet sunt bottom-sheet-uri; fluxul corect de selecție tags
+  (ListPick + BottomBar) cere o decizie de design UX nespecificată încă.
+
+**Stadiul actual al codului relevant:**
+- DB complet pregătit, nu necesită tabele/coloane noi: `products.tags text[]`
+  cu index GIN (`20260704120500_products.sql`), `filter_idx` global indexează
+  deja bucket-ul `'tags'` (`20260704120700_filter_idx_functions.sql`),
+  `space_products.local_tags text[]` există pentru tag-urile locale de Space.
+- RPC: `create_product` acceptă deja `p_tags`
+  (`20260705120300_rpc_session_tenant.sql`); **nu există** niciun RPC de
+  update produs / update tags — editarea tag-urilor pe un produs existent ar
+  cere un RPC nou.
+- Client: `useCatalogStore` mapează `tags` (`mapProduct`) și `addProduct`
+  acceptă parametrul `tags`, dar **niciun UI** nu afișează sau editează
+  tag-urile — zero referințe în `ProductFormSheet.jsx`, `SchemaSheet.jsx`,
+  `CategoryPage.jsx`, `ProductCard.jsx`.
+- Fișiere care ar fi atinse de implementare: `src/components/catalog/
+  ProductFormSheet.jsx`, `SchemaSheet.jsx`, `src/pages/CategoryPage.jsx`,
+  `src/store/useCatalogStore.js`, plus o migrație nouă cu RPC de update.
+
+---
+
 ## Sesiunea 2 — Migrare Supabase (Catalog ca sursă de adevăr)
 
 ### Ce s-a schimbat
