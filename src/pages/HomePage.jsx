@@ -1,5 +1,5 @@
 // Cuvânt generat la acest push, pentru verificarea versiunii deployed pe Vercel.
-const BUILD_WORD = 'corabie'
+const BUILD_WORD = 'zambila'
 
 export default function HomePage() {
   return (

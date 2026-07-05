@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AppShell from './components/shell/AppShell'
 import HomePage from './pages/HomePage'
 import AccountPage from './pages/AccountPage'
@@ -9,21 +9,48 @@ import StockHubPage from './pages/StockHubPage'
 import StorefrontPage from './pages/StorefrontPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import LoginPage from './pages/LoginPage'
 import { useCatalogStore } from './store/useCatalogStore'
+import { useAuthStore } from './store/useAuthStore'
+
+function RequireAuth({ children }) {
+  const user = useAuthStore((s) => s.user)
+  const initialized = useAuthStore((s) => s.initialized)
+
+  if (!initialized) return null
+  if (!user) return <Navigate to="/login" replace />
+  return children
+}
 
 export default function App() {
+  const init = useAuthStore((s) => s.init)
+  const user = useAuthStore((s) => s.user)
+  const tenantId = useAuthStore((s) => s.tenantId)
   const fetchCatalog = useCatalogStore((s) => s.fetchCatalog)
 
-  // Supabase e sursa unică de adevăr — cache-ul local se populează o singură
-  // dată la pornirea aplicației; mutațiile ulterioare îl reîmprospătează.
   useEffect(() => {
-    fetchCatalog()
-  }, [fetchCatalog])
+    init()
+  }, [init])
+
+  // Supabase e sursa unică de adevăr — cache-ul local se populează o singură
+  // dată după ce sesiunea + tenantul sunt cunoscute; mutațiile ulterioare îl
+  // reîmprospătează.
+  useEffect(() => {
+    if (user && tenantId) fetchCatalog()
+  }, [user, tenantId, fetchCatalog])
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AppShell />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <RequireAuth>
+              <AppShell />
+            </RequireAuth>
+          }
+        >
           <Route index element={<HomePage />} />
           <Route path="account"    element={<AccountPage />} />
           <Route path="catalog"    element={<CatalogPage />} />
