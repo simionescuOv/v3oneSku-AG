@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabaseClient'
-import { DEFAULT_TENANT_ID } from '../lib/tenant'
 import { normalize } from '../lib/search'
 
 // Supabase e sursa unică de adevăr (SPEC_DatabaseSchema_v3); Zustand e doar
 // cache local populat prin fetch și invalidat după fiecare mutație. Citirile
 // derivate (getChildren, getBreadcrumb, getValidMoveDestinations etc.) rămân
 // sincrone, calculate peste cache-ul local — doar mutațiile trec prin RPC.
-
-const TENANT_ID = DEFAULT_TENANT_ID
+//
+// Nu se mai filtrează pe `tenant_id` client-side — RLS restricționează deja
+// fiecare select la tenantul userului autentificat (auth.uid() → tenant_members).
 
 // Numele de CATEGORIE e unic global per tenant (nu și folderele — libere,
 // SPEC_DatabaseSchema_v3 §3.1). Verificare optimistă client-side pentru UX;
@@ -116,24 +116,20 @@ export const useCatalogStore = create((set, get) => ({
       supabase
         .from('categories')
         .select('*')
-        .eq('tenant_id', TENANT_ID)
         .eq('is_temp', false)
         .is('deleted_at', null)
         .order('position'),
       supabase
         .from('products')
         .select('*')
-        .eq('tenant_id', TENANT_ID)
         .is('deleted_at', null),
       supabase
         .from('category_attributes')
         .select('*')
-        .eq('tenant_id', TENANT_ID)
         .order('position'),
       supabase
         .from('category_attribute_options')
         .select('*')
-        .eq('tenant_id', TENANT_ID)
         .order('position'),
     ])
 
@@ -158,7 +154,6 @@ export const useCatalogStore = create((set, get) => ({
     const { data, error } = await supabase
       .from('categories')
       .select('*')
-      .eq('tenant_id', TENANT_ID)
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false })
     if (error) return { ok: false, error: error.message }
@@ -229,7 +224,7 @@ export const useCatalogStore = create((set, get) => ({
       return { ok: false, error: `Categoria „${trimmed}” există deja` }
     }
     const res = await callRpc('create_category', {
-      p_tenant_id: TENANT_ID, p_parent_id: parentId, p_name: trimmed, p_node_type: 'category',
+      p_parent_id: parentId, p_name: trimmed, p_node_type: 'category',
     })
     if (!res.ok) return res
     await get().fetchCatalog()
@@ -238,7 +233,7 @@ export const useCatalogStore = create((set, get) => ({
 
   addFolder: async (name, parentId = null) => {
     const res = await callRpc('create_category', {
-      p_tenant_id: TENANT_ID, p_parent_id: parentId, p_name: name.trim(), p_node_type: 'folder',
+      p_parent_id: parentId, p_name: name.trim(), p_node_type: 'folder',
     })
     if (!res.ok) return res
     await get().fetchCatalog()
@@ -247,7 +242,7 @@ export const useCatalogStore = create((set, get) => ({
 
   // Soft delete category → Trash (server-side)
   deleteCategory: async (id) => {
-    const res = await callRpc('soft_delete_category', { p_tenant_id: TENANT_ID, p_category_id: id })
+    const res = await callRpc('soft_delete_category', { p_category_id: id })
     if (!res.ok) return res
     await get().fetchCatalog()
     return res
@@ -255,14 +250,14 @@ export const useCatalogStore = create((set, get) => ({
 
   // Hard delete folder → promovare copii la părintele folderului
   deleteFolder: async (id) => {
-    const res = await callRpc('delete_folder', { p_tenant_id: TENANT_ID, p_folder_id: id })
+    const res = await callRpc('delete_folder', { p_folder_id: id })
     if (!res.ok) return res
     await get().fetchCatalog()
     return res
   },
 
   restoreFromTrash: async (id) => {
-    const res = await callRpc('restore_from_trash', { p_tenant_id: TENANT_ID, p_category_id: id })
+    const res = await callRpc('restore_from_trash', { p_category_id: id })
     if (!res.ok) return res
     await Promise.all([get().fetchCatalog(), get().fetchTrash()])
     return res
@@ -274,7 +269,7 @@ export const useCatalogStore = create((set, get) => ({
       return { ok: false, error: 'Gruparea necesită minim 2 elemente' }
     }
     const res = await callRpc('group_nodes', {
-      p_tenant_id: TENANT_ID, p_node_ids: ids, p_folder_name: folderName.trim(),
+      p_node_ids: ids, p_folder_name: folderName.trim(),
     })
     if (!res.ok) return res
     await get().fetchCatalog()
@@ -285,7 +280,7 @@ export const useCatalogStore = create((set, get) => ({
   moveNodes: async (ids, targetParentId) => {
     for (const id of ids) {
       const res = await callRpc('move_node', {
-        p_tenant_id: TENANT_ID, p_node_id: id, p_new_parent_id: targetParentId,
+        p_node_id: id, p_new_parent_id: targetParentId,
       })
       if (!res.ok) {
         await get().fetchCatalog()
@@ -298,14 +293,14 @@ export const useCatalogStore = create((set, get) => ({
 
   // ── Mutare cross-folder (Unfold mode) — SPEC_MutareCrossFolder ───────
   createTempFolder: async () => {
-    const res = await callRpc('create_temp_folder', { p_tenant_id: TENANT_ID })
+    const res = await callRpc('create_temp_folder', {})
     if (!res.ok) return null
     await get().fetchCatalog()
     return res.data
   },
 
   dissolveTempFolder: async (tempFolderId) => {
-    const res = await callRpc('dissolve_temp_folder', { p_tenant_id: TENANT_ID, p_folder_id: tempFolderId })
+    const res = await callRpc('dissolve_temp_folder', { p_folder_id: tempFolderId })
     await get().fetchCatalog()
     return res
   },
@@ -314,7 +309,7 @@ export const useCatalogStore = create((set, get) => ({
     const trimmed = newName.trim()
     if (!trimmed) return { ok: false, error: 'Numele nu poate fi gol' }
     const res = await callRpc('promote_temp_folder', {
-      p_tenant_id: TENANT_ID, p_folder_id: tempFolderId, p_new_name: trimmed,
+      p_folder_id: tempFolderId, p_new_name: trimmed,
     })
     if (!res.ok) return res
     await get().fetchCatalog()
@@ -322,7 +317,7 @@ export const useCatalogStore = create((set, get) => ({
   },
 
   cleanupTempFolders: async () => {
-    await callRpc('cleanup_temp_folders', { p_tenant_id: TENANT_ID })
+    await callRpc('cleanup_temp_folders', {})
     await get().fetchCatalog()
   },
 
@@ -335,7 +330,6 @@ export const useCatalogStore = create((set, get) => ({
   // name_id e generat server-side (RPC) — clientul nu trimite niciodată un nume.
   addProduct: async (categoryId, attributes = {}, listPrice = null, tags = []) => {
     const res = await callRpc('create_product', {
-      p_tenant_id: TENANT_ID,
       p_category_id: categoryId,
       p_attributes: attributes,
       p_tags: tags,
@@ -363,7 +357,7 @@ export const useCatalogStore = create((set, get) => ({
 
   addAttribute: async (categoryId, name, type) => {
     const res = await callRpc('create_category_attribute', {
-      p_tenant_id: TENANT_ID, p_category_id: categoryId, p_name: name, p_attribute_type: type,
+      p_category_id: categoryId, p_name: name, p_attribute_type: type,
     })
     if (!res.ok) return res
     await get().fetchCatalog()
@@ -372,7 +366,7 @@ export const useCatalogStore = create((set, get) => ({
 
   addAttributeOption: async (attributeId, value) => {
     const res = await callRpc('add_category_attribute_option', {
-      p_tenant_id: TENANT_ID, p_attribute_id: attributeId, p_value: value,
+      p_attribute_id: attributeId, p_value: value,
     })
     if (!res.ok) return res
     await get().fetchCatalog()
