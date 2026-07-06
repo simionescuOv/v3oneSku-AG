@@ -4,9 +4,44 @@
 
 ---
 
+## Sesiunea 3 — Tags (SPEC_Tags v1 implementat)
+
+### Ce s-a schimbat
+
+- **`docs/specs/SPEC_Tags.md`** — spec-ul rezultat din planificare (Claude.ai), adăugat
+  în repo. Zero migrații/RPC-uri noi — totul e UI + client.
+- **`PickerSheet.jsx` (nou)** — picker generic în modul „cu căutare" (BottomBar filtrează,
+  fără input propriu în sheet): multiSelect+confirmare explicită pentru tags,
+  single-select cu confirmare la tap pentru `single_choice`, rând „+ Adaugă «query»" pe
+  potrivire inexactă normalizată (`normalize()` canonic, prin `usePicker` mod inline).
+- **`ProductFormSheet.jsx`** — câmp Tags (chips cu „×", placeholder, marcat „de sistem")
+  după câmpurile din schemă, înainte de preț; selecția `single_choice` aliniată de la
+  chips inline la același picker; **mecanismul SWAP** (SPEC_Tags §5): formularul se
+  ascunde vizual cât e deschis picker-ul și revine cu starea intactă — fără stacking.
+- **`SchemaSheet.jsx`** — secțiunea informativă read-only „De sistem" (NameID + Tags)
+  deasupra listei de atribute.
+- **`useCatalogStore.fetchTagVocabulary`** — vocabular derivat exclusiv din `filter_idx`
+  global, bucket `tags` → `{value, count}`; tratează rândul lipsă și bucket-ul absent
+  ca vocabular gol (confirmate pe Postgres efemer, vezi mai jos).
+
+### Verificat end-to-end (Postgres 16 efemer, migrații de la zero + shim auth)
+
+- Tenant proaspăt → rândul `filter_idx` global **lipsește complet**; după prima mutație
+  de atribut există **fără** cheia `tags` — clientul tratează ambele cazuri (`maybeSingle`
+  + `?? []`).
+- `create_product(p_tags)` populează corect `products.tags`; rebuild-ul global include
+  bucket-ul `tags`; contoarele derivate cresc la refolosirea unui tag (`vara:2, premium:1`);
+  zero tag-uri = stare validă (`{}`).
+
+---
+
 ## Triaj — cereri oprite pentru planificare (2026-07-05)
 
-### Cerere: atributul special `tags` la configurarea schemei categoriei
+### Cerere: atributul special `tags` la configurarea schemei categoriei — ✅ REZOLVAT
+
+> Rezolvat prin planificare: `docs/specs/SPEC_Tags.md` (v1) a fixat deciziile
+> (secțiune read-only „De sistem" în SchemaSheet, picker cu BottomBar, regula SWAP)
+> și a fost implementat în Sesiunea 3 (mai sus). Textul de mai jos rămâne ca istoric.
 
 **Ce a cerut userul:** implementarea atributului special `tags` în configurarea
 schemei categoriei (SchemaSheet).
@@ -182,7 +217,8 @@ src/
 - [x] Adăugare produs (individual) — formular generat din schemă, `list_price` opțional
 - [ ] Import produse din xlsx (SheetJS)
 - [ ] Filtrare produse (OR per atribut, AND între atribute)
-- [ ] Tag Vocabulary global (Tag Groups + Tag Values)
+- [x] Tags la crearea produsului (picker SWAP, vocabular derivat din `filter_idx` global) — SPEC_Tags v1
+- [ ] Tag Groups (grupare vizuală, pur UI) — amânat (SPEC_LocalFilter_v3 §5.2.5)
 
 ### Pagina categoriei (Faza 1 MVP) — implementat
 - Rută `/catalog/category/:categoryId` → `CategoryPage` (tap pe categorie deschide pagina)
