@@ -94,7 +94,7 @@ export default function PickerSheet({
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose} aboveBottomBar>
       <div className="pb-6">
         <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2 text-center">{title}</h2>
 

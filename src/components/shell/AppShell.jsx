@@ -1,16 +1,18 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import TopBar from './TopBar'
 import MainContent from './MainContent'
 import BottomBar from './BottomBar'
 import SideMenu from '../nav/SideMenu'
+import { useAppStore } from '../../store/useAppStore'
 import { useViewportHeight } from '../../hooks/useViewportHeight'
 
 export default function AppShell() {
-  const [bottomHidden, setBottomHidden] = useState(false)
+  const bottomHidden = useAppStore((s) => s.bottomBarScrollHidden)
+  const setBottomHidden = useAppStore((s) => s.setBottomBarScrollHidden)
   const { height, offsetTop } = useViewportHeight()
 
-  const handleScrollDown = useCallback(() => setBottomHidden(true), [])
-  const handleScrollUp = useCallback(() => setBottomHidden(false), [])
+  const handleScrollDown = useCallback(() => setBottomHidden(true), [setBottomHidden])
+  const handleScrollUp = useCallback(() => setBottomHidden(false), [setBottomHidden])
 
   return (
     <div

@@ -39,7 +39,7 @@ export default function DestinationPicker({ open, onClose, tempFolderId, onPicke
   if (!open) return null
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose} aboveBottomBar>
       <div className="pb-6">
         <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2">Mută în…</h2>
         <div className="max-h-[60dvh] overflow-y-auto divide-y divide-zinc-800">
