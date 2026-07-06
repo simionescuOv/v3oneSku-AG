@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Square, CheckSquare } from 'lucide-react'
+import { Plus, Square, CheckSquare, Check } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { usePicker } from '../../hooks/usePicker'
 import { useAppStore } from '../../store/useAppStore'
@@ -100,7 +100,12 @@ export default function PickerSheet({
 
         <div className="max-h-[55dvh] overflow-y-auto divide-y divide-zinc-800">
           {filteredItems.map((it) => {
-            const isSelected = multiSelect && tempSelected.includes(it.value)
+            // multiSelect: checkbox reflectă selecția temporară (tags).
+            // single-select: bifă simplă pe valoarea deja aleasă în formular
+            // (fără checkbox — tap pe orice rând confirmă imediat).
+            const isSelected = multiSelect
+              ? tempSelected.includes(it.value)
+              : selected.includes(it.value)
             return (
               <button
                 key={it.value}
@@ -114,6 +119,9 @@ export default function PickerSheet({
                 <span className="flex-1 text-sm text-zinc-100 truncate">{it.value}</span>
                 {it.count > 0 && (
                   <span className="text-xs text-zinc-500 shrink-0">{it.count}</span>
+                )}
+                {!multiSelect && isSelected && (
+                  <Check size={16} className="text-blue-400 shrink-0" />
                 )}
               </button>
             )

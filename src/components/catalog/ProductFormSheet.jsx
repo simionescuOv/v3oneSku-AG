@@ -60,11 +60,18 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
 
   const openTagsPicker = async () => {
     if (tagVocab === null) {
-      const res = await fetchTagVocabulary()
-      // Vocabular gol e stare validă (tenant nou / fără tag-uri) — doar
-      // eroarea reală de fetch se anunță; picker-ul se deschide oricum.
-      if (!res.ok) showToast(res.error)
-      const vocab = res.ok ? res.data : []
+      // Fetch-ul poate eșua (rețea/RLS) în afara formei { ok, error } —
+      // picker-ul tot trebuie să se deschidă (vocabular gol e stare validă,
+      // SPEC_Tags §4.4), altfel un eșec de fetch blochează tap-ul pe rândul
+      // Tags fără niciun feedback vizual.
+      let vocab = []
+      try {
+        const res = await fetchTagVocabulary()
+        if (!res.ok) showToast(res.error)
+        else vocab = res.data
+      } catch (err) {
+        showToast(err?.message ?? 'Eroare la încărcarea vocabularului de tags')
+      }
       vocab.sort(
         (a, b) => b.count - a.count || normalize(a.value).localeCompare(normalize(b.value))
       )
@@ -173,24 +180,26 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
                 className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
               />
             ) : (
+              // Valoare unică, afișată ca text simplu (nu chip/pill): un chip
+              // colorat cu „×" sugerează multi-select, dar single_choice
+              // permite o singură valoare — schimbarea se face redeschizând
+              // picker-ul, nu eliminând un „tag".
               <div
                 onClick={() => setPicker({ type: 'attr', attrId: a.id })}
-                className="w-full flex items-center gap-2 bg-zinc-800 rounded-xl px-3 min-h-11 py-1.5 cursor-pointer active:bg-zinc-700"
+                className="w-full flex items-center gap-2 bg-zinc-800 rounded-xl px-3 h-11 cursor-pointer active:bg-zinc-700"
               >
-                {values[a.id] ? (
-                  <span className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-blue-600 text-sm text-white">
-                    {values[a.id]}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setValue(a.id, undefined) }}
-                      className="flex items-center justify-center -mr-1 w-5 h-5 rounded-full active:bg-blue-700"
-                    >
-                      <X size={13} />
-                    </button>
-                  </span>
-                ) : (
-                  <span className="flex-1 text-sm text-zinc-500">Alege...</span>
+                <span className={['flex-1 text-sm truncate', values[a.id] ? 'text-zinc-100' : 'text-zinc-500'].join(' ')}>
+                  {values[a.id] ?? 'Alege...'}
+                </span>
+                {values[a.id] && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setValue(a.id, undefined) }}
+                    className="flex items-center justify-center w-6 h-6 rounded-full text-zinc-500 active:bg-zinc-700 active:text-zinc-300"
+                  >
+                    <X size={14} />
+                  </button>
                 )}
-                <ChevronRight size={16} className="ml-auto text-zinc-600 shrink-0" />
+                <ChevronRight size={16} className="text-zinc-600 shrink-0" />
               </div>
             )}
           </div>
