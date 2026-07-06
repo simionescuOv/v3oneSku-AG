@@ -4,6 +4,57 @@
 
 ---
 
+## Sesiunea 4 — Account UI (logout + tenant/rol) și follow-up Tags
+
+### Ce s-a schimbat
+
+- **Account (`src/pages/AccountPage.jsx`)** — butonul de logout mutat din meniul
+  hamburger (`SideMenu.jsx`) pe pagina `/account`. Pagina afișează: emailul contului
+  Google (`user.email`), denumirea tenantului și rolul curent (`admin` — singurul rol
+  existent deocamdată). `useAuthStore` extins cu `fetchMembership()`: o singură
+  interogare embedded `tenant_members` + `tenants(name)` (`tenant_id, role,
+  tenants(name)`), populează `tenantId`, `role`, `tenantName` în store.
+- **Fix BottomBar invizibil sub sheet-uri „cu căutare"** — `PickerSheet` și
+  `DestinationPicker` erau ancorate `bottom-0` peste footer, acoperind complet
+  BottomBar-ul (bara exista, dar era vizual/interactiv sub sheet). `BottomSheet`
+  primește acum `aboveBottomBar`: panoul + backdrop-ul se opresc deasupra barei
+  (h-16), care rămâne vizibilă și tappabilă. Verificat vizual cu Playwright +
+  fixture-uri Supabase mock (server local, fără acces la rețea reală în acest mediu).
+- **Fix `openTagsPicker` blocat silent la eroare de fetch** — lipsea `try/catch` în
+  jurul `fetchTagVocabulary()`; orice eșec (rețea/RLS) oprea execuția înainte de
+  `setPicker`, iar tap-ul pe „Adaugă tag-uri" nu producea nimic vizibil. Acum orice
+  eroare e prinsă, vocabularul cade la listă goală (stare validă), picker-ul se
+  deschide oricum.
+- **UI `single_choice` — nu mai arată ca pill/chip multi-select** — valoarea aleasă
+  se afișează ca text simplu + buton „×" discret (nu mai chip colorat), ca să nu
+  sugereze că s-ar putea alege mai multe valori. Tags rămâne chip colorat — acolo
+  multi-select chiar există. Bifă (`Check`) adăugată și pe rândul deja selectat în
+  modul single-select din `PickerSheet`, pentru paritate cu highlight-ul din vechile
+  chips inline.
+
+### Cereri evaluate și respinse conștient (nu redeschide fără cerere explicită)
+
+1. **NameID afișat în formular înainte de completarea atributelor** (nu doar după
+   salvare). Ar fi necesitat un RPC nou (`preview_name_id`) + extinderea
+   `create_product` cu un parametru opțional `p_name_id`, cu fallback silent la
+   coliziune. Fezabil tehnic (draft de migrație scris și testat, apoi șters),
+   dar **userul a decis explicit să renunțe complet** — nu merită complicația
+   pentru o funcționalitate minoră. Comportament neschimbat: NameID apare abia
+   după salvare (pe card / în toast).
+2. **Tag creat în picker, debifat înainte de salvare, ar trebui să rămână
+   disponibil chiar dacă utilizatorul anulează tot formularul de produs** (fără
+   să salveze niciun produs). Asta ar necesita un tabel propriu de tag-uri,
+   independent de `products.tags` — exact anti-pattern-ul v2 respins explicit de
+   `SPEC_DatabaseSchema_v3` §14 și interzis din nou de `SPEC_Tags` v1 („vocabular
+   derivat, fără tabel de tags"). I-am pus userului alegerea explicit (fix
+   izolat la nivel de sesiune de formular vs. schimbare de arhitectură) —
+   **a ales explicit să nu schimbe nimic**, acceptând comportamentul curent
+   (tag pierdut dacă nu e bifat la „Salvează" din picker, sau dacă tot
+   formularul e anulat) ca un compromis mic față de o replanificare de
+   arhitectură. Nu redeschide acest subiect fără o cerere nouă și explicită.
+
+---
+
 ## Sesiunea 3 — Tags (SPEC_Tags v1 implementat)
 
 ### Ce s-a schimbat
@@ -241,10 +292,17 @@ src/
 - [ ] Coșul ca motor de mișcare stoc
 - [ ] Clonare automată la prima apariție produs în Space
 
+### Account
+- [x] Autentificare Google OAuth (Supabase Auth) + RLS pe `tenant_id`
+- [x] Pagina `/account`: email cont Google, denumire tenant, rol curent (`admin`)
+- [x] Logout mutat din meniul hamburger pe pagina Account
+- [ ] Roluri suplimentare (dincolo de `admin`) — coloana `role` e text liber, fără
+      check constraint, dar nicio valoare nouă nu e definită/folosită încă
+
 ### Infrastructură
 - [x] Schema DB + RPC-uri + `filter_idx` scrise ca migrații versionate (`supabase/migrations/`)
 - [x] `useCatalogStore` refactorizat: Supabase sursă de adevăr, Zustand cache local
 - [ ] Proiect Supabase real creat + migrații aplicate (de făcut de utilizator, vezi „Pași de setup”)
-- [ ] Auth — încă pe tenant fix hardcodat (`00000000-...0001`)
+- [x] Auth — Google OAuth prin Supabase, tenant + rol derivate din `tenant_members`
+      (nu mai e tenant fix hardcodat)
 - [ ] PWA manifest + service worker
-- [ ] Users / Roles (TBD în arhitectură)
