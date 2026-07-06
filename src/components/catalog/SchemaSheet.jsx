@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronRight, ChevronLeft, Plus, Type, List } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Plus, Type, List, Cog } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
@@ -69,6 +69,33 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
         {view === 'list' && (
           <>
             <h2 className="text-sm font-medium text-zinc-200 mb-3 text-center">Schema categoriei</h2>
+
+            {/* Atribute de sistem — strict read-only, pur explicativ (SPEC_Tags §2):
+                fără onClick, fără chevron, fără toggle. Nu participă la nicio
+                numărare/validare a schemei. */}
+            <p className="pb-1 text-[11px] font-medium tracking-wider text-zinc-600">DE SISTEM</p>
+            <div className="divide-y divide-zinc-800/60 mb-3">
+              <div className="flex items-start gap-3 py-2.5">
+                <Cog size={16} className="text-zinc-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-zinc-400">NameID</p>
+                  <p className="text-xs text-zinc-600">
+                    Identificator generat automat la creare — unic, needitabil
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 py-2.5">
+                <Cog size={16} className="text-zinc-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-zinc-400">Tags</p>
+                  <p className="text-xs text-zinc-600">
+                    Etichete libere, valabile în tot catalogul; se completează în formularul de produs
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="pb-1 text-[11px] font-medium tracking-wider text-zinc-600">ATRIBUTELE CATEGORIEI</p>
             <div className="divide-y divide-zinc-800 max-h-[50dvh] overflow-y-auto">
               {attrs.map((a) => (
                 <button

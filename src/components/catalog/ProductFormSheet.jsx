@@ -1,34 +1,49 @@
 import { useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { X, ChevronRight, Tag } from 'lucide-react'
 import BottomSheet from './BottomSheet'
+import PickerSheet from './PickerSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
+import { normalize } from '../../lib/search'
 
 // Formular de adăugare produs — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
 // Fără câmp de nume: NameID e generat server-side (imuabil, needitabil de
 // user) — vezi SPEC_DatabaseSchema_v3 §6.1. Câmpurile se generează din schema
-// categoriei: text → input; single_choice → chips de opțiuni.
+// categoriei: text → input; single_choice → rând care deschide PickerSheet.
+//
+// Selecțiile (single_choice, tags) rulează prin SWAP (SPEC_Tags §5): formularul
+// se ascunde vizual, picker-ul îi ia locul, la confirmare/anulare formularul
+// revine cu starea intactă (state-ul trăiește aici, componenta rămâne montată).
 export default function ProductFormSheet({ open, onClose, categoryId, showToast, onCreated }) {
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const attributeOptions = useCatalogStore((s) => s.attributeOptions)
   const addAttributeOption = useCatalogStore((s) => s.addAttributeOption)
   const addProduct = useCatalogStore((s) => s.addProduct)
+  const fetchTagVocabulary = useCatalogStore((s) => s.fetchTagVocabulary)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
 
   const [values, setValues] = useState({})
+  const [tags, setTags] = useState([])
   const [listPrice, setListPrice] = useState('')
-  const [optionDrafts, setOptionDrafts] = useState({})
   const [saving, setSaving] = useState(false)
+  // Swap: null | { type: 'tags' } | { type: 'attr', attrId }
+  const [picker, setPicker] = useState(null)
+  // Vocabular derivat din filter_idx global — cache pe durata sesiunii de
+  // formular (SPEC_Tags §4.4); null = încă nefetchuit.
+  const [tagVocab, setTagVocab] = useState(null)
 
   useEffect(() => {
-    setBottomBarHidden(open)
-    if (open) {
-      setValues({})
-      setListPrice('')
-      setOptionDrafts({})
-      setSaving(false)
-    }
-  }, [open, setBottomBarHidden])
+    // BottomBar: ascuns cât e vizibil formularul, vizibil (cu căutare) cât e
+    // deschis un picker — comutarea modurilor e per-sheet (SPEC_Tags §5).
+    setBottomBarHidden(open && !picker)
+    if (open) return
+    setValues({})
+    setTags([])
+    setListPrice('')
+    setSaving(false)
+    setPicker(null)
+    setTagVocab(null)
+  }, [open, picker, setBottomBarHidden])
 
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
 
@@ -43,16 +58,47 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
 
   const setValue = (attrId, val) => setValues((prev) => ({ ...prev, [attrId]: val }))
 
-  const handleAddOption = async (attrId) => {
-    const draft = (optionDrafts[attrId] ?? '').trim()
-    if (!draft) return
-    const res = await addAttributeOption(attrId, draft)
-    if (!res.ok) {
-      showToast(res.error)
-      return
+  const openTagsPicker = async () => {
+    if (tagVocab === null) {
+      // Fetch-ul poate eșua (rețea/RLS) în afara formei { ok, error } —
+      // picker-ul tot trebuie să se deschidă (vocabular gol e stare validă,
+      // SPEC_Tags §4.4), altfel un eșec de fetch blochează tap-ul pe rândul
+      // Tags fără niciun feedback vizual.
+      let vocab = []
+      try {
+        const res = await fetchTagVocabulary()
+        if (!res.ok) showToast(res.error)
+        else vocab = res.data
+      } catch (err) {
+        showToast(err?.message ?? 'Eroare la încărcarea vocabularului de tags')
+      }
+      vocab.sort(
+        (a, b) => b.count - a.count || normalize(a.value).localeCompare(normalize(b.value))
+      )
+      setTagVocab(vocab)
     }
-    setValue(attrId, draft)
-    setOptionDrafts((prev) => ({ ...prev, [attrId]: '' }))
+    setPicker({ type: 'tags' })
+  }
+
+  const handleTagsConfirm = ({ selected }) => {
+    setTags(selected)
+    setPicker(null)
+  }
+
+  const handleAttrConfirm = async (attrId, { selected, created }) => {
+    const val = selected[0]
+    if (created.includes(val)) {
+      // Opțiune nouă de schemă — se persistă prin RPC la confirmare
+      // (echivalentul fluxului inline anterior, mutat în picker).
+      const res = await addAttributeOption(attrId, val)
+      if (!res.ok) {
+        showToast(res.error)
+        setPicker(null)
+        return
+      }
+    }
+    setValue(attrId, val)
+    setPicker(null)
   }
 
   const handleCreate = async () => {
@@ -61,7 +107,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
       Object.entries(values).filter(([, v]) => v != null && String(v).trim() !== '')
     )
     setSaving(true)
-    const res = await addProduct(categoryId, cleaned, listPrice)
+    const res = await addProduct(categoryId, cleaned, listPrice, tags)
     setSaving(false)
     if (!res.ok) {
       showToast(res.error)
@@ -70,6 +116,51 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
     showToast(res.data ? `Produs creat: ${res.data}` : 'Produs creat')
     onCreated?.()
     onClose()
+  }
+
+  // ── SWAP: cât e deschis un picker, formularul nu se randează ─────────────
+  if (picker?.type === 'tags') {
+    // Tag-urile create în sesiunea curentă a formularului (încă în afara
+    // vocabularului derivat) rămân vizibile la redeschidere (SPEC_Tags §4.1).
+    const items = [
+      ...(tagVocab ?? []),
+      ...tags
+        .filter((t) => !(tagVocab ?? []).some((v) => v.value === t))
+        .map((t) => ({ value: t, count: 0 })),
+    ]
+    return (
+      <PickerSheet
+        open
+        title="Tags"
+        items={items}
+        selected={tags}
+        multiSelect
+        allowCreate
+        searchPlaceholder="Caută sau adaugă tag..."
+        restorePlaceholder="Caută produs în categorie..."
+        emptyLabel="Niciun tag încă — scrie în bara de căutare pentru a adăuga"
+        onConfirm={handleTagsConfirm}
+        onClose={() => setPicker(null)}
+      />
+    )
+  }
+
+  if (picker?.type === 'attr') {
+    const attr = attrs.find((a) => a.id === picker.attrId)
+    return (
+      <PickerSheet
+        open
+        title={attr?.name ?? ''}
+        items={optionsOf(picker.attrId).map((o) => ({ value: o.value }))}
+        selected={values[picker.attrId] ? [values[picker.attrId]] : []}
+        allowCreate
+        searchPlaceholder={`Caută ${attr?.name ?? 'valoare'}...`}
+        restorePlaceholder="Caută produs în categorie..."
+        emptyLabel="Nicio opțiune încă — scrie în bara de căutare pentru a adăuga"
+        onConfirm={(sel) => handleAttrConfirm(picker.attrId, sel)}
+        onClose={() => setPicker(null)}
+      />
+    )
   }
 
   return (
@@ -89,46 +180,63 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
                 className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
               />
             ) : (
-              <>
-                <div className="flex flex-wrap gap-2">
-                  {optionsOf(a.id).map((o) => (
-                    <button
-                      key={o.id}
-                      onClick={() => setValue(a.id, values[a.id] === o.value ? undefined : o.value)}
-                      className={[
-                        'px-3 h-9 rounded-lg text-sm',
-                        values[a.id] === o.value ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-300 active:bg-zinc-700',
-                      ].join(' ')}
-                    >
-                      {o.value}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={optionDrafts[a.id] ?? ''}
-                    onChange={(e) => setOptionDrafts((prev) => ({ ...prev, [a.id]: e.target.value }))}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleAddOption(a.id) }}
-                    placeholder="Valoare nouă..."
-                    autoComplete="off"
-                    className="flex-1 bg-zinc-800 rounded-xl px-3 h-9 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+              // Valoare unică, afișată ca text simplu (nu chip/pill): un chip
+              // colorat cu „×" sugerează multi-select, dar single_choice
+              // permite o singură valoare — schimbarea se face redeschizând
+              // picker-ul, nu eliminând un „tag".
+              <div
+                onClick={() => setPicker({ type: 'attr', attrId: a.id })}
+                className="w-full flex items-center gap-2 bg-zinc-800 rounded-xl px-3 h-11 cursor-pointer active:bg-zinc-700"
+              >
+                <span className={['flex-1 text-sm truncate', values[a.id] ? 'text-zinc-100' : 'text-zinc-500'].join(' ')}>
+                  {values[a.id] ?? 'Alege...'}
+                </span>
+                {values[a.id] && (
                   <button
-                    onClick={() => handleAddOption(a.id)}
-                    disabled={!(optionDrafts[a.id] ?? '').trim()}
-                    className={[
-                      'shrink-0 flex items-center justify-center w-9 h-9 rounded-lg',
-                      (optionDrafts[a.id] ?? '').trim() ? 'bg-blue-600 text-white active:bg-blue-700' : 'bg-zinc-700 text-zinc-500',
-                    ].join(' ')}
+                    onClick={(e) => { e.stopPropagation(); setValue(a.id, undefined) }}
+                    className="flex items-center justify-center w-6 h-6 rounded-full text-zinc-500 active:bg-zinc-700 active:text-zinc-300"
                   >
-                    <Plus size={16} />
+                    <X size={14} />
                   </button>
-                </div>
-              </>
+                )}
+                <ChevronRight size={16} className="text-zinc-600 shrink-0" />
+              </div>
             )}
           </div>
         ))}
+
+        {/* Tags — atribut de sistem, prezent pe orice produs; valoarea e
+            opțională (SPEC_Tags §3). */}
+        <label className="flex items-center gap-1.5 text-xs text-zinc-500 mb-1 mt-4">
+          <Tag size={12} /> Tags <span className="text-zinc-600">· de sistem</span>
+        </label>
+        <div
+          onClick={openTagsPicker}
+          className="w-full flex items-center gap-2 flex-wrap bg-zinc-800 rounded-xl px-3 min-h-11 py-1.5 cursor-pointer active:bg-zinc-700"
+        >
+          {tags.length === 0 ? (
+            <span className="flex-1 text-sm text-zinc-500">Adaugă tag-uri</span>
+          ) : (
+            tags.map((t) => (
+              <span
+                key={t}
+                className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-zinc-700 text-sm text-zinc-100"
+              >
+                {t}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setTags((prev) => prev.filter((x) => x !== t))
+                  }}
+                  className="flex items-center justify-center -mr-1 w-5 h-5 rounded-full active:bg-zinc-600"
+                >
+                  <X size={13} />
+                </button>
+              </span>
+            ))
+          )}
+          <ChevronRight size={16} className="ml-auto text-zinc-600 shrink-0" />
+        </div>
 
         <label className="block text-xs text-zinc-500 mb-1 mt-4">Preț de listă (RON, opțional)</label>
         <input

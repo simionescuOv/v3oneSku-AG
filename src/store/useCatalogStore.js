@@ -340,6 +340,25 @@ export const useCatalogStore = create((set, get) => ({
     return res
   },
 
+  // ── Tags — vocabular derivat din filter_idx global (SPEC_Tags §4.4) ────
+  // Fără RPC dedicat și fără scanare de produse client-side. Rândul global
+  // poate lipsi complet (tenant fără nicio mutație de produs/atribut încă)
+  // sau poate exista fără bucket-ul `tags` (niciun produs cu tag-uri) —
+  // ambele cazuri înseamnă vocabular gol, nu eroare.
+  fetchTagVocabulary: async () => {
+    const { data, error } = await supabase
+      .from('filter_idx')
+      .select('idx')
+      .eq('scope_type', 'global')
+      .maybeSingle()
+    if (error) return { ok: false, error: error.message }
+    const bucket = data?.idx?.tags ?? []
+    return {
+      ok: true,
+      data: bucket.map((t) => ({ value: t.value, count: t.idx.length })),
+    }
+  },
+
   // ── Schema de atribute a categoriei ────────────────────────────────────
   getCategoryAttributes: (categoryId) => {
     const { categoryAttributes } = get()

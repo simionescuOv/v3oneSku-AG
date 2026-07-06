@@ -21,4 +21,9 @@ export const useAppStore = create((set) => ({
   // Forțează ascunderea BottomBar-ului (sheet fără căutare — ex: GroupNameSheet)
   bottomBarHidden: false,
   setBottomBarHidden: (v) => set({ bottomBarHidden: v }),
+
+  // Ascundere la scroll-down (AppShell) — în store ca sheet-urile „cu căutare"
+  // să o poată reseta la deschidere (bara trebuie să fie vizibilă pentru ele).
+  bottomBarScrollHidden: false,
+  setBottomBarScrollHidden: (v) => set({ bottomBarScrollHidden: v }),
 }))
