@@ -223,7 +223,12 @@ export default function CategoryPage() {
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
           {matches.map((product) => (
-            <ProductCard key={product.id} product={product} meta={productMeta(product)} onTap={() => {}} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              meta={productMeta(product)}
+              onTap={(p) => routerNavigate('/catalog/product/' + encodeURIComponent(p.nameId))}
+            />
           ))}
           {showCreate && (
             <button

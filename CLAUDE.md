@@ -33,3 +33,10 @@ semnalele de mai jos. Dacă DA la oricare, oprește-te — nu implementa.
 
 - Implementezi direct, ca de obicei (fix, stilizare, conectare la logică deja
   specificată, refactoring intern fără schimbare de comportament vizibil).
+
+## Regulă de Arhitectură — Local-First & Solicitare Minimă a Rețelei
+
+1. **Model Single-Fetch**: Aplicația este concepută pentru viteză extremă și volum redus/moderat de date (sute/mii de produse per tenant). Catalogul (categorii, atribute, opțiuni, produse) se descarcă o singură dată la inițializare/login în cache-ul local din memorie (`useCatalogStore`).
+2. **Citiri 100% Client-Side**: Navigarea între pagini (inclusiv detaliile de produs `ProductPage`, paginile de categorie `CategoryPage` și folderele), căutările, filtrările și breadcrumb-urile se execută **EXCLUSIV din memoria locală (Zustand)**. Este **INTERZISĂ** adăugarea de interogări de rețea (fetch/select către Supabase) la schimbarea rutelor sau deschiderea detaliilor.
+3. **Acces Rețea Exclusiv pe Mutații**: Rețeaua/Supabase este contactată DOAR la acțiuni explicite de salvare/editare/ștergere inițiate de utilizator (ex: `create_product`, `soft_delete_category`), urmate de actualizarea curată a stării locale.
+
