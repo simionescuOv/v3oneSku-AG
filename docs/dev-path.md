@@ -1,10 +1,10 @@
 # oneSku — Parcursul Dezvoltării & Jurnal Tehnic (`dev-path.md`)
 
 > **REGULĂ OBLIGATORIE PENTRU TOȚI AGENȚII DE COD / VIBECODING:**
-> **ÎNAINTE de a rula comanda `git commit`**, actualizați OBLIGATORIU acest fișier și includeți-l în `git add` împreună cu restul fișierelor, astfel încât modificările de cod și înregistrarea din jurnal să fie salvate **ÎNTR-UN SINGUR COMMIT unitar** (fără commit-uri separate).
+> **ÎNAINTE de a rula comanda `git commit`**, actualizați OBLIGATORIU acest fișier și includeți-l în `git add` împreună cu restul fișierelor, astfel încât modificările de cod și înregistrarea din jurnal să fie salvate **ÎNTR-UN SINGUR COMMIT unitar** (fără commit-uri separate). Titlul commit-ului Git TREBUIE să conțină obligatoriu cuvântul de build curent (format: `build: <build_word> - <mesaj>` sau `[<build_word>] <mesaj>`).
 > 1. Adăugați o nouă intrare în secțiunea **„Jurnalul Commit-urilor (Chronological Log)”** de mai jos.
 > 2. Notați:
->    - **Titlul exact al commit-ului din Git**
+>    - **Titlul exact al commit-ului din Git** (conținând cuvântul de build curent)
 >    - **Data și Ramura**
 >    - **Build Word Curent**: cuvântul de build activ în aplicație la momentul commit-ului (indică clar din ce ciclu/versiune de build face parte commit-ul, chiar dacă acesta nu se schimbă la fiecare commit).
 >    - **Descrierea amplă în limbaj natural**: ce funcționalitate a fost adăugată/modificată, de ce s-a luat această decizie, ce fișiere/module au fost atinse și cum interacționează cu restul sistemului.
@@ -67,7 +67,16 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `docs: add current build word to dev-path logging instructions`] — `docs: add current build word to dev-path logging instructions`
+### [Commit `build: busola - enforce build word in git commit message title`] — `build: busola - enforce build word in git commit message title`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-16
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Includere Build Word în Mesajul Git Commit**: S-a stabilit obligativitatea ca mesajul/titlul oricărui commit din Git să conțină direct cuvântul de build curent (format: `build: <build_word> - <mesaj>` sau `[<build_word>] <mesaj>`), astfel încât versiunea de build să fie vizibilă direct în interfața GitHub la nivelul fiecărui commit. Regula a fost salvată în `GEMINI.MD`, `CLAUDE.md` și `docs/dev-path.md`.
+
+---
+
+### [Commit `fa2768e`] — `docs: add current build word to dev-path logging instructions`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
 - **Build Word Curent**: `busola`
