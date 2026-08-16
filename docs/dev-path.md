@@ -66,6 +66,24 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `docs: update build-word and push protocol guidelines`] — `docs: update build-word and push protocol guidelines`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-16
+- **Descriere Detaliată**:
+  - **Protocol Push la Cerere**: `git push` se va executa doar când este cerut expres de utilizator (nu automat după fiecare commit).
+  - **Rafinare Protocol Build Word**: Cuvintele de build se vor genera la momentul comenzii de push, fiind interzisă repetarea aceleiași tematici (ex: pietre prețioase). Cuvintele consecutive vor proveni din domenii complet nelegate (obiecte, animale, fenomene, instrumente).
+  - **Actualizare Instrucțiuni**: Reguli actualizate în `GEMINI.MD`, `CLAUDE.md` și `HomePage.jsx` (`busola`).
+
+---
+
+### [Commit `407c127`] — `docs: enforce pre-commit dev-path update protocol in single commit`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-16
+- **Descriere Detaliată**:
+  - **Protocol Unificat de Commit**: S-au actualizat fișierele `GEMINI.MD`, `CLAUDE.md` și `docs/dev-path.md` pentru a impune actualizarea jurnalului `dev-path.md` pre-commit, astfel încât modificările de cod și înregistrarea de documentație să fie incluse într-un singur commit unitar.
+
+---
+
 ### [Commit `988dcec`] — `editare produs`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16

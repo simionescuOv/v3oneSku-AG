@@ -1,4 +1,4 @@
-- La fiecare push, generează un cuvânt aleator și afișează-l în homepage sub titlul OneSKU, format: `build: <cuvânt>`). Comunică cuvântul în răspuns ca eu să pot verifica că am accesat versiunea corectă pe Vercel.
+- `git push` se realizează **EXCLUSIV când cere utilizatorul** (nu automat după fiecare commit). La fiecare push solicitat, generează un cuvânt complet aleator din limba română care să **NU aibă nicio similitudine tematică sau categorie comună cu cuvintele anterioare** (se interzice repetarea aceleiași tematici, ex: pietre prețioase, culori; cuvintele consecutive trebuie să provină din domenii complet distincte — ex: *busola*, *castor*, *pendul*, *vulcan*). Afișează-l în homepage sub titlul OneSKU (`build: <cuvânt>`) și comunică cuvântul în răspuns pentru verificarea versiunii pe Vercel.
 
 ## Regulă de triaj — când NU implementezi direct
 
