@@ -66,7 +66,7 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit curent pe branch] — `build: smarald - add dev-path documentation and mandatory agent logging protocol`
+### [Commit `427fc8d`] — `build: smarald - add dev-path documentation and mandatory agent logging protocol`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
 - **Descriere Detaliată**:
