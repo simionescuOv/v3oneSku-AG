@@ -1,8 +1,11 @@
-import { useMemo } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Package, Tag, Folder, ArrowLeft } from 'lucide-react'
+import { ChevronLeft, Package, Tag, Folder, ArrowLeft, Pencil } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
+import { useAppStore } from '../store/useAppStore'
 import { normalize } from '../lib/search'
+import BottomSheet from '../components/catalog/BottomSheet'
+import ProductFormSheet from '../components/catalog/ProductFormSheet'
 
 export default function ProductPage() {
   const { nameId } = useParams()
@@ -13,6 +16,19 @@ export default function ProductPage() {
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const getAncestorFolders = useCatalogStore((s) => s.getAncestorFolders)
   const loaded = useCatalogStore((s) => s.loaded)
+
+  const catalogMenuOpen = useAppStore((s) => s.catalogMenuOpen)
+  const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
+
+  const [editOpen, setEditOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+  const toastTimer = useRef(null)
+
+  const showToast = useCallback((message) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast(message)
+    toastTimer.current = setTimeout(() => setToast(null), 3000)
+  }, [])
 
   // Căutare produs după nameId (decodat și normalizat)
   const decodedNameId = useMemo(() => {
@@ -216,6 +232,38 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="absolute bottom-20 left-4 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-zinc-800 rounded-2xl shadow-xl">
+          <span className="flex-1 text-sm text-zinc-100">{toast}</span>
+        </div>
+      )}
+
+      {/* Meniu contextual — Editare produs */}
+      <BottomSheet open={catalogMenuOpen} onClose={closeCatalogMenu}>
+        <div className="px-4 pb-6">
+          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider px-3 pb-3 mb-1 border-b border-zinc-800">
+            {product.nameId}
+          </div>
+          <button
+            onClick={() => { closeCatalogMenu(); setEditOpen(true) }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className="text-zinc-400"><Pencil size={18} /></span>
+            <span className="flex-1 text-left">Editează produsul</span>
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* Formular de editare produs — aceeași componentă unificată ca la adăugare */}
+      <ProductFormSheet
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        categoryId={product.categoryId}
+        product={product}
+        showToast={showToast}
+      />
     </div>
   )
 }

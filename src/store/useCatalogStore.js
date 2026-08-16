@@ -340,6 +340,20 @@ export const useCatalogStore = create((set, get) => ({
     return res
   },
 
+  updateProduct: async (productId, attributes = {}, listPrice = null, tags = []) => {
+    const { error } = await supabase
+      .from('products')
+      .update({
+        attributes,
+        tags,
+        list_price: listPrice === '' || listPrice == null ? null : Number(listPrice),
+      })
+      .eq('id', productId)
+    if (error) return { ok: false, error: error.message }
+    await get().fetchCatalog()
+    return { ok: true }
+  },
+
   // ── Tags — vocabular derivat din filter_idx global (SPEC_Tags §4.4) ────
   // Fără RPC dedicat și fără scanare de produse client-side. Rândul global
   // poate lipsi complet (tenant fără nicio mutație de produs/atribut încă)

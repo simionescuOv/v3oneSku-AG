@@ -1,4 +1,4 @@
-import { Menu, Search, BookOpen } from 'lucide-react'
+import { Menu, Search, BookOpen, Package } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
@@ -12,11 +12,12 @@ export default function BottomBar({ hidden }) {
   const bottomBarHidden = useAppStore((s) => s.bottomBarHidden)
 
   const { pathname } = useLocation()
-  // „Familia Catalog" = pagina Catalog + pagina categoriei (/catalog/category/:id);
-  // ambele folosesc meniul contextual (catalogMenuOpen), nu meniul lateral.
+  // „Familia Catalog" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
+  // toate folosesc meniul contextual (catalogMenuOpen), nu meniul lateral.
+  const isProductPage = pathname.startsWith('/catalog/product')
   const isCatalogFamily = pathname.startsWith('/catalog')
   const MenuIcon = NAV_ITEMS.find((item) => item.path === pathname)?.Icon
-    ?? (isCatalogFamily ? BookOpen : Menu)
+    ?? (isProductPage ? Package : isCatalogFamily ? BookOpen : Menu)
 
   const handleMenuPress = () => {
     if (isCatalogFamily) openCatalogMenu()

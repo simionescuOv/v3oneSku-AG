@@ -6,7 +6,7 @@ import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
 
-// Formular de adăugare produs — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
+// Formular unificat de adăugare / editare produs — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
 // Fără câmp de nume: NameID e generat server-side (imuabil, needitabil de
 // user) — vezi SPEC_DatabaseSchema_v3 §6.1. Câmpurile se generează din schema
 // categoriei: text → input; single_choice → rând care deschide PickerSheet.
@@ -14,13 +14,17 @@ import { normalize } from '../../lib/search'
 // Selecțiile (single_choice, tags) rulează prin SWAP (SPEC_Tags §5): formularul
 // se ascunde vizual, picker-ul îi ia locul, la confirmare/anulare formularul
 // revine cu starea intactă (state-ul trăiește aici, componenta rămâne montată).
-export default function ProductFormSheet({ open, onClose, categoryId, showToast, onCreated }) {
+export default function ProductFormSheet({ open, onClose, categoryId, product = null, showToast, onCreated, onSaved }) {
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const attributeOptions = useCatalogStore((s) => s.attributeOptions)
   const addAttributeOption = useCatalogStore((s) => s.addAttributeOption)
   const addProduct = useCatalogStore((s) => s.addProduct)
+  const updateProduct = useCatalogStore((s) => s.updateProduct)
   const fetchTagVocabulary = useCatalogStore((s) => s.fetchTagVocabulary)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
+
+  const isEdit = Boolean(product)
+  const effectiveCategoryId = categoryId || product?.categoryId
 
   const [values, setValues] = useState({})
   const [tags, setTags] = useState([])
@@ -32,25 +36,43 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
   // formular (SPEC_Tags §4.4); null = încă nefetchuit.
   const [tagVocab, setTagVocab] = useState(null)
 
+  // BottomBar: ascuns cât e vizibil formularul, vizibil (cu căutare) cât e
+  // deschis un picker — comutarea modurilor e per-sheet (SPEC_Tags §5).
   useEffect(() => {
-    // BottomBar: ascuns cât e vizibil formularul, vizibil (cu căutare) cât e
-    // deschis un picker — comutarea modurilor e per-sheet (SPEC_Tags §5).
     setBottomBarHidden(open && !picker)
-    if (open) return
-    setValues({})
-    setTags([])
-    setListPrice('')
+  }, [open, picker, setBottomBarHidden])
+
+  // Resetare / inițializare stare când se deschide / închide formularul
+  useEffect(() => {
+    if (!open) {
+      setValues({})
+      setTags([])
+      setListPrice('')
+      setSaving(false)
+      setPicker(null)
+      setTagVocab(null)
+      return
+    }
+    if (product) {
+      setValues(product.attributes ? { ...product.attributes } : {})
+      setTags(product.tags ? [...product.tags] : [])
+      setListPrice(product.listPrice != null ? String(product.listPrice) : '')
+    } else {
+      setValues({})
+      setTags([])
+      setListPrice('')
+    }
     setSaving(false)
     setPicker(null)
     setTagVocab(null)
-  }, [open, picker, setBottomBarHidden])
+  }, [open, product])
 
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
 
   if (!open) return null
 
   const attrs = categoryAttributes
-    .filter((a) => a.categoryId === categoryId)
+    .filter((a) => a.categoryId === effectiveCategoryId)
     .sort((a, b) => a.position - b.position)
 
   const optionsOf = (attrId) =>
@@ -101,20 +123,29 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
     setPicker(null)
   }
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     // Păstrăm doar atributele completate (nu trimitem chei goale).
     const cleaned = Object.fromEntries(
       Object.entries(values).filter(([, v]) => v != null && String(v).trim() !== '')
     )
     setSaving(true)
-    const res = await addProduct(categoryId, cleaned, listPrice, tags)
+    let res
+    if (isEdit) {
+      res = await updateProduct(product.id, cleaned, listPrice, tags)
+    } else {
+      res = await addProduct(effectiveCategoryId, cleaned, listPrice, tags)
+    }
     setSaving(false)
     if (!res.ok) {
       showToast(res.error)
       return
     }
-    showToast(res.data ? `Produs creat: ${res.data}` : 'Produs creat')
-    onCreated?.()
+    showToast(isEdit ? 'Produs actualizat' : (res.data ? `Produs creat: ${res.data}` : 'Produs creat'))
+    if (isEdit) {
+      onSaved?.()
+    } else {
+      onCreated?.()
+    }
     onClose()
   }
 
@@ -166,7 +197,9 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="px-4 pb-6 overflow-y-auto max-h-[80dvh]">
-        <h2 className="text-sm font-medium text-zinc-200 mb-3 text-center">Produs nou</h2>
+        <h2 className="text-sm font-medium text-zinc-200 mb-3 text-center">
+          {isEdit ? `Editează ${product.nameId}` : 'Produs nou'}
+        </h2>
 
         {attrs.map((a) => (
           <div key={a.id} className="mt-4">
@@ -257,14 +290,14 @@ export default function ProductFormSheet({ open, onClose, categoryId, showToast,
             Anulează
           </button>
           <button
-            onClick={handleCreate}
+            onClick={handleSave}
             disabled={saving}
             className={[
               'flex-1 h-11 rounded-xl text-sm font-medium',
               saving ? 'bg-zinc-700 text-zinc-500' : 'bg-blue-600 text-white active:bg-blue-700',
             ].join(' ')}
           >
-            Creează
+            {isEdit ? 'Salvează' : 'Creează'}
           </button>
         </div>
       </div>
