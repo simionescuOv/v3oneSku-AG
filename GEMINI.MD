@@ -6,3 +6,4 @@
 4. CONFIRMATION PROTOCOL: If file edits are required, present a brief plan first and wait for approval (e.g., "Aprobat").
 5. AUDIO TRANSCRIPTION PROTOCOL: Whenever the user sends a message via voice dictation / audio recording, start the response by displaying the exact audio transcription first.
 6. LOCAL-FIRST ARCHITECTURE: The app operates Local-First for ultra-fast performance. Reads, page navigation, search, filtering, and detail views MUST operate 100% client-side from local Zustand memory (`useCatalogStore`). Never add network fetch/select calls on route navigation. Network calls are strictly reserved for user-triggered mutations (add/edit/delete).
+7. DEV-PATH LOG PROTOCOL: At every git commit, you MUST record a new entry in `docs/dev-path.md` with the commit hash, exact git commit message, and a comprehensive natural language explanation of the changes made, so future vibecoding agents easily grasp the full evolution of the codebase.

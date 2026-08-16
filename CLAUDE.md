@@ -40,3 +40,10 @@ semnalele de mai jos. Dacă DA la oricare, oprește-te — nu implementa.
 2. **Citiri 100% Client-Side**: Navigarea între pagini (inclusiv detaliile de produs `ProductPage`, paginile de categorie `CategoryPage` și folderele), căutările, filtrările și breadcrumb-urile se execută **EXCLUSIV din memoria locală (Zustand)**. Este **INTERZISĂ** adăugarea de interogări de rețea (fetch/select către Supabase) la schimbarea rutelor sau deschiderea detaliilor.
 3. **Acces Rețea Exclusiv pe Mutații**: Rețeaua/Supabase este contactată DOAR la acțiuni explicite de salvare/editare/ștergere inițiate de utilizator (ex: `create_product`, `soft_delete_category`), urmate de actualizarea curată a stării locale.
 
+## Regulă de Documentare a Dezvoltării — `docs/dev-path.md`
+
+La **FIECARE commit** realizat în acest proiect, agentul are obligația de a adăuga o intrare nouă în `docs/dev-path.md` care să conțină:
+- Hash-ul commit-ului și mesajul exact din Git.
+- O descriere amplă în limbaj natural a ceea ce s-a modificat/adăugat și de ce, astfel încât orice agent de vibecoding să înțeleagă imediat parcursul evoluției codului.
+
+
