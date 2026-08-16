@@ -6,6 +6,7 @@
 > 2. Notați:
 >    - **Titlul exact al commit-ului din Git**
 >    - **Data și Ramura**
+>    - **Build Word Curent**: cuvântul de build activ în aplicație la momentul commit-ului (indică clar din ce ciclu/versiune de build face parte commit-ul, chiar dacă acesta nu se schimbă la fiecare commit).
 >    - **Descrierea amplă în limbaj natural**: ce funcționalitate a fost adăugată/modificată, de ce s-a luat această decizie, ce fișiere/module au fost atinse și cum interacționează cu restul sistemului.
 > 3. Actualizați sumarul secțiunii **„Starea Funcționalităților Actuale”** dacă s-au adăugat capacități noi.
 
@@ -66,9 +67,19 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `docs: update build-word and push protocol guidelines`] — `docs: update build-word and push protocol guidelines`
+### [Commit `docs: add current build word to dev-path logging instructions`] — `docs: add current build word to dev-path logging instructions`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Identificator Build per Commit**: S-a adăugat obligativitatea de a include câmpul `Build Word Curent` în fiecare înregistrare din `docs/dev-path.md`, `GEMINI.MD` și `CLAUDE.md`, pentru a identifica precis cărui ciclu de build îi aparține fiecare commit (chiar dacă cuvântul nu se schimbă la fiecare commit individual).
+
+---
+
+### [Commit `cbaad8b`] — `docs: update build-word and push protocol guidelines`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-16
+- **Build Word Curent**: `busola`
 - **Descriere Detaliată**:
   - **Protocol Push la Cerere**: `git push` se va executa doar când este cerut expres de utilizator (nu automat după fiecare commit).
   - **Rafinare Protocol Build Word**: Cuvintele de build se vor genera la momentul comenzii de push, fiind interzisă repetarea aceleiași tematici (ex: pietre prețioase). Cuvintele consecutive vor proveni din domenii complet nelegate (obiecte, animale, fenomene, instrumente).
@@ -79,6 +90,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 ### [Commit `407c127`] — `docs: enforce pre-commit dev-path update protocol in single commit`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
+- **Build Word Curent**: `smarald`
 - **Descriere Detaliată**:
   - **Protocol Unificat de Commit**: S-au actualizat fișierele `GEMINI.MD`, `CLAUDE.md` și `docs/dev-path.md` pentru a impune actualizarea jurnalului `dev-path.md` pre-commit, astfel încât modificările de cod și înregistrarea de documentație să fie incluse într-un singur commit unitar.
 
@@ -87,6 +99,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 ### [Commit `988dcec`] — `editare produs`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
+- **Build Word Curent**: `smarald`
 - **Descriere Detaliată**:
   - **Componentă Unică Formular (`ProductFormSheet.jsx`)**: S-a extins componenta pentru a funcționa în mod dual (atât pentru adăugare cât și pentru editare de produs). Prepopulează atributele, tag-urile și prețul existent la primirea prop-ului `product`, adaptează titlul și butonul de salvare și previne resetarea eronată a picker-urilor prin separarea efectelor de inițializare a stării de sincronizarea `BottomBar`-ului.
   - **Persistență în Store (`useCatalogStore.js`)**: S-a adăugat metoda `updateProduct(productId, attributes, listPrice, tags)` care actualizează direct tabela `products` din Supabase (cu suport RLS și trigger-e automate de rebuild pentru `filter_idx`) și resincronizează datele din starea Zustand locală.
@@ -98,6 +111,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 ### [Commit `427fc8d`] — `build: smarald - add dev-path documentation and mandatory agent logging protocol`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
+- **Build Word Curent**: `smarald`
 - **Descriere Detaliată**:
   - **Documentație de Parcurs (`docs/dev-path.md`)**: Creat registrul istoric și tehnic de dezvoltare pentru orientarea oricărui agent viitor de vibecoding/coding, descriind arhitectura, starea curentă a modulelor și jurnalul detaliat al commit-urilor.
   - **Protocol Obligatoriu de Jurnalizare**: S-a adăugat regula 7 în `GEMINI.MD` și secțiunea corespunzătoare în `CLAUDE.md`, obligând toți agenții să noteze la fiecare commit hash-ul, titlul exact și descrierea narativă extinsă a modificărilor.
