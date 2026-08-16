@@ -42,8 +42,8 @@ semnalele de mai jos. Dacă DA la oricare, oprește-te — nu implementa.
 
 ## Regulă de Documentare a Dezvoltării — `docs/dev-path.md`
 
-La **FIECARE commit** realizat în acest proiect, agentul are obligația de a adăuga o intrare nouă în `docs/dev-path.md` care să conțină:
-- Hash-ul commit-ului și mesajul exact din Git.
-- O descriere amplă în limbaj natural a ceea ce s-a modificat/adăugat și de ce, astfel încât orice agent de vibecoding să înțeleagă imediat parcursul evoluției codului.
+**ÎNAINTE de fiecare commit** realizat în acest proiect, agentul are obligația de a actualiza fișierul `docs/dev-path.md` și de a-l include în staging (`git add`) împreună cu fișierele modificate. În felul acesta, modificarea de cod și actualizarea jurnalului sunt salvate **într-un singur commit unitar** (nu sunt necesare două commit-uri separate). Intrarea va conține:
+- Titlul exact al commit-ului și data/ramura.
+- O descriere amplă în limbaj natural a ceea ce s-a modificat/adăugat, de ce și cum interacționează cu restul sistemului.
 
 

@@ -1,11 +1,10 @@
 # oneSku — Parcursul Dezvoltării & Jurnal Tehnic (`dev-path.md`)
 
 > **REGULĂ OBLIGATORIE PENTRU TOȚI AGENȚII DE COD / VIBECODING:**
-> La **FIECARE commit** realizat în acest repository:
+> **ÎNAINTE de a rula comanda `git commit`**, actualizați OBLIGATORIU acest fișier și includeți-l în `git add` împreună cu restul fișierelor, astfel încât modificările de cod și înregistrarea din jurnal să fie salvate **ÎNTR-UN SINGUR COMMIT unitar** (fără commit-uri separate).
 > 1. Adăugați o nouă intrare în secțiunea **„Jurnalul Commit-urilor (Chronological Log)”** de mai jos.
 > 2. Notați:
->    - **Hash-ul / Identificatorul commit-ului** (ex: `e089c70`)
->    - **Titlul exact al commit-ului din Git** (ex: `build: safir - local-first routing...`)
+>    - **Titlul exact al commit-ului din Git**
 >    - **Data și Ramura**
 >    - **Descrierea amplă în limbaj natural**: ce funcționalitate a fost adăugată/modificată, de ce s-a luat această decizie, ce fișiere/module au fost atinse și cum interacționează cu restul sistemului.
 > 3. Actualizați sumarul secțiunii **„Starea Funcționalităților Actuale”** dacă s-au adăugat capacități noi.
