@@ -46,10 +46,11 @@
    - Modale de creare și editare categorii / foldere (`CategoryFormSheet.jsx`).
    - Schema categoriei (`SchemaSheet.jsx`): definirea atributelor specifice categoriei + secțiune informativă read-only „De sistem” (NameID și Tags).
 3. **Produse & Formulare (`src/pages/ProductPage.jsx`, `src/components/catalog/ProductFormSheet.jsx`)**:
-   - Creare produse în categorie pe baza schemei definite.
+   - Creare și **editare** produse pe baza schemei categoriei printr-o **componentă unică unificată** (`ProductFormSheet.jsx`).
    - Câmp dedicat de Tags (chips cu ștergere rapidă).
    - Mecanismul **SWAP** la deschiderea picker-ului: formularul se ascunde vizual cât e deschis picker-ul și revine cu starea intactă, fără suprapunere haotică de modale.
    - Rută client-side dedicată pentru vizualizarea detaliată a produsului: `/catalog/product/:nameId`.
+   - Meniu contextual accesibil din bara de jos (`BottomBar`) pe pagina produsului (icon dedicat `Package`), cu opțiune de editare a atributelor, tag-urilor și prețului.
 4. **Picker Unificat (`src/components/catalog/PickerSheet.jsx`)**:
    - Picker generic cu suport pentru `multiSelect` (pentru Tags) și `single_choice` (pentru atribute din schemă).
    - Integrare directă cu filtrarea din `BottomBar`.
@@ -65,6 +66,17 @@
 ## 3. Jurnalul Commit-urilor (Chronological Log)
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
+
+### [Commit `988dcec`] — `editare produs`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-16
+- **Descriere Detaliată**:
+  - **Componentă Unică Formular (`ProductFormSheet.jsx`)**: S-a extins componenta pentru a funcționa în mod dual (atât pentru adăugare cât și pentru editare de produs). Prepopulează atributele, tag-urile și prețul existent la primirea prop-ului `product`, adaptează titlul și butonul de salvare și previne resetarea eronată a picker-urilor prin separarea efectelor de inițializare a stării de sincronizarea `BottomBar`-ului.
+  - **Persistență în Store (`useCatalogStore.js`)**: S-a adăugat metoda `updateProduct(productId, attributes, listPrice, tags)` care actualizează direct tabela `products` din Supabase (cu suport RLS și trigger-e automate de rebuild pentru `filter_idx`) și resincronizează datele din starea Zustand locală.
+  - **Icon & Meniu Contextual Pagină Produs (`BottomBar.jsx` & `ProductPage.jsx`)**: În bara de navigare inferioară, pe ruta `/catalog/product/:nameId`, icon-ul s-a schimbat în `Package`. La apăsare, se deschide meniul contextual al produsului ce conține opțiunea „Editează produsul” (cu icon `Pencil`), conectată la dialogul de editare și notificări Toast.
+  - **Specificație Formular Secvențial (`docs/specs/SPEC_FormSecventialProdus.md`)**: A fost creată specificația completă de arhitectură UX pentru viitoarea implementare a introducerii de date pas cu pas (Stepper / Wizard) unificat pentru ambele operațiuni.
+
+---
 
 ### [Commit `427fc8d`] — `build: smarald - add dev-path documentation and mandatory agent logging protocol`
 - **Ramură**: `functionalitati`
