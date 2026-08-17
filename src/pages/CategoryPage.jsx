@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Plus, Settings, Trash2 } from 'lucide-react'
+import { ChevronLeft, Plus, Settings, Trash2, Upload } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
 import { usePicker } from '../hooks/usePicker'
@@ -8,6 +8,7 @@ import ProductCard from '../components/catalog/ProductCard'
 import BottomSheet from '../components/catalog/BottomSheet'
 import ProductFormSheet from '../components/catalog/ProductFormSheet'
 import SchemaSheet from '../components/catalog/SchemaSheet'
+import ImportProductsSheet from '../components/catalog/ImportProductsSheet'
 
 export default function CategoryPage() {
   const { categoryId } = useParams()
@@ -30,6 +31,7 @@ export default function CategoryPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [schemaOpen, setSchemaOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const toastTimer = useRef(null)
 
   const category = nodes.find((n) => n.id === categoryId)
@@ -266,7 +268,7 @@ export default function CategoryPage() {
         </div>
       )}
 
-      {/* Meniu contextual — Schema categoriei / Ștergere */}
+      {/* Meniu contextual — Schema categoriei / Încarcă produse / Ștergere */}
       <BottomSheet open={catalogMenuOpen} onClose={closeCatalogMenu}>
         <div className="px-4 pb-6">
           <button
@@ -275,6 +277,13 @@ export default function CategoryPage() {
           >
             <span className="text-zinc-400"><Settings size={18} /></span>
             <span className="flex-1 text-left">Schema categoriei</span>
+          </button>
+          <button
+            onClick={() => { closeCatalogMenu(); setImportOpen(true) }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className="text-zinc-400"><Upload size={18} /></span>
+            <span className="flex-1 text-left">Încarcă produse</span>
           </button>
           <button
             onClick={() => { closeCatalogMenu(); setDeleteOpen(true) }}
@@ -309,7 +318,7 @@ export default function CategoryPage() {
         </div>
       </BottomSheet>
 
-      {/* Schema + formular produs */}
+      {/* Schema + formular produs + import produse */}
       <SchemaSheet
         open={schemaOpen}
         onClose={() => setSchemaOpen(false)}
@@ -323,6 +332,12 @@ export default function CategoryPage() {
         initialNameId={searchQuery.trim()}
         showToast={showToast}
         onCreated={() => { clearSearch() }}
+      />
+      <ImportProductsSheet
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        categoryId={categoryId}
+        showToast={showToast}
       />
     </div>
   )

@@ -55,7 +55,12 @@
    - Picker generic cu suport pentru `multiSelect` (pentru Tags) și `single_choice` (pentru atribute din schemă).
    - Integrare directă cu filtrarea din `BottomBar`.
    - Creare rapidă de opțiuni noi din tastatură (+ Adaugă „query”).
-5. **AppShell & Navigare (`src/components/layout/AppShell.jsx`, `src/components/layout/BottomBar.jsx`)**:
+5. **Import Produse din Fișiere CSV / XLSX (`src/components/catalog/ImportProductsSheet.jsx`, `src/lib/importers/productImporter.js`, `src/lib/attributeTypes.js`)**:
+   - Funcționalitate de încărcare/populare categorie cu produse dintr-un fișier local CSV sau XLSX.
+   - Registru modular și extensibil de tipuri de date (`src/lib/attributeTypes.js`) pentru atribute (`text`, `single_choice`), reutilizat unitar în `SchemaSheet.jsx` și la import.
+   - Mapare automată și manuală a coloanelor: recunoaștere atribute existente, creare atribute noi, extragere automată de opțiuni distincte pentru liste, asociere cu câmpuri speciale de sistem (`Name ID`, `Preț de listă`, `Tags`) cu validare de unicitate.
+   - Feedback vizual în timp real, bară de progres și raport final de import.
+6. **AppShell & Navigare (`src/components/layout/AppShell.jsx`, `src/components/layout/BottomBar.jsx`)**:
    - Layout mobil optimizat cu `100dvh`.
    - Meniu lateral glisant (`SideMenu.jsx`).
    - `BottomBar` cu auto-hide la scroll în jos și afișare la scroll în sus.
@@ -66,6 +71,19 @@
 ## 3. Jurnalul Commit-urilor (Chronological Log)
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
+
+### [Commit `build: busola - import date user - implementare functionalitate`] — `build: busola - import date user - implementare functionalitate`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-17
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Opțiune „Încarcă produse” în Meniul Contextual al Categoriei (`CategoryPage.jsx`)**: S-a adăugat opțiunea de import cu iconiță dedicată `Upload` în meniul contextual (`catalogMenuOpen`), deschizând sheet-ul de import.
+  - **Registru Centralizat și Extensibil de Tipuri de Date (`src/lib/attributeTypes.js`)**: S-au decuplat definițiile tipurilor de date (`text`, `single_choice`) într-un modul unic extensibil pentru viitoare tipuri (number, boolean, date, etc.). `SchemaSheet.jsx` a fost refactorizat să consume dinamic acest registru.
+  - **Parsare Fișiere CSV / XLSX Client-Side (`src/lib/excel.js`)**: Funcția `parseFileForImport` extrage anteturile și matricea de rânduri cu suport complet pentru caractere speciale, diacritice și celule goale.
+  - **Motor de Validare și Import Produse (`src/lib/importers/productImporter.js`)**: Gestionează întreg ciclul de viață al importului: auto-detecția tipurilor sugerate, validarea unicității `Name ID` (intra-fișier și față de catalogul DB/local), crearea automată a atributelor lipsă, popularea opțiunilor unice de listă (`single_choice`), generarea de NameID-uri unice pentru rânduri fără identificator explicit și persistența produselor.
+  - **Interfață Utilizator Multi-Step (`src/components/catalog/ImportProductsSheet.jsx`)**: Sheet modern cu pași ghidați: Încărcare fișier $\rightarrow$ Configurare destinație/tip coloană $\rightarrow$ Bară de progres animată $\rightarrow$ Raport de final cu număr de produse create, atribute/opțiuni adăugate și listă detaliată a rândurilor omise/erori.
+
+---
 
 ### [Commit `build: busola - sort category products newest first`] — `build: busola - sort category products newest first`
 - **Ramură**: `functionalitati`

@@ -3,6 +3,7 @@ import { ChevronRight, ChevronLeft, Plus, Type, List, Cog } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
+import { getAllAttributeTypes } from '../../lib/attributeTypes'
 
 // Schema de atribute a categoriei — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
 // Trei vizualizări în același sheet: listă atribute → adăugare atribut → opțiunile
@@ -145,16 +146,13 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
               className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
             />
             <div className="flex gap-3 mt-3">
-              {[
-                { val: 'text', label: 'Text', Icon: Type },
-                { val: 'single_choice', label: 'Listă cu o alegere', Icon: List },
-              ].map(({ val, label, Icon }) => (
+              {getAllAttributeTypes().map(({ id, label, icon: Icon }) => (
                 <button
-                  key={val}
-                  onClick={() => setAttrType(val)}
+                  key={id}
+                  onClick={() => setAttrType(id)}
                   className={[
                     'flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-sm',
-                    attrType === val ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-300 active:bg-zinc-700',
+                    attrType === id ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-300 active:bg-zinc-700',
                   ].join(' ')}
                 >
                   <Icon size={16} /> {label}
