@@ -38,7 +38,10 @@ export default function CategoryPage() {
     [categoryAttributes, categoryId]
   )
   const categoryProducts = useMemo(
-    () => products.filter((p) => p.categoryId === categoryId && !p.deletedAt),
+    () =>
+      products
+        .filter((p) => p.categoryId === categoryId && !p.deletedAt)
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)),
     [products, categoryId]
   )
 

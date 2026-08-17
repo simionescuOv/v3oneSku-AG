@@ -59,6 +59,7 @@ const mapProduct = (row) => ({
   tags: row.tags ?? [],
   listPrice: row.list_price,
   deletedAt: row.deleted_at,
+  createdAt: row.created_at,
 })
 
 const mapCategoryAttribute = (row) => ({
@@ -122,7 +123,8 @@ export const useCatalogStore = create((set, get) => ({
       supabase
         .from('products')
         .select('*')
-        .is('deleted_at', null),
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false }),
       supabase
         .from('category_attributes')
         .select('*')
@@ -324,7 +326,9 @@ export const useCatalogStore = create((set, get) => ({
   // ── Produse (pagina categoriei) ───────────────────────────────────────
   getProductsByCategory: (categoryId) => {
     const { products } = get()
-    return products.filter((p) => p.categoryId === categoryId && !p.deletedAt)
+    return products
+      .filter((p) => p.categoryId === categoryId && !p.deletedAt)
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
   },
 
   // name_id poate fi specificat de user (ex: preluat din căutare sau generat aleatoriu).

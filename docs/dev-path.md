@@ -67,6 +67,16 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: busola - sort category products newest first`] — `build: busola - sort category products newest first`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-17
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Sortare Produse Nou Adăugate la Începutul Listei**: Produsele din pagina categoriei sunt acum sortate descrescător după data adăugării (`created_at DESC`), astfel încât ultimele produse create apar direct în capul listei.
+  - **Mapare & Query**: S-a mapat câmpul `createdAt` în `mapProduct` din `useCatalogStore.js`, s-a adăugat ordonarea descrescătoare la `fetchCatalog` și s-a aplicat sortarea în `CategoryPage.jsx` și `getProductsByCategory`.
+
+---
+
 ### [Commit `build: busola - fix nameid and form state reset on picker swap`] — `build: busola - fix nameid and form state reset on picker swap`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
