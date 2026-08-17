@@ -72,6 +72,16 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: castor - update build word for vercel deployment and push`] — `build: castor - update build word for vercel deployment and push`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-17
+- **Build Word Curent**: `castor`
+- **Descriere Detaliată**:
+  - **Generare Nou Build Word (`HomePage.jsx`)**: S-a actualizat cuvântul de build la `castor` (domeniu distinct: zoologie/faună) conform protocolului de `git push` pentru validarea versiunii deployed pe Vercel.
+  - **Pregătire și Execuție Push**: Toate funcționalitățile de import produse CSV/XLSX, registrul de tipuri de date, optimizarea bulk de înaltă performanță și migrarea RPC asociată sunt transmise către remote.
+
+---
+
 ### [Commit `build: busola - optimizare bulk import produse pentru viteza instantanee`] — `build: busola - optimizare bulk import produse pentru viteza instantanee`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
