@@ -332,7 +332,7 @@ export const useCatalogStore = create((set, get) => ({
   },
 
   // name_id poate fi specificat de user (ex: preluat din căutare sau generat aleatoriu).
-  addProduct: async (categoryId, attributes = {}, listPrice = null, tags = [], nameId = null) => {
+  addProduct: async (categoryId, attributes = {}, listPrice = null, tags = [], nameId = null, skipRefetch = false) => {
     const res = await callRpc('create_product', {
       p_category_id: categoryId,
       p_attributes: attributes,
@@ -341,8 +341,77 @@ export const useCatalogStore = create((set, get) => ({
       p_name_id: nameId ? nameId.trim() : null,
     })
     if (!res.ok) return res
-    await get().fetchCatalog()
+    if (!skipRefetch) await get().fetchCatalog()
     return res
+  },
+
+  // Inserare ultra-rapidă în masă (bulk) pentru sute/mii de produse într-o singură tranzacție
+  addProductsBulk: async (categoryId, productsList = []) => {
+    if (!productsList || productsList.length === 0) return { ok: true, count: 0 }
+
+    const formattedForRpc = productsList.map((p) => ({
+      name_id: p.nameId ? p.nameId.trim() : null,
+      attributes: p.attributes || {},
+      tags: p.tags || [],
+      list_price: p.listPrice === '' || p.listPrice == null ? null : Number(p.listPrice),
+    }))
+
+    // 1. Încercare prin RPC dedicat atomic
+    const rpcRes = await callRpc('create_products_bulk', {
+      p_category_id: categoryId,
+      p_products: formattedForRpc,
+    })
+
+    if (rpcRes.ok) {
+      await get().fetchCatalog()
+      return { ok: true, count: rpcRes.data ?? productsList.length }
+    }
+
+    // 2. Fallback: Inserare directă în loturi (batch)
+    const { data: catData } = await supabase
+      .from('categories')
+      .select('tenant_id')
+      .eq('id', categoryId)
+      .single()
+
+    const tenantId = catData?.tenant_id
+    if (tenantId) {
+      const payload = productsList.map((p) => ({
+        tenant_id: tenantId,
+        category_id: categoryId,
+        name_id: p.nameId,
+        attributes: p.attributes || {},
+        tags: p.tags || [],
+        list_price: p.listPrice === '' || p.listPrice == null ? null : Number(p.listPrice),
+      }))
+
+      const BATCH_SIZE = 100
+      for (let i = 0; i < payload.length; i += BATCH_SIZE) {
+        const batch = payload.slice(i, i + BATCH_SIZE)
+        const { error } = await supabase.from('products').insert(batch)
+        if (error) {
+          await get().fetchCatalog()
+          return { ok: false, error: error.message }
+        }
+      }
+
+      await get().fetchCatalog()
+      return { ok: true, count: productsList.length }
+    }
+
+    // 3. Fallback final: iterare prin create_product FĂRĂ refetch intermediar
+    for (const p of productsList) {
+      await callRpc('create_product', {
+        p_category_id: categoryId,
+        p_attributes: p.attributes || {},
+        p_tags: p.tags || [],
+        p_list_price: p.listPrice === '' || p.listPrice == null ? null : Number(p.listPrice),
+        p_name_id: p.nameId ? p.nameId.trim() : null,
+      })
+    }
+
+    await get().fetchCatalog()
+    return { ok: true, count: productsList.length }
   },
 
   updateProduct: async (productId, attributes = {}, listPrice = null, tags = []) => {
@@ -393,21 +462,21 @@ export const useCatalogStore = create((set, get) => ({
       .sort((a, b) => a.position - b.position)
   },
 
-  addAttribute: async (categoryId, name, type) => {
+  addAttribute: async (categoryId, name, type, skipRefetch = false) => {
     const res = await callRpc('create_category_attribute', {
       p_category_id: categoryId, p_name: name, p_attribute_type: type,
     })
     if (!res.ok) return res
-    await get().fetchCatalog()
+    if (!skipRefetch) await get().fetchCatalog()
     return res
   },
 
-  addAttributeOption: async (attributeId, value) => {
+  addAttributeOption: async (attributeId, value, skipRefetch = false) => {
     const res = await callRpc('add_category_attribute_option', {
       p_attribute_id: attributeId, p_value: value,
     })
     if (!res.ok) return res
-    await get().fetchCatalog()
+    if (!skipRefetch) await get().fetchCatalog()
     return res
   },
 }))

@@ -35,6 +35,7 @@ export default function ImportProductsSheet({ open, onClose, categoryId, showToa
   const addAttribute = useCatalogStore((s) => s.addAttribute)
   const addAttributeOption = useCatalogStore((s) => s.addAttributeOption)
   const addProduct = useCatalogStore((s) => s.addProduct)
+  const addProductsBulk = useCatalogStore((s) => s.addProductsBulk)
   const fetchCatalog = useCatalogStore((s) => s.fetchCatalog)
 
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
@@ -142,6 +143,7 @@ export default function ImportProductsSheet({ open, onClose, categoryId, showToa
         addAttribute,
         addAttributeOption,
         addProduct,
+        addProductsBulk,
         fetchCatalog,
       },
       onProgress: ({ percent, label, current, total }) => {

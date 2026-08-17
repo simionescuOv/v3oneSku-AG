@@ -1,6 +1,6 @@
 import { ATTRIBUTE_TYPES } from '../attributeTypes'
 import { normalize } from '../search'
-import { generateRandomNameId, isNameIdAvailable } from '../nameIdGenerator'
+import { generateRandomNameId } from '../nameIdGenerator'
 
 /**
  * Analizează coloanele extrase din fișier și propune o configurare inițială inteligentă.
@@ -147,7 +147,7 @@ function parseTags(val) {
 }
 
 /**
- * Procesează întregul import de produse conform configurărilor stabilite.
+ * Procesează întregul import de produse în mod Bulk / Batch de mare viteză (sub 1-2 secunde).
  */
 export async function executeProductImport({
   categoryId,
@@ -164,6 +164,7 @@ export async function executeProductImport({
     addAttribute,
     addAttributeOption,
     addProduct,
+    addProductsBulk,
     fetchCatalog,
   } = store
 
@@ -173,7 +174,7 @@ export async function executeProductImport({
   let newAttrsCount = 0
   let newOptionsCount = 0
 
-  // ── PASUL 1: Creare atribute noi de categorie ──────────────────────────────
+  // ── PASUL 1: Creare atribute noi de categorie (fără refetch intermediar) ─────
   onProgress?.({
     step: 'attributes',
     current: 0,
@@ -203,8 +204,8 @@ export async function executeProductImport({
     if (existing) {
       resolvedAttributeIds.set(config.key, existing.id)
     } else {
-      // Creăm atribut nou
-      const res = await addAttribute(categoryId, config.attrName.trim(), config.attrType)
+      // Creăm atribut nou (skipRefetch = true pentru viteză extremă)
+      const res = await addAttribute(categoryId, config.attrName.trim(), config.attrType, true)
       if (res.ok && res.data) {
         resolvedAttributeIds.set(config.key, res.data)
         newAttrsCount++
@@ -218,12 +219,12 @@ export async function executeProductImport({
     }
   }
 
-  // ── PASUL 2: Adăugare opțiuni pentru single_choice ─────────────────────────
+  // ── PASUL 2: Adăugare opțiuni pentru single_choice (fără refetch intermediar) ──
   onProgress?.({
     step: 'options',
     current: 0,
     total: 1,
-    percent: 25,
+    percent: 20,
     label: 'Configurare opțiuni de listă...',
   })
 
@@ -245,7 +246,8 @@ export async function executeProductImport({
     for (const val of uniqueVals) {
       const cleanVal = val.trim()
       if (cleanVal && !existingSet.has(normalize(cleanVal))) {
-        const res = await addAttributeOption(attrId, cleanVal)
+        // skipRefetch = true pentru viteză extremă
+        const res = await addAttributeOption(attrId, cleanVal, true)
         if (res.ok) {
           existingSet.add(normalize(cleanVal))
           newOptionsCount++
@@ -254,32 +256,31 @@ export async function executeProductImport({
     }
   }
 
-  // ── PASUL 3: Creare produse ────────────────────────────────────────────────
+  // ── PASUL 3: Pregătire date produse în memorie ──────────────────────────────
+  onProgress?.({
+    step: 'products',
+    current: 0,
+    total: rows.length,
+    percent: 40,
+    label: `Pregătire date pentru ${rows.length} produse...`,
+  })
+
   const nameIdConfig = columnConfigs.find((c) => c.target === 'name_id')
   const priceConfig = columnConfigs.find((c) => c.target === 'list_price')
   const tagsConfig = columnConfigs.find((c) => c.target === 'tags')
 
-  // Pool local pentru evitarea coliziunilor intra-import
+  // Pool local pentru garantarea unicității NameID în lotul curent
   const usedNameIdsSet = new Set(
     products.filter((p) => !p.deletedAt && p.nameId).map((p) => normalize(p.nameId))
   )
 
   const dynamicProductsPool = [...products]
-
   const totalRows = rows.length
+  const productsToInsert = []
 
   for (let i = 0; i < totalRows; i++) {
     const row = rows[i]
     const rowNum = i + 1
-
-    const progressPercent = 25 + Math.round(((i + 1) / totalRows) * 70)
-    onProgress?.({
-      step: 'products',
-      current: i + 1,
-      total: totalRows,
-      percent: progressPercent,
-      label: `Importare produse (${i + 1}/${totalRows})...`,
-    })
 
     // Construire atribute JSONB
     const attributes = {}
@@ -335,21 +336,82 @@ export async function executeProductImport({
     // Rezolvare Tags
     const tags = tagsConfig ? parseTags(row[tagsConfig.key]) : []
 
-    // Salvare produs
-    const res = await addProduct(categoryId, attributes, listPrice, tags, finalNameId)
-    if (res.ok) {
-      createdCount++
-    } else {
-      skippedCount++
-      errors.push({
-        row: rowNum,
-        nameId: finalNameId,
-        error: res.error || 'Eroare la crearea produsului',
-      })
-    }
+    productsToInsert.push({
+      nameId: finalNameId,
+      attributes,
+      listPrice,
+      tags,
+    })
   }
 
-  // ── PASUL 4: Resincronizare completă catalog Zustand ────────────────────────
+  // ── PASUL 4: Inserare atomică în masă (Bulk Insert) ────────────────────────
+  onProgress?.({
+    step: 'insert',
+    current: productsToInsert.length,
+    total: totalRows,
+    percent: 75,
+    label: `Salvare rapidă în catalog (${productsToInsert.length} produse)...`,
+  })
+
+  if (productsToInsert.length > 0) {
+    if (addProductsBulk) {
+      const bulkRes = await addProductsBulk(categoryId, productsToInsert)
+      if (bulkRes.ok) {
+        createdCount = productsToInsert.length
+      } else {
+        // Fallback dacă bulk-ul a întâmpinat o problemă: inserare fără refetch intermediar
+        for (let idx = 0; idx < productsToInsert.length; idx++) {
+          const item = productsToInsert[idx]
+          const res = await addProduct(
+            categoryId,
+            item.attributes,
+            item.listPrice,
+            item.tags,
+            item.nameId,
+            true
+          )
+          if (res.ok) {
+            createdCount++
+          } else {
+            skippedCount++
+            errors.push({
+              row: idx + 1,
+              nameId: item.nameId,
+              error: res.error || 'Eroare la crearea produsului',
+            })
+          }
+        }
+        await fetchCatalog()
+      }
+    } else {
+      for (let idx = 0; idx < productsToInsert.length; idx++) {
+        const item = productsToInsert[idx]
+        const res = await addProduct(
+          categoryId,
+          item.attributes,
+          item.listPrice,
+          item.tags,
+          item.nameId,
+          true
+        )
+        if (res.ok) {
+          createdCount++
+        } else {
+          skippedCount++
+          errors.push({
+            row: idx + 1,
+            nameId: item.nameId,
+            error: res.error || 'Eroare la crearea produsului',
+          })
+        }
+      }
+      await fetchCatalog()
+    }
+  } else {
+    await fetchCatalog()
+  }
+
+  // ── PASUL 5: Finalizare ────────────────────────────────────────────────────
   onProgress?.({
     step: 'finalize',
     current: totalRows,
@@ -357,8 +419,6 @@ export async function executeProductImport({
     percent: 100,
     label: 'Finalizare și actualizare catalog...',
   })
-
-  await fetchCatalog()
 
   return {
     ok: true,

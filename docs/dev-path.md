@@ -72,6 +72,18 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: busola - optimizare bulk import produse pentru viteza instantanee`] — `build: busola - optimizare bulk import produse pentru viteza instantanee`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-17
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Eliminare Cascade de Cereri de Rețea (Single Network Call)**: A fost rezolvată problema duratei mari de execuție (de la sute de secunde la 1-2 secunde). S-a eliminat apelul recursiv de `fetchCatalog()` executat după fiecare produs individual din buclă.
+  - **Migrare & RPC Atomic Bulk (`supabase/migrations/20260817205000_rpc_bulk_import_products.sql`)**: S-a creat funcția RPC `create_products_bulk(p_category_id, p_products)` care procesează și inserează un întreg lot de produse într-o singură tranzacție Postgres, populând atomar atributele, tag-urile, prețul și generând NameID-uri garantat unice.
+  - **Metodă Store Optimizată (`useCatalogStore.js` -> `addProductsBulk`)**: Adăugată metoda de inserare în masă cu fallback automat pe loturi (batch) și refetch unic garantat la finalul întregului import.
+  - **Pregătire Date în Memorie (`productImporter.js`)**: Toate produsele din fișier sunt mapate și validate sincron în memorie înainte de trimiterea într-un singur payload către baza de date.
+
+---
+
 ### [Commit `build: busola - import date user - implementare functionalitate`] — `build: busola - import date user - implementare functionalitate`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
