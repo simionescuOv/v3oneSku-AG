@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { X, ChevronRight, Tag, Dices } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import PickerSheet from './PickerSheet'
@@ -39,15 +39,34 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   // formular (SPEC_Tags §4.4); null = încă nefetchuit.
   const [tagVocab, setTagVocab] = useState(null)
 
+  const prevOpenRef = useRef(false)
+
   // BottomBar: ascuns cât e vizibil formularul, vizibil (cu căutare) cât e
   // deschis un picker — comutarea modurilor e per-sheet (SPEC_Tags §5).
   useEffect(() => {
     setBottomBarHidden(open && !picker)
   }, [open, picker, setBottomBarHidden])
 
-  // Resetare / inițializare stare când se deschide / închide formularul
+  // Resetare / inițializare stare DOAR când se deschide / închide formularul (tranziție de open)
   useEffect(() => {
-    if (!open) {
+    if (open && !prevOpenRef.current) {
+      // Formularul tocmai s-a deschis
+      if (product) {
+        setNameId(product.nameId ?? '')
+        setValues(product.attributes ? { ...product.attributes } : {})
+        setTags(product.tags ? [...product.tags] : [])
+        setListPrice(product.listPrice != null ? String(product.listPrice) : '')
+      } else {
+        setNameId(initialNameId ? initialNameId : generateRandomNameId(products))
+        setValues({})
+        setTags([])
+        setListPrice('')
+      }
+      setSaving(false)
+      setPicker(null)
+      setTagVocab(null)
+    } else if (!open && prevOpenRef.current) {
+      // Formularul tocmai s-a închis
       setNameId('')
       setValues({})
       setTags([])
@@ -55,23 +74,9 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
       setSaving(false)
       setPicker(null)
       setTagVocab(null)
-      return
     }
-    if (product) {
-      setNameId(product.nameId ?? '')
-      setValues(product.attributes ? { ...product.attributes } : {})
-      setTags(product.tags ? [...product.tags] : [])
-      setListPrice(product.listPrice != null ? String(product.listPrice) : '')
-    } else {
-      setNameId(initialNameId ? initialNameId : generateRandomNameId(products))
-      setValues({})
-      setTags([])
-      setListPrice('')
-    }
-    setSaving(false)
-    setPicker(null)
-    setTagVocab(null)
-  }, [open, product, initialNameId])
+    prevOpenRef.current = open
+  }, [open, product, initialNameId, products])
 
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
 

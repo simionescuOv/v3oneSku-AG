@@ -67,6 +67,16 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: busola - fix nameid and form state reset on picker swap`] — `build: busola - fix nameid and form state reset on picker swap`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-17
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Păstrare Stare Formular la Deschiderea Picker-ului**: S-a remediat comportamentul prin care deschiderea unui picker de atribut (swap) reseta starea din `ProductFormSheet` și schimba `Name ID` din cauza modificării parametrului de căutare din `BottomBar`.
+  - **Inițializare Ancorată pe Tranziția `open`**: Resetarea și inițializarea formularului se declanșează strict la deschiderea/închiderea reală a sheet-ului (`open === true && !prevOpenRef.current`), menținând Name ID-ul și toate atributele completate intacte pe durata întregii sesiuni de completare.
+
+---
+
 ### [Commit `build: busola - switch nameid generator to client-side local-first`] — `build: busola - switch nameid generator to client-side local-first`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
