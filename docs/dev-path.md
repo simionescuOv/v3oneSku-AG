@@ -67,6 +67,17 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: busola - switch nameid generator to client-side local-first`] — `build: busola - switch nameid generator to client-side local-first`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-17
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Trecere la Generare Client-Side (100% Local-First)**: S-a creat utilitarul `src/lib/nameIdGenerator.js` cu dicționar de cuvinte și algoritm de selecție aleatorie garantat unic față de lista locală de produse din Zustand (`useCatalogStore`).
+  - **Rezolvare Eroare 404 & 0 ms Latență**: La apăsarea butonului de zaruri din formularul de adăugare produs (`ProductFormSheet`), generarea se execută instantaneu sincron pe client, fără niciun apel HTTP/RPC, eliminând dependența de rețea și erorile 404.
+  - **Validare Disponibilitate în Formular**: Formularul verifică unicitatea locală a oricărui Name ID introdus manual înainte de trimiterea spre salvare.
+
+---
+
 ### [Commit `build: busola - nameid acum poate fi setat de user`] — `build: busola - nameid acum poate fi setat de user`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17

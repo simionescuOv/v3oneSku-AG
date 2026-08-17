@@ -5,9 +5,10 @@ import PickerSheet from './PickerSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
+import { generateRandomNameId, isNameIdAvailable } from '../../lib/nameIdGenerator'
 
 // Formular unificat de adăugare / editare produs — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
-// Primul câmp este Name ID (preluat din căutare sau generat aleatoriu la cerere).
+// Primul câmp este Name ID (preluat din căutare sau generat aleatoriu la cerere pe client, local-first).
 // La creare este editabil; la editare devine imuabil (read-only).
 // Câmpurile se generează din schema categoriei: text → input; single_choice → rând care deschide PickerSheet.
 //
@@ -15,12 +16,12 @@ import { normalize } from '../../lib/search'
 // se ascunde vizual, picker-ul îi ia locul, la confirmare/anulare formularul
 // revine cu starea intactă (state-ul trăiește aici, componenta rămâne montată).
 export default function ProductFormSheet({ open, onClose, categoryId, product = null, initialNameId = '', showToast, onCreated, onSaved }) {
+  const products = useCatalogStore((s) => s.products)
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const attributeOptions = useCatalogStore((s) => s.attributeOptions)
   const addAttributeOption = useCatalogStore((s) => s.addAttributeOption)
   const addProduct = useCatalogStore((s) => s.addProduct)
   const updateProduct = useCatalogStore((s) => s.updateProduct)
-  const generateRandomNameId = useCatalogStore((s) => s.generateRandomNameId)
   const fetchTagVocabulary = useCatalogStore((s) => s.fetchTagVocabulary)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
 
@@ -28,7 +29,6 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   const effectiveCategoryId = categoryId || product?.categoryId
 
   const [nameId, setNameId] = useState('')
-  const [generatingName, setGeneratingName] = useState(false)
   const [values, setValues] = useState({})
   const [tags, setTags] = useState([])
   const [listPrice, setListPrice] = useState('')
@@ -63,7 +63,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
       setTags(product.tags ? [...product.tags] : [])
       setListPrice(product.listPrice != null ? String(product.listPrice) : '')
     } else {
-      setNameId(initialNameId ?? '')
+      setNameId(initialNameId ? initialNameId : generateRandomNameId(products))
       setValues({})
       setTags([])
       setListPrice('')
@@ -129,21 +129,20 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     setPicker(null)
   }
 
-  const handleGenerateRandomName = async () => {
-    setGeneratingName(true)
-    const res = await generateRandomNameId()
-    setGeneratingName(false)
-    if (!res.ok) {
-      showToast(res.error || 'Eroare la generarea numelui aleatoriu')
-      return
-    }
-    setNameId(res.data)
+  const handleGenerateRandomName = () => {
+    const candidate = generateRandomNameId(products)
+    setNameId(candidate)
   }
 
   const handleSave = async () => {
     const trimmedNameId = nameId.trim()
     if (!isEdit && !trimmedNameId) {
       showToast('Introduceți un Name ID sau generați unul aleatoriu')
+      return
+    }
+
+    if (!isEdit && !isNameIdAvailable(trimmedNameId, products)) {
+      showToast(`Name ID-ul „${trimmedNameId}” este deja utilizat de un alt produs`)
       return
     }
 
@@ -231,11 +230,10 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
               <button
                 type="button"
                 onClick={handleGenerateRandomName}
-                disabled={generatingName}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 active:opacity-70 transition-opacity py-0.5 px-1"
+                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 active:opacity-70 transition-opacity py-0.5 px-1 rounded-md"
                 title="Generează Name ID aleatoriu"
               >
-                <Dices size={14} className={generatingName ? 'animate-spin' : ''} />
+                <Dices size={14} />
                 <span>Aleatoriu</span>
               </button>
             )}

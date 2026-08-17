@@ -327,11 +327,7 @@ export const useCatalogStore = create((set, get) => ({
     return products.filter((p) => p.categoryId === categoryId && !p.deletedAt)
   },
 
-  generateRandomNameId: async () => {
-    return await callRpc('generate_name_id', {})
-  },
-
-  // name_id poate fi specificat de user (ex: preluat din căutare) sau generat aleatoriu (RPC).
+  // name_id poate fi specificat de user (ex: preluat din căutare sau generat aleatoriu).
   addProduct: async (categoryId, attributes = {}, listPrice = null, tags = [], nameId = null) => {
     const res = await callRpc('create_product', {
       p_category_id: categoryId,
