@@ -317,6 +317,7 @@ export default function CategoryPage() {
         open={formOpen}
         onClose={() => setFormOpen(false)}
         categoryId={categoryId}
+        initialNameId={searchQuery.trim()}
         showToast={showToast}
         onCreated={() => { clearSearch() }}
       />

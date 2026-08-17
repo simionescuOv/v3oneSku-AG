@@ -67,6 +67,19 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: busola - nameid acum poate fi setat de user`] — `build: busola - nameid acum poate fi setat de user`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-17
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Setare Name ID de către utilizator la crearea produsului**: La deschiderea formularului de adăugare produs (`ProductFormSheet`), Name ID este afișat ca prim câmp și este inițializat automat cu termenul tastat de utilizator în bara de căutare din `BottomBar` (`initialNameId`).
+  - **Buton de generare aleatorie la cerere**: Lângă câmpul Name ID s-a adăugat un buton dedicat (`Dices` / „Aleatoriu”) care apelează generatorul existent `generate_name_id()` din baza de date via RPC, permițând utilizatorului să genereze instantaneu un identificator aleatoriu dacă dorește.
+  - **Eliminarea antetului de dialog**: S-a eliminat titlul `<h2>` din partea de sus a formularului `ProductFormSheet`, primul element vizibil fiind direct câmpul `Name ID`.
+  - **Imuabilitate la editare**: La editarea unui produs existent (`isEdit: true`), câmpul `Name ID` rămâne primul în formular, dar în stare complet blocată / read-only (`imuabil`), neputând fi modificat după salvarea inițială.
+  - **Actualizare RPC & Store**: S-a creat migrarea `20260817180500_rpc_name_id_enhancements.sql` care expune `generate_name_id()` ca RPC de sesiune și actualizează `create_product` pentru a accepta parametrul opțional `p_name_id`. În `useCatalogStore.js` s-au conectat metodele `generateRandomNameId` și `addProduct` cu suport pentru `nameId`.
+
+---
+
 ### [Commit `build: busola - enforce build word in git commit message title`] — `build: busola - enforce build word in git commit message title`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
