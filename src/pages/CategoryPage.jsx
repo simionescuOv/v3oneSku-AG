@@ -21,6 +21,9 @@ export default function CategoryPage() {
   const getAncestorFolders = useCatalogStore((s) => s.getAncestorFolders)
   const storeNavigate = useCatalogStore((s) => s.navigate)
   const deleteCategory = useCatalogStore((s) => s.deleteCategory)
+  const categoryFilters = useCatalogStore((s) => s.categoryFilters)
+  const setCategoryFilter = useCatalogStore((s) => s.setCategoryFilter)
+  const resetCategoryFilter = useCatalogStore((s) => s.resetCategoryFilter)
 
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
@@ -34,8 +37,11 @@ export default function CategoryPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState({})
-  const [filteredProductIds, setFilteredProductIds] = useState(null)
+
+  // Stare filtrare persistentă pentru categoria curentă
+  const currentCategoryFilter = categoryFilters[categoryId] || { appliedFilters: {}, filteredProductIds: null }
+  const appliedFilters = currentCategoryFilter.appliedFilters
+  const filteredProductIds = currentCategoryFilter.filteredProductIds
   const toastTimer = useRef(null)
 
   const category = nodes.find((n) => n.id === categoryId)
@@ -238,8 +244,7 @@ export default function CategoryPage() {
             </button>
             <button
               onClick={() => {
-                setAppliedFilters({})
-                setFilteredProductIds(null)
+                resetCategoryFilter(categoryId)
               }}
               className="text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium bg-zinc-800/60 px-2 py-0.5 rounded"
             >
@@ -373,8 +378,7 @@ export default function CategoryPage() {
         fixedCategoryId={categoryId}
         initialFilters={appliedFilters}
         onApply={(filters, pids) => {
-          setAppliedFilters(filters)
-          setFilteredProductIds(pids)
+          setCategoryFilter(categoryId, filters, pids)
         }}
       />
 

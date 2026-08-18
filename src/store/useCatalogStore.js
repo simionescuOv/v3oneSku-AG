@@ -91,6 +91,32 @@ export const useCatalogStore = create((set, get) => ({
   loaded: false,
   loadError: null,
 
+  // ── Stare Filtrare Persistentă (Zustand) ──────────────────────────
+  catalogFilter: {
+    appliedFilters: {},
+    filteredProductIds: null,
+  },
+  setCatalogFilter: (appliedFilters, filteredProductIds) =>
+    set({ catalogFilter: { appliedFilters, filteredProductIds } }),
+  resetCatalogFilter: () =>
+    set({ catalogFilter: { appliedFilters: {}, filteredProductIds: null } }),
+
+  categoryFilters: {}, // { [categoryId]: { appliedFilters, filteredProductIds } }
+  setCategoryFilter: (categoryId, appliedFilters, filteredProductIds) =>
+    set((s) => ({
+      categoryFilters: {
+        ...s.categoryFilters,
+        [categoryId]: { appliedFilters, filteredProductIds },
+      },
+    })),
+  resetCategoryFilter: (categoryId) =>
+    set((s) => ({
+      categoryFilters: {
+        ...s.categoryFilters,
+        [categoryId]: { appliedFilters: {}, filteredProductIds: null },
+      },
+    })),
+
   currentFolderId: null,
   treeExpanded: false,
   toggleTreeExpanded: () => set((s) => ({ treeExpanded: !s.treeExpanded })),

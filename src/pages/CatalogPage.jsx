@@ -205,10 +205,14 @@ export default function CatalogPage() {
   const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
 
   const [toast, setToast] = useState(null)
-  // Filtrare Catalog
+  // Filtrare Catalog (stare persistentă din store)
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState({})
-  const [filteredProductIds, setFilteredProductIds] = useState(null)
+  const catalogFilter = useCatalogStore((s) => s.catalogFilter)
+  const setCatalogFilter = useCatalogStore((s) => s.setCatalogFilter)
+  const resetCatalogFilter = useCatalogStore((s) => s.resetCatalogFilter)
+
+  const appliedFilters = catalogFilter.appliedFilters
+  const filteredProductIds = catalogFilter.filteredProductIds
 
   // Mutare cross-folder (SPEC_MutareCrossFolder §3.3): temp folder + cele
   // două sheet-uri ale fluxului (destinație → subfolder opțional).
@@ -600,8 +604,7 @@ export default function CatalogPage() {
               </button>
               <button
                 onClick={() => {
-                  setAppliedFilters({})
-                  setFilteredProductIds(null)
+                  resetCatalogFilter()
                 }}
                 className="text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium bg-zinc-800/60 px-2 py-1 rounded-lg"
               >
@@ -773,8 +776,7 @@ export default function CatalogPage() {
         showCategoryDim={true}
         initialFilters={appliedFilters}
         onApply={(filters, pids) => {
-          setAppliedFilters(filters)
-          setFilteredProductIds(pids)
+          setCatalogFilter(filters, pids)
         }}
       />
 
