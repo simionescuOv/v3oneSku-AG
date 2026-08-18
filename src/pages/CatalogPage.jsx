@@ -2,14 +2,16 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useNavigate as useRouterNavigate } from 'react-router-dom'
 import {
   Plus, FolderInput, ChevronRight, ChevronLeft, ChevronDown, Folder, Tag,
-  UnfoldVertical, FoldVertical, Check,
+  UnfoldVertical, FoldVertical, Check, SlidersHorizontal, ArrowLeft, RotateCcw,
 } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
 import { filterAndSort, normalize } from '../lib/search'
 import { usePicker } from '../hooks/usePicker'
 import NodeCard, { NodeCount } from '../components/catalog/NodeCard'
+import ProductCard from '../components/catalog/ProductCard'
 import BottomSheet from '../components/catalog/BottomSheet'
+import FilterSheet from '../components/catalog/FilterSheet'
 import ActionBar from '../components/catalog/ActionBar'
 import DestinationPicker from '../components/catalog/DestinationPicker'
 import SubgroupSheet from '../components/catalog/SubgroupSheet'
@@ -203,6 +205,11 @@ export default function CatalogPage() {
   const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
 
   const [toast, setToast] = useState(null)
+  // Filtrare Catalog
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState({})
+  const [filteredProductIds, setFilteredProductIds] = useState(null)
+
   // Mutare cross-folder (SPEC_MutareCrossFolder §3.3): temp folder + cele
   // două sheet-uri ale fluxului (destinație → subfolder opțional).
   const [tempFolderId, setTempFolderId] = useState(null)
@@ -225,6 +232,17 @@ export default function CatalogPage() {
   const currentChildren = getChildren(currentFolderId)
   const isSearching = searchQuery.trim().length > 0
 
+  const categoryMap = useMemo(() => {
+    return new Map(nodes.map((n) => [n.id, n.name]))
+  }, [nodes])
+
+  const filteredProducts = useMemo(() => {
+    if (filteredProductIds === null) return []
+    return products
+      .filter((p) => filteredProductIds.has(p.id) && !p.deletedAt)
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+  }, [products, filteredProductIds])
+
   const productCounts = useMemo(() => {
     const counts = {}
     for (const p of products) {
@@ -233,6 +251,13 @@ export default function CatalogPage() {
     }
     return counts
   }, [products])
+
+  const getProductMeta = (prod) => {
+    const catName = categoryMap.get(prod.categoryId) || ''
+    const tagStr = (prod.tags || []).slice(0, 2).join(' · ')
+    if (catName && tagStr) return `${catName} | ${tagStr}`
+    return catName || tagStr || ''
+  }
 
   // ── Placeholder ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -558,7 +583,52 @@ export default function CatalogPage() {
       </div>
 
       {/* Main content */}
-      {treeExpanded ? (
+      {filteredProductIds !== null ? (
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Header mod filtrare */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-blue-950/30 border-b border-blue-900/40 text-xs shrink-0">
+            <span className="text-blue-300 font-medium">
+              Rezultate filtrare ({filteredProducts.length})
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFilterSheetOpen(true)}
+                className="text-zinc-300 hover:text-white flex items-center gap-1 font-medium bg-zinc-800 px-2.5 py-1 rounded-lg"
+              >
+                <SlidersHorizontal size={13} />
+                <span>Modifică</span>
+              </button>
+              <button
+                onClick={() => {
+                  setAppliedFilters({})
+                  setFilteredProductIds(null)
+                }}
+                className="text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium bg-zinc-800/60 px-2 py-1 rounded-lg"
+              >
+                <RotateCcw size={13} />
+                <span>Închide</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Listă produse filtrate */}
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
+            {filteredProducts.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                meta={getProductMeta(p)}
+                onTap={(prod) => goHome('/catalog/product/' + encodeURIComponent(prod.nameId))}
+              />
+            ))}
+            {filteredProducts.length === 0 && (
+              <div className="px-4 py-12 text-center text-sm text-zinc-500">
+                Niciun produs nu corespunde filtrelor selectate
+              </div>
+            )}
+          </div>
+        </div>
+      ) : treeExpanded ? (
         <div
           className="flex-1 min-h-0 overflow-y-auto"
           style={{ paddingBottom: selectionMode ? '3.5rem' : undefined }}
@@ -652,9 +722,24 @@ export default function CatalogPage() {
         </div>
       )}
 
-      {/* Context menu — Organize + Unfold/Fold */}
+      {/* Context menu — Filtrare + Organize + Unfold/Fold */}
       <BottomSheet open={catalogMenuOpen} onClose={closeCatalogMenu}>
-        <div className="px-4 pb-6">
+        <div className="px-4 pb-6 space-y-1">
+          <button
+            onClick={() => {
+              closeCatalogMenu()
+              setFilterSheetOpen(true)
+            }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className="text-zinc-400"><SlidersHorizontal size={18} /></span>
+            <span className="flex-1 text-left">Filtrare</span>
+            {filteredProductIds !== null && (
+              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                Activ
+              </span>
+            )}
+          </button>
           <button
             onClick={organizeDisabled ? undefined : handleOrganize}
             disabled={organizeDisabled}
@@ -679,6 +764,19 @@ export default function CatalogPage() {
           </button>
         </div>
       </BottomSheet>
+
+      {/* Dialog Filtrare 2 Coloane */}
+      <FilterSheet
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        title="Filtrare Catalog"
+        showCategoryDim={true}
+        initialFilters={appliedFilters}
+        onApply={(filters, pids) => {
+          setAppliedFilters(filters)
+          setFilteredProductIds(pids)
+        }}
+      />
 
       {/* Sheets pasul final */}
       <DestinationPicker

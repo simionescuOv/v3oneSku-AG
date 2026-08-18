@@ -266,8 +266,8 @@ src/
 - [ ] Grupare categorii în foldere (arbore ierarhic)
 - [x] Schema categoriei (atribute dinamice: text / single_choice + opțiuni)
 - [x] Adăugare produs (individual) — formular generat din schemă, `list_price` opțional
-- [ ] Import produse din xlsx (SheetJS)
-- [ ] Filtrare produse (OR per atribut, AND între atribute)
+- [x] Import produse din xlsx (SheetJS)
+- [x] Filtrare produse (OR per atribut, AND între atribute, 2 coloane stil eMAG) — SPEC_LocalFilter_v3
 - [x] Tags la crearea produsului (picker SWAP, vocabular derivat din `filter_idx` global) — SPEC_Tags v1
 - [ ] Tag Groups (grupare vizuală, pur UI) — amânat (SPEC_LocalFilter_v3 §5.2.5)
 

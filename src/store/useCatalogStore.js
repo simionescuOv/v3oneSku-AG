@@ -67,7 +67,8 @@ const mapCategoryAttribute = (row) => ({
   categoryId: row.category_id,
   name: row.name,
   type: row.attribute_type,
-  filterable: row.filterable,
+  filterable: row.filterable ?? (row.attribute_type === 'single_choice'),
+  cardPreview: row.card_preview ?? (row.attribute_type === 'single_choice'),
   globalAttributeId: row.global_attribute_id,
   position: row.position,
 })
@@ -85,6 +86,7 @@ export const useCatalogStore = create((set, get) => ({
   products: [],
   categoryAttributes: [],
   attributeOptions: [],
+  filterIndices: {},
   loading: false,
   loaded: false,
   loadError: null,
@@ -428,19 +430,49 @@ export const useCatalogStore = create((set, get) => ({
     return { ok: true }
   },
 
+  // ── Detalii complete produs (la cerere / ProductPage) ─────────────────
+  fetchProductDetails: async (productId) => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', productId)
+      .maybeSingle()
+    if (error) return { ok: false, error: error.message }
+    if (data) {
+      const mapped = mapProduct(data)
+      set((s) => ({
+        products: s.products.map((p) => (p.id === productId ? { ...p, ...mapped } : p)),
+      }))
+      return { ok: true, product: mapped }
+    }
+    return { ok: false, error: 'Produsul nu a fost găsit' }
+  },
+
+  // ── filter_idx — indexuri inversate precalculate (SPEC_LocalFilter_v3) ──
+  fetchFilterIdx: async (scopeType = 'global', scopeId = null) => {
+    let query = supabase.from('filter_idx').select('idx, scope_type, scope_id').eq('scope_type', scopeType)
+    if (scopeId) query = query.eq('scope_id', scopeId)
+    else query = query.is('scope_id', null)
+
+    const { data, error } = await query.maybeSingle()
+    if (error) return { ok: false, error: error.message }
+    const key = scopeType === 'global' ? 'global' : `${scopeType}:${scopeId}`
+    const idx = data?.idx ?? {}
+    set((s) => ({
+      filterIndices: { ...s.filterIndices, [key]: idx },
+    }))
+    return { ok: true, data: idx }
+  },
+
   // ── Tags — vocabular derivat din filter_idx global (SPEC_Tags §4.4) ────
   // Fără RPC dedicat și fără scanare de produse client-side. Rândul global
   // poate lipsi complet (tenant fără nicio mutație de produs/atribut încă)
   // sau poate exista fără bucket-ul `tags` (niciun produs cu tag-uri) —
   // ambele cazuri înseamnă vocabular gol, nu eroare.
   fetchTagVocabulary: async () => {
-    const { data, error } = await supabase
-      .from('filter_idx')
-      .select('idx')
-      .eq('scope_type', 'global')
-      .maybeSingle()
-    if (error) return { ok: false, error: error.message }
-    const bucket = data?.idx?.tags ?? []
+    const res = await get().fetchFilterIdx('global')
+    if (!res.ok) return res
+    const bucket = res.data?.tags ?? []
     return {
       ok: true,
       data: bucket.map((t) => ({ value: t.value, count: t.idx.length })),
@@ -462,9 +494,26 @@ export const useCatalogStore = create((set, get) => ({
       .sort((a, b) => a.position - b.position)
   },
 
-  addAttribute: async (categoryId, name, type, skipRefetch = false) => {
+  addAttribute: async (categoryId, name, type, filterable = null, globalAttributeId = null, cardPreview = null, skipRefetch = false) => {
     const res = await callRpc('create_category_attribute', {
-      p_category_id: categoryId, p_name: name, p_attribute_type: type,
+      p_category_id: categoryId,
+      p_name: name,
+      p_attribute_type: type,
+      p_filterable: filterable,
+      p_global_attribute_id: globalAttributeId,
+      p_card_preview: cardPreview,
+    })
+    if (!res.ok) return res
+    if (!skipRefetch) await get().fetchCatalog()
+    return res
+  },
+
+  updateCategoryAttribute: async (attributeId, { name, filterable, cardPreview }, skipRefetch = false) => {
+    const res = await callRpc('update_category_attribute', {
+      p_attribute_id: attributeId,
+      p_name: name,
+      p_filterable: filterable,
+      p_card_preview: cardPreview,
     })
     if (!res.ok) return res
     if (!skipRefetch) await get().fetchCatalog()

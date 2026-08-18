@@ -15,6 +15,7 @@ export default function ProductPage() {
   const nodes = useCatalogStore((s) => s.nodes)
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const getAncestorFolders = useCatalogStore((s) => s.getAncestorFolders)
+  const fetchProductDetails = useCatalogStore((s) => s.fetchProductDetails)
   const loaded = useCatalogStore((s) => s.loaded)
 
   const catalogMenuOpen = useAppStore((s) => s.catalogMenuOpen)
@@ -46,6 +47,12 @@ export default function ProductPage() {
       (p) => !p.deletedAt && (p.nameId === decodedNameId || normalize(p.nameId) === targetNorm)
     )
   }, [products, decodedNameId])
+
+  useEffect(() => {
+    if (product?.id) {
+      fetchProductDetails(product.id)
+    }
+  }, [product?.id, fetchProductDetails])
 
   const category = useMemo(() => {
     if (!product || !nodes.length) return null

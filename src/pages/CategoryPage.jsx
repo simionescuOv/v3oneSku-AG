@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Plus, Settings, Trash2, Upload } from 'lucide-react'
+import { ChevronLeft, Plus, Settings, Trash2, Upload, SlidersHorizontal, RotateCcw } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
 import { usePicker } from '../hooks/usePicker'
@@ -9,6 +9,7 @@ import BottomSheet from '../components/catalog/BottomSheet'
 import ProductFormSheet from '../components/catalog/ProductFormSheet'
 import SchemaSheet from '../components/catalog/SchemaSheet'
 import ImportProductsSheet from '../components/catalog/ImportProductsSheet'
+import FilterSheet from '../components/catalog/FilterSheet'
 
 export default function CategoryPage() {
   const { categoryId } = useParams()
@@ -32,6 +33,9 @@ export default function CategoryPage() {
   const [schemaOpen, setSchemaOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState({})
+  const [filteredProductIds, setFilteredProductIds] = useState(null)
   const toastTimer = useRef(null)
 
   const category = nodes.find((n) => n.id === categoryId)
@@ -46,6 +50,11 @@ export default function CategoryPage() {
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)),
     [products, categoryId]
   )
+
+  const baseCategoryProducts = useMemo(() => {
+    if (filteredProductIds === null) return categoryProducts
+    return categoryProducts.filter((p) => filteredProductIds.has(p.id))
+  }, [categoryProducts, filteredProductIds])
 
   // ── Placeholder + curățare search la intrare/ieșire ──────────────────────────
   useEffect(() => {
@@ -66,7 +75,7 @@ export default function CategoryPage() {
   // ── Căutare produse (usePicker inline, ca în Catalog) ────────────────────────
   const { filteredItems: matches, showCreate } = usePicker({
     mode: 'inline',
-    items: categoryProducts,
+    items: baseCategoryProducts,
     labelFn: (p) => p.nameId,
     query: searchQuery,
     multiSelect: false,
@@ -212,17 +221,42 @@ export default function CategoryPage() {
         )}
       </div>
 
-      {/* Rezumat */}
-      <div className="flex-none px-4 py-2 text-xs text-zinc-500 border-b border-zinc-900">
-        {categoryProducts.length} {categoryProducts.length === 1 ? 'produs' : 'produse'}
+      {/* Rezumat + Indicator Filtre Active */}
+      <div className="flex-none flex items-center justify-between px-4 py-2 text-xs border-b border-zinc-900">
+        <span className="text-zinc-500">
+          {categoryProducts.length} {categoryProducts.length === 1 ? 'produs' : 'produse'}
+          {filteredProductIds !== null && ` (${baseCategoryProducts.length} filtrate)`}
+        </span>
+        {filteredProductIds !== null && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilterOpen(true)}
+              className="text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium bg-blue-950/40 px-2 py-0.5 rounded"
+            >
+              <SlidersHorizontal size={11} />
+              <span>Modifică</span>
+            </button>
+            <button
+              onClick={() => {
+                setAppliedFilters({})
+                setFilteredProductIds(null)
+              }}
+              className="text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium bg-zinc-800/60 px-2 py-0.5 rounded"
+            >
+              <RotateCcw size={11} />
+              <span>Resetează</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Listă produse */}
-      {categoryProducts.length === 0 && !searchQuery.trim() ? (
+      {baseCategoryProducts.length === 0 && !searchQuery.trim() ? (
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-zinc-400 text-sm leading-relaxed">
-            Niciun produs în această categorie.<br />
-            Scrie orice în bara de căutare ca să adaugi primul produs.
+            {filteredProductIds !== null
+              ? 'Niciun produs nu corespunde filtrelor selectate.'
+              : 'Niciun produs în această categorie.\nScrie orice în bara de căutare ca să adaugi primul produs.'}
           </p>
         </div>
       ) : (
@@ -268,9 +302,21 @@ export default function CategoryPage() {
         </div>
       )}
 
-      {/* Meniu contextual — Schema categoriei / Încarcă produse / Ștergere */}
+      {/* Meniu contextual — Filtrare / Schema categoriei / Încarcă produse / Ștergere */}
       <BottomSheet open={catalogMenuOpen} onClose={closeCatalogMenu}>
-        <div className="px-4 pb-6">
+        <div className="px-4 pb-6 space-y-1">
+          <button
+            onClick={() => { closeCatalogMenu(); setFilterOpen(true) }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className="text-zinc-400"><SlidersHorizontal size={18} /></span>
+            <span className="flex-1 text-left">Filtrare</span>
+            {filteredProductIds !== null && (
+              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                Activ
+              </span>
+            )}
+          </button>
           <button
             onClick={() => { closeCatalogMenu(); setSchemaOpen(true) }}
             className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
@@ -299,7 +345,7 @@ export default function CategoryPage() {
       <BottomSheet open={deleteOpen} onClose={() => setDeleteOpen(false)}>
         <div className="px-4 pb-6">
           <h2 className="text-sm font-medium text-zinc-200 mb-4 text-center">
-            Ștergi categoria „{category.name}"?
+            Ștergi categoria „{category?.name}"?
           </h2>
           <div className="flex gap-3">
             <button
@@ -317,6 +363,20 @@ export default function CategoryPage() {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Filtrare 2 Coloane (fără Categorie, titlu = numele categoriei) */}
+      <FilterSheet
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        title={category?.name || 'Filtrare'}
+        showCategoryDim={false}
+        fixedCategoryId={categoryId}
+        initialFilters={appliedFilters}
+        onApply={(filters, pids) => {
+          setAppliedFilters(filters)
+          setFilteredProductIds(pids)
+        }}
+      />
 
       {/* Schema + formular produs + import produse */}
       <SchemaSheet
