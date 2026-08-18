@@ -1,5 +1,5 @@
 // Cuvânt generat la acest push, pentru verificarea versiunii deployed pe Vercel.
-const BUILD_WORD = 'castor'
+const BUILD_WORD = 'aurora'
 
 export default function HomePage() {
   return (

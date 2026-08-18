@@ -65,12 +65,31 @@
    - Meniu lateral glisant (`SideMenu.jsx`).
    - `BottomBar` cu auto-hide la scroll în jos și afișare la scroll în sus.
    - Modul `aboveBottomBar` pentru bottom-sheet-uri pentru a menține bara de căutare accesibilă.
+7. **Modulul de Filtrare Locală 2 Coloane & Control Date Locale (`src/components/catalog/FilterSheet.jsx`, `src/lib/filterEngine.js`, `src/components/catalog/SchemaSheet.jsx`)**:
+   - Modul unificat de filtrare client-side cu 2 coloane stil eMAG (dimensiuni în stânga, valori cu checkbox-uri și contoare live faceted în dreapta).
+   - Căutare contextuală per dimensiune executată direct din `BottomBar` (`aboveBottomBar`).
+   - Persistență a stării de filtrare în Zustand (`useCatalogStore`), păstrând lista filtrată la navigarea dus-întors în fișa de produs.
+   - Control granular al atributelor în Schema Categoriei: configurare `card_preview` (date pre-încărcate local pentru card/offline) și `filterable` (participare în Faceted Search).
+   - Titlu dinamic adaptat (reflectă categoria selectată) și adaptare contextuală pe `CatalogPage` și `CategoryPage`.
 
 ---
 
 ## 3. Jurnalul Commit-urilor (Chronological Log)
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
+
+### [Commit `build: aurora - modul filtrare locala 2 coloane, persistenta stare si control date schema`] — `build: aurora - modul filtrare locala 2 coloane, persistenta stare si control date schema`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-18
+- **Build Word Curent**: `aurora`
+- **Descriere Detaliată**:
+  - **Modul de Filtrare 2 Coloane stil eMAG (`FilterSheet.jsx`)**: Coloana stângă afișează dimensiunile (Categorie, Tags, Atribute de categorie), iar coloana dreaptă afișează valorile cu checkbox-uri și contoare live faceted `(N)` calculate pe baza indexurilor inversate `filter_idx` din Postgres.
+  - **Căutare Unificată din BottomBar**: S-a integrat căutarea din `BottomBar` pentru filtrarea opțiunilor din coloana dreaptă, dialogul stând deasupra barei de jos (`aboveBottomBar={true}`).
+  - **Persistență Stare Filtre în Store (`useCatalogStore.js`)**: S-a rezolvat pierderea listei filtrate la revenirea din fișa produsului. Starea filtrelor și produsele filtrate sunt păstrate în Zustand până la resetarea explicită de către utilizator.
+  - **Schema Categoriei & Control Date (`SchemaSheet.jsx` & Migrație SQL `20260818210000_category_attributes_card_preview.sql`)**: Utilizatorul poate seta pentru fiecare atribut dacă se pre-încarcă local pe card (`cardPreview`) și dacă e filtrabil (`filterable`).
+  - **Actualizare Build Word (`HomePage.jsx`)**: Setat la `aurora` pentru validarea deploy-ului în Vercel.
+
+---
 
 ### [Commit `build: castor - update build word for vercel deployment and push`] — `build: castor - update build word for vercel deployment and push`
 - **Ramură**: `functionalitati`
