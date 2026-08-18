@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import {
-  X, Check, Search, RotateCcw, Folder, Tag, List, Filter, ChevronRight, SlidersHorizontal
+  X, Check, RotateCcw, Folder, Tag, List, SlidersHorizontal
 } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
@@ -14,7 +14,7 @@ import {
 export default function FilterSheet({
   open,
   onClose,
-  title = 'Filtrare',
+  title = 'Filtrare Catalog',
   showCategoryDim = true,
   fixedCategoryId = null,
   initialFilters = {},
@@ -25,19 +25,21 @@ export default function FilterSheet({
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const filterIndices = useCatalogStore((s) => s.filterIndices)
   const fetchFilterIdx = useCatalogStore((s) => s.fetchFilterIdx)
-  const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
+
+  // Căutare din BottomBar (SPEC_LocalFilter_v3 §2.3)
+  const searchQuery = useAppStore((s) => s.searchQuery)
+  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
+  const clearSearch = useAppStore((s) => s.clearSearch)
 
   // Filtre locale în starea sheet-ului: { [dimKey]: string[] }
   const [draftFilters, setDraftFilters] = useState(initialFilters)
   const [activeDimKey, setActiveDimKey] = useState(showCategoryDim ? 'category' : 'tags')
-  const [valueSearch, setValueSearch] = useState('')
 
-  // 1. Asigurare încărcare indexuri la deschidere
+  // 1. Asigurare încărcare indexuri la deschidere + setare placeholder BottomBar
   useEffect(() => {
     if (open) {
-      setBottomBarHidden(true)
       setDraftFilters(initialFilters)
-      setValueSearch('')
+      clearSearch()
 
       // Încarcă indexul global
       fetchFilterIdx('global')
@@ -47,7 +49,6 @@ export default function FilterSheet({
       if (targetCatId) {
         fetchFilterIdx('category', targetCatId)
         if (!showCategoryDim) {
-          // Găsește primul atribut disponibil
           const catAttrs = categoryAttributes.filter(
             (a) => a.categoryId === targetCatId && a.filterable
           )
@@ -58,9 +59,7 @@ export default function FilterSheet({
         setActiveDimKey('category')
       }
     }
-  }, [open, fixedCategoryId, initialFilters, showCategoryDim, fetchFilterIdx, categoryAttributes, setBottomBarHidden])
-
-  useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
+  }, [open, fixedCategoryId, initialFilters, showCategoryDim, fetchFilterIdx, categoryAttributes, clearSearch])
 
   // Categoriile disponibile ca dimensiune (doar cele de tip 'category')
   const allCategories = useMemo(
@@ -129,6 +128,32 @@ export default function FilterSheet({
       setActiveDimKey(dimensions[0].key)
     }
   }, [dimensions, activeDimKey])
+
+  // Setare placeholder contextual în BottomBar în funcție de dimensiunea activă
+  useEffect(() => {
+    if (!open) return
+    const activeDim = dimensions.find((d) => d.key === activeDimKey)
+    if (activeDim) {
+      setSearchPlaceholder(`Caută în ${activeDim.name}...`)
+    } else {
+      setSearchPlaceholder('Caută opțiuni...')
+    }
+    return () => {
+      setSearchPlaceholder(showCategoryDim ? 'Caută categorie sau folder...' : 'Caută produs în categorie...')
+    }
+  }, [open, activeDimKey, dimensions, setSearchPlaceholder, showCategoryDim])
+
+  // Titlu dinamic: include categoria selectată
+  const dynamicTitle = useMemo(() => {
+    if (currentSelectedCatId) {
+      const cat = nodes.find((n) => n.id === currentSelectedCatId)
+      if (cat) {
+        if (showCategoryDim) return `${title} — ${cat.name}`
+        return `Filtrare: ${cat.name}`
+      }
+    }
+    return title
+  }, [currentSelectedCatId, nodes, title, showCategoryDim])
 
   // 3. Indexuri pregătite pentru filterEngine
   const indicesForEngine = useMemo(() => {
@@ -200,12 +225,12 @@ export default function FilterSheet({
     })
   }, [activeDimKey, activeDimValues, draftFilters, indicesForEngine, products, fixedCategoryId])
 
-  // Filtrare valori după căutarea din dreapta
+  // Filtrare valori după căutarea din BottomBar
   const filteredValues = useMemo(() => {
-    const q = normalize(valueSearch.trim())
+    const q = normalize(searchQuery.trim())
     if (!q) return activeDimValues
     return activeDimValues.filter((v) => normalize(v.label).includes(q))
-  }, [activeDimValues, valueSearch])
+  }, [activeDimValues, searchQuery])
 
   // Handlers pentru bifare/debifare
   const handleToggleValue = useCallback((dimKey, value) => {
@@ -238,12 +263,14 @@ export default function FilterSheet({
 
   const handleResetAll = useCallback(() => {
     setDraftFilters({})
-  }, [])
+    clearSearch()
+  }, [clearSearch])
 
   const handleConfirm = useCallback(() => {
+    clearSearch()
     onApply?.(draftFilters, matchingProductIds)
     onClose?.()
-  }, [draftFilters, matchingProductIds, onApply, onClose])
+  }, [draftFilters, matchingProductIds, onApply, onClose, clearSearch])
 
   const totalActiveFilterCount = useMemo(() => {
     let count = 0
@@ -256,31 +283,34 @@ export default function FilterSheet({
   if (!open) return null
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
-      <div className="flex flex-col h-[78dvh] max-h-[640px] text-zinc-100 -mx-4 -mb-6">
-        {/* Header Dialog */}
+    <BottomSheet open={open} onClose={onClose} aboveBottomBar={true}>
+      <div className="flex flex-col h-[65dvh] max-h-[560px] text-zinc-100">
+        {/* Header Dialog cu titlu dinamic și spațiere generoasă */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 shrink-0">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal size={18} className="text-blue-400" />
-            <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
+          <div className="flex items-center gap-2 min-w-0 pr-2">
+            <SlidersHorizontal size={18} className="text-blue-400 shrink-0" />
+            <h2 className="text-sm font-semibold text-zinc-100 truncate">{dynamicTitle}</h2>
             {totalActiveFilterCount > 0 && (
-              <span className="text-[11px] font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full shrink-0">
                 {totalActiveFilterCount}
               </span>
             )}
           </div>
           <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-200 active:bg-zinc-800"
+            onClick={() => {
+              clearSearch()
+              onClose?.()
+            }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-200 active:bg-zinc-800 shrink-0"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Corp cu 2 coloane */}
+        {/* Corp cu 2 coloane cu padding-uri la margini */}
         <div className="flex flex-1 min-h-0 divide-x divide-zinc-800 overflow-hidden">
-          {/* Coloana Stângă: Dimensiuni (Lățime fixă ~38%) */}
-          <div className="w-[38%] overflow-y-auto bg-zinc-950/40 divide-y divide-zinc-800/40 shrink-0">
+          {/* Coloana Stângă: Dimensiuni (~38% lățime) */}
+          <div className="w-[38%] overflow-y-auto px-2 py-2 space-y-1 bg-zinc-950/40 shrink-0">
             {dimensions.map((dim) => {
               const Icon = dim.icon
               const isSelected = activeDimKey === dim.key
@@ -289,22 +319,19 @@ export default function FilterSheet({
                   key={dim.key}
                   onClick={() => {
                     setActiveDimKey(dim.key)
-                    setValueSearch('')
+                    clearSearch()
                   }}
                   className={[
-                    'w-full flex items-center gap-2 px-3 py-3.5 text-left transition-colors relative',
+                    'w-full flex items-center gap-2 px-3 py-2.5 text-left rounded-xl transition-colors',
                     isSelected
-                      ? 'bg-zinc-900 text-blue-400 font-medium'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50 active:bg-zinc-800',
+                      ? 'bg-zinc-800 text-blue-400 font-medium'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 active:bg-zinc-800',
                   ].join(' ')}
                 >
-                  {isSelected && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-r" />
-                  )}
                   <Icon size={15} className={isSelected ? 'text-blue-400 shrink-0' : 'text-zinc-500 shrink-0'} />
                   <span className="flex-1 text-xs truncate">{dim.name}</span>
                   {dim.badgeCount > 0 && (
-                    <span className="shrink-0 text-[10px] font-semibold bg-blue-600/80 text-white w-4 h-4 rounded-full flex items-center justify-center">
+                    <span className="shrink-0 text-[10px] font-semibold bg-blue-600 text-white px-1.5 py-0.2 rounded-full min-w-4 text-center">
                       {dim.badgeCount}
                     </span>
                   )}
@@ -313,82 +340,60 @@ export default function FilterSheet({
             })}
           </div>
 
-          {/* Coloana Dreaptă: Căutare + Valori cu Checkbox și Contoare */}
-          <div className="flex-1 flex flex-col min-h-0 bg-zinc-900/20">
-            {/* Căutare valori în coloana dreaptă */}
-            <div className="p-2 border-b border-zinc-800/80 shrink-0">
-              <div className="flex items-center gap-2 bg-zinc-800/80 rounded-lg px-2.5 h-8">
-                <Search size={14} className="text-zinc-500 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Caută opțiuni..."
-                  value={valueSearch}
-                  onChange={(e) => setValueSearch(e.target.value)}
-                  className="flex-1 bg-transparent text-xs text-zinc-200 placeholder-zinc-500 outline-none"
-                />
-                {valueSearch && (
-                  <button onClick={() => setValueSearch('')} className="text-zinc-500 hover:text-zinc-300">
-                    <X size={13} />
-                  </button>
-                )}
-              </div>
-            </div>
+          {/* Coloana Dreaptă: Valori cu Checkbox și Contoare (filtrate prin BottomBar) */}
+          <div className="flex-1 flex flex-col min-h-0 px-2 py-2 overflow-y-auto space-y-1 bg-zinc-900/30">
+            {filteredValues.map((v) => {
+              const isSelected = activeDimKey === 'category'
+                ? draftFilters.category?.[0] === v.value
+                : (draftFilters[activeDimKey] || []).includes(v.value)
+              const count = facetedCounts[v.value] ?? 0
+              const isDisabled = count === 0 && !isSelected
 
-            {/* Listă de valori */}
-            <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/50 p-1">
-              {filteredValues.map((v) => {
-                const isSelected = activeDimKey === 'category'
-                  ? draftFilters.category?.[0] === v.value
-                  : (draftFilters[activeDimKey] || []).includes(v.value)
-                const count = facetedCounts[v.value] ?? 0
-                const isDisabled = count === 0 && !isSelected
-
-                return (
-                  <button
-                    key={v.value}
-                    disabled={isDisabled}
-                    onClick={() => handleToggleValue(activeDimKey, v.value)}
+              return (
+                <button
+                  key={v.value}
+                  disabled={isDisabled}
+                  onClick={() => handleToggleValue(activeDimKey, v.value)}
+                  className={[
+                    'w-full flex items-center gap-2.5 px-3 py-2.5 text-left rounded-xl transition-colors',
+                    isSelected ? 'bg-blue-950/40 text-zinc-100' : 'text-zinc-300 active:bg-zinc-800/60',
+                    isDisabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-zinc-800/40',
+                  ].join(' ')}
+                >
+                  {/* Checkbox sau Radio */}
+                  <div
                     className={[
-                      'w-full flex items-center gap-2.5 px-3 py-2.5 text-left rounded-lg transition-colors',
-                      isSelected ? 'bg-blue-950/40 text-zinc-100' : 'text-zinc-300 active:bg-zinc-800/60',
-                      isDisabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-zinc-800/40',
+                      'w-4 h-4 flex items-center justify-center border shrink-0 transition-colors',
+                      activeDimKey === 'category' ? 'rounded-full' : 'rounded-md',
+                      isSelected
+                        ? 'bg-blue-600 border-blue-500 text-white'
+                        : 'border-zinc-700 bg-zinc-800/60',
                     ].join(' ')}
                   >
-                    {/* Checkbox sau Radio */}
-                    <div
-                      className={[
-                        'w-4 h-4 rounded flex items-center justify-center border shrink-0 transition-colors',
-                        activeDimKey === 'category' ? 'rounded-full' : 'rounded',
-                        isSelected
-                          ? 'bg-blue-600 border-blue-500 text-white'
-                          : 'border-zinc-700 bg-zinc-800/60',
-                      ].join(' ')}
-                    >
-                      {isSelected && <Check size={11} strokeWidth={3} />}
-                    </div>
+                    {isSelected && <Check size={11} strokeWidth={3} />}
+                  </div>
 
-                    {/* Denumire valoare */}
-                    <span className="flex-1 text-xs truncate">{v.label}</span>
+                  {/* Denumire valoare */}
+                  <span className="flex-1 text-xs truncate">{v.label}</span>
 
-                    {/* Contor live faceted */}
-                    <span
-                      className={[
-                        'text-[11px] font-medium shrink-0',
-                        isSelected ? 'text-blue-400' : 'text-zinc-500',
-                      ].join(' ')}
-                    >
-                      ({count})
-                    </span>
-                  </button>
-                )
-              })}
+                  {/* Contor live faceted */}
+                  <span
+                    className={[
+                      'text-[11px] font-medium shrink-0',
+                      isSelected ? 'text-blue-400' : 'text-zinc-500',
+                    ].join(' ')}
+                  >
+                    ({count})
+                  </span>
+                </button>
+              )
+            })}
 
-              {filteredValues.length === 0 && (
-                <div className="py-8 text-center text-xs text-zinc-500">
-                  {valueSearch ? 'Nicio opțiune găsită' : 'Nicio valoare disponibilă'}
-                </div>
-              )}
-            </div>
+            {filteredValues.length === 0 && (
+              <div className="py-12 text-center text-xs text-zinc-500">
+                {searchQuery.trim() ? `Nicio opțiune pentru „${searchQuery.trim()}”` : 'Nicio valoare disponibilă'}
+              </div>
+            )}
           </div>
         </div>
 
