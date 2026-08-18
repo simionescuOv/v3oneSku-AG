@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Package, Tag, Folder, ArrowLeft, Pencil } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
