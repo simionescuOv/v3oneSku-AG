@@ -186,6 +186,22 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
         .filter((t) => !(tagVocab ?? []).some((v) => v.value === t))
         .map((t) => ({ value: t, count: 0 })),
     ]
+
+    // Sortăm: 1) Bifate sus, 2) Active (count > 0) vs Inactive (count == 0), 3) Count desc, 4) Alfabetic
+    items.sort((a, b) => {
+      const isSelA = tags.includes(a.value) ? 1 : 0
+      const isSelB = tags.includes(b.value) ? 1 : 0
+      if (isSelA !== isSelB) return isSelB - isSelA
+
+      const hasA = a.count > 0 ? 1 : 0
+      const hasB = b.count > 0 ? 1 : 0
+      if (hasA !== hasB) return hasB - hasA
+
+      if (a.count !== b.count) return b.count - a.count
+
+      return normalize(a.value).localeCompare(normalize(b.value))
+    })
+
     return (
       <PickerSheet
         open

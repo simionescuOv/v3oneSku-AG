@@ -231,12 +231,50 @@ export default function FilterSheet({
     })
   }, [activeDimKey, activeDimValues, draftFilters, indicesForEngine, products, fixedCategoryId])
 
-  // Filtrare valori după căutarea din BottomBar
+  // Filtrare valori după căutarea din BottomBar și sortare inteligentă
   const filteredValues = useMemo(() => {
     const q = normalize(searchQuery.trim())
-    if (!q) return activeDimValues
-    return activeDimValues.filter((v) => normalize(v.label).includes(q))
-  }, [activeDimValues, searchQuery])
+    let items = activeDimValues
+    if (q) {
+      items = items.filter((v) => normalize(v.label).includes(q))
+    }
+
+    // Sortăm opțiunile astfel încât cele BIFATE să fie mereu sus,
+    // apoi cele „active” (count > 0) separate de cele „inactive” (count === 0).
+    // Secundar, sortăm descrescător după numărul de apariții și apoi alfabetic.
+    return [...items].sort((a, b) => {
+      if (activeDimKey === 'category') {
+        return normalize(a.label).localeCompare(normalize(b.label))
+      }
+
+      const isSelA = (draftFilters[activeDimKey] || []).includes(a.value) ? 1 : 0
+      const isSelB = (draftFilters[activeDimKey] || []).includes(b.value) ? 1 : 0
+      
+      // 0. Cele selectate/bifate mereu primele
+      if (isSelA !== isSelB) {
+        return isSelB - isSelA
+      }
+
+      const countA = facetedCounts[a.value] || 0
+      const countB = facetedCounts[b.value] || 0
+
+      const hasA = countA > 0 ? 1 : 0
+      const hasB = countB > 0 ? 1 : 0
+
+      // 1. Grupează-le: cele cu count > 0 apar înaintea celor cu count === 0
+      if (hasA !== hasB) {
+        return hasB - hasA
+      }
+
+      // 2. În cadrul aceluiași grup, sortează descrescător după numărul de apariții
+      if (countA !== countB) {
+        return countB - countA
+      }
+
+      // 3. Fallback: sortare alfabetică
+      return normalize(a.label).localeCompare(normalize(b.label))
+    })
+  }, [activeDimKey, activeDimValues, draftFilters, searchQuery, facetedCounts])
 
   // Handlers pentru bifare/debifare
   const handleToggleValue = useCallback((dimKey, value) => {
