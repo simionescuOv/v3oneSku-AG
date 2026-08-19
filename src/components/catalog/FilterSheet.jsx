@@ -35,31 +35,31 @@ export default function FilterSheet({
   const [draftFilters, setDraftFilters] = useState(initialFilters)
   const [activeDimKey, setActiveDimKey] = useState(showCategoryDim ? 'category' : 'tags')
 
-  // 1. Asigurare încărcare indexuri la deschidere + setare placeholder BottomBar
+  // 1. Asigurare încărcare indexuri la deschidere + setare stare inițială
   useEffect(() => {
-    if (open) {
-      setDraftFilters(initialFilters)
-      clearSearch()
+    if (!open) return
+    setDraftFilters(initialFilters)
+    clearSearch()
 
-      // Încarcă indexul global
-      fetchFilterIdx('global')
+    // Încarcă indexul global
+    fetchFilterIdx('global')
 
-      // Încarcă indexul categoriei dacă e fixă sau dacă era selectată
-      const targetCatId = fixedCategoryId || initialFilters.category?.[0]
-      if (targetCatId) {
-        fetchFilterIdx('category', targetCatId)
-        if (!showCategoryDim) {
-          const catAttrs = categoryAttributes.filter(
-            (a) => a.categoryId === targetCatId && a.filterable
-          )
-          if (catAttrs.length > 0) setActiveDimKey(catAttrs[0].id)
-          else setActiveDimKey('tags')
-        }
-      } else if (showCategoryDim) {
-        setActiveDimKey('category')
+    // Încarcă indexul categoriei dacă e fixă sau dacă era selectată
+    const targetCatId = fixedCategoryId || initialFilters.category?.[0]
+    if (targetCatId) {
+      fetchFilterIdx('category', targetCatId)
+      if (!showCategoryDim) {
+        const catAttrs = categoryAttributes.filter(
+          (a) => a.categoryId === targetCatId && a.filterable
+        )
+        if (catAttrs.length > 0) setActiveDimKey(catAttrs[0].id)
+        else setActiveDimKey('tags')
       }
+    } else if (showCategoryDim) {
+      setActiveDimKey('category')
     }
-  }, [open, fixedCategoryId, initialFilters, showCategoryDim, fetchFilterIdx, categoryAttributes, clearSearch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   // Categoriile disponibile ca dimensiune (doar cele de tip 'category')
   const allCategories = useMemo(
@@ -138,10 +138,16 @@ export default function FilterSheet({
     } else {
       setSearchPlaceholder('Caută opțiuni...')
     }
+  }, [open, activeDimKey, dimensions, setSearchPlaceholder])
+
+  // Resetare placeholder și search la închiderea dialogului
+  useEffect(() => {
+    if (!open) return
     return () => {
+      clearSearch()
       setSearchPlaceholder(showCategoryDim ? 'Caută categorie sau folder...' : 'Caută produs în categorie...')
     }
-  }, [open, activeDimKey, dimensions, setSearchPlaceholder, showCategoryDim])
+  }, [open, clearSearch, setSearchPlaceholder, showCategoryDim])
 
   // Titlu dinamic: include categoria selectată
   const dynamicTitle = useMemo(() => {

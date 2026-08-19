@@ -11,6 +11,8 @@ import SchemaSheet from '../components/catalog/SchemaSheet'
 import ImportProductsSheet from '../components/catalog/ImportProductsSheet'
 import FilterSheet from '../components/catalog/FilterSheet'
 
+const EMPTY_CATEGORY_FILTER = { appliedFilters: {}, filteredProductIds: null }
+
 export default function CategoryPage() {
   const { categoryId } = useParams()
   const routerNavigate = useNavigate()
@@ -39,7 +41,7 @@ export default function CategoryPage() {
   const [filterOpen, setFilterOpen] = useState(false)
 
   // Stare filtrare persistentă pentru categoria curentă
-  const currentCategoryFilter = categoryFilters[categoryId] || { appliedFilters: {}, filteredProductIds: null }
+  const currentCategoryFilter = categoryFilters[categoryId] || EMPTY_CATEGORY_FILTER
   const appliedFilters = currentCategoryFilter.appliedFilters
   const filteredProductIds = currentCategoryFilter.filteredProductIds
   const toastTimer = useRef(null)
@@ -78,20 +80,29 @@ export default function CategoryPage() {
     toastTimer.current = setTimeout(() => setToast(null), 3000)
   }, [])
 
-  // ── Căutare produse (usePicker inline, ca în Catalog) ────────────────────────
-  const { filteredItems: matches, showCreate } = usePicker({
-    mode: 'inline',
-    items: baseCategoryProducts,
-    labelFn: (p) => p.nameId,
-    query: searchQuery,
-    multiSelect: false,
-    allowCreate: true,
-  })
-
   const productMeta = useCallback(
     (product) => attrs.map((a) => product.attributes?.[a.id]).filter(Boolean).join(' · '),
     [attrs]
   )
+
+  const getSearchableLabel = useCallback(
+    (product) => {
+      const meta = productMeta(product)
+      const tagsStr = (product.tags || []).join(' ')
+      return `${product.nameId} ${meta} ${tagsStr}`
+    },
+    [productMeta]
+  )
+
+  // ── Căutare produse (usePicker inline după NameID, atribute și tags) ─────────
+  const { filteredItems: matches, showCreate } = usePicker({
+    mode: 'inline',
+    items: baseCategoryProducts,
+    labelFn: getSearchableLabel,
+    query: searchQuery,
+    multiSelect: false,
+    allowCreate: true,
+  })
 
   const ELLIPSIS_CRUMB = useMemo(() => ({ id: '__ellipsis__', name: '…' }), [])
 
