@@ -306,3 +306,21 @@ src/
 - [x] Auth — Google OAuth prin Supabase, tenant + rol derivate din `tenant_members`
       (nu mai e tenant fix hardcodat)
 - [ ] PWA manifest + service worker
+
+---
+
+## Backlog / Idei Viitoare (Roadmap)
+
+> Acestea sunt funcționalități discutate și aprobate conceptual, dar amânate conștient pentru o etapă ulterioară (după finalizarea nucleului MVP).
+
+### 1. Organizare Ierarhică a Tag-urilor (Foldere pentru Tags)
+- **Problema actuală**: Lista de tag-uri este plană. Dacă devine foarte mare (sute de tags), chiar și cu sortarea inteligentă (bifate > count > inactive) poate deveni greu de urmărit pe o singură pagină.
+- **Soluție UI propusă**: 
+  - Adăugarea unui meniu „3 puncte” în colțul stânga jos pe modalul/sheet-ul de Tags.
+  - Meniul va conține două butoane: **Organize** și **Fold/Unfold**.
+  - **Unfold**: afișează lista plană (comportamentul curent).
+  - **Fold**: afișează o structură de arbore (foldere definite de utilizator), similar cu pagina principală de Catalog.
+  - **Organize**: lansează o componentă de mutare a tag-urilor între foldere, similar cu selecția din `CatalogPage`.
+- **Implementare Tehnică (Arhitectură DB)**:
+  - Crearea unui tabel nou (ex: `tags_tree`) care stochează structura de foldere și maparea string-urilor de tags la anumite directoare.
+  - Migrația inițială va extrage automat toate string-urile distincte din `products.tags text[]` și le va plasa într-un folder „Rădăcină” (Root), de unde utilizatorul le va putea muta treptat. Produsele nu vor fi afectate, structura ierarhică fiind doar un strat vizual (taxonomy) peste array-ul de string-uri, sau se va migra la foreign keys `tag_id`.
