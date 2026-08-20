@@ -62,9 +62,10 @@ export default function CartPage() {
   }
 
   // --- Logica pentru Picker ---
+  const onlySpaces = spaces.filter(s => s.type === 'space')
   const pickerItems = pickerType === 'source' 
-    ? [{ id: 'catalog', name: 'Catalog (Aprovizionare)' }, ...spaces]
-    : spaces
+    ? [{ id: 'catalog', name: 'Catalog (Aprovizionare)' }, ...onlySpaces]
+    : onlySpaces
 
   const { filteredItems } = usePicker({
     mode: 'inline', // Căutarea va citi din BottomBar (searchQuery din app store)

@@ -1,16 +1,10 @@
 import { useEffect, useMemo } from 'react'
 import { Folder, Home } from 'lucide-react'
 import BottomSheet from './BottomSheet'
-import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 import { filterAndSort } from '../../lib/search'
 
-// SPEC_MutareCrossFolder §3.4 — bottom-sheet CU căutare (BottomBar rămâne
-// vizibil). Alege destinația pentru folderul temporar care conține selecția
-// cross-folder; `getValidMoveDestinations(tempFolderId)` exclude automat
-// folderul temporar și descendenții lui (nodurile mutate în el).
-export default function DestinationPicker({ open, onClose, tempFolderId, onPicked, allRootSelection = false }) {
-  const getValidMoveDestinations = useCatalogStore((s) => s.getValidMoveDestinations)
+export default function DestinationPicker({ open, onClose, tempFolderId, onPicked, allRootSelection = false, getValidDestinations }) {
 
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
@@ -28,8 +22,8 @@ export default function DestinationPicker({ open, onClose, tempFolderId, onPicke
 
   const validFolders = useMemo(() => {
     if (!open || !tempFolderId) return []
-    return getValidMoveDestinations(tempFolderId)
-  }, [open, tempFolderId, getValidMoveDestinations])
+    return getValidDestinations(tempFolderId)
+  }, [open, tempFolderId, getValidDestinations])
 
   const filteredFolders = useMemo(
     () => filterAndSort(validFolders, searchQuery, (f) => f.name),

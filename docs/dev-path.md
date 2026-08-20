@@ -78,6 +78,20 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: aurora - organizare stockhub pe foldere, breadcrumbs si extragere ierarhie reutilizabila`] — `build: aurora - organizare stockhub pe foldere, breadcrumbs si extragere ierarhie reutilizabila`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-20
+- **Build Word Curent**: `aurora`
+- **Descriere Detaliată**:
+  - Am adăugat suport complet pentru foldere în `StockHub`.
+  - Migrare SQL (`20260820191500_stockhub_hierarchy.sql`) care adaugă `type`, `parent_id` și `position` pe tabela `spaces` (cu verificări stricte de consistență în DB).
+  - Extras componentele `FullTree` și `SearchGroup` din `CatalogPage` în componenta partajată `HierarchyTree.jsx` (rezolvând principiul DRY).
+  - Reparat bug-ul de UI (linia 139) astfel încât click-ul pe o categorie (sau spațiu) în modul `Unfold` declanșează navigarea normală (în loc de un no-op).
+  - Modificat `StockHubPage` să integreze vizualizarea de Foldere, Navigarea (breadcrumbs cu ArrowLeft) și logica completă de Organizare (Mutare, Grupare).
+  - Adaptat store-ul `useStockStore.js` pentru a gestiona metodele de calcul hibride pentru navigație (`getChildren`, `getBreadcrumb`) și update-uri de mutare (`moveNodes`, `groupNodes`).
+
+---
+
 ### [Commit `build: aurora - conversie cart din overlay in pagina, integrare picker v2 standalone`] — `build: aurora - conversie cart din overlay in pagina, integrare picker v2 standalone`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20

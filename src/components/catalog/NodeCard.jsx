@@ -1,4 +1,4 @@
-import { Folder, Tag, ChevronRight, Check } from 'lucide-react'
+import { Folder, Tag, ChevronRight, Check, Warehouse } from 'lucide-react'
 
 export function NodeCount({ value }) {
   return <span className="text-sm font-semibold text-zinc-400 shrink-0">{value ?? 0}</span>
@@ -6,6 +6,8 @@ export function NodeCount({ value }) {
 
 export default function NodeCard({ node, onTap, selectable = false, selected = false, productCount, indent }) {
   const isFolder = node.type === 'folder'
+  const Icon = isFolder ? Folder : (node.type === 'space' ? Warehouse : Tag)
+  const iconColor = isFolder ? 'text-amber-400' : 'text-blue-400'
 
   return (
     <button
@@ -27,10 +29,7 @@ export default function NodeCard({ node, onTap, selectable = false, selected = f
           <Check size={14} />
         </span>
       )}
-      {isFolder
-        ? <Folder size={18} className="text-amber-400 shrink-0" />
-        : <Tag size={18} className="text-blue-400 shrink-0" />
-      }
+      <Icon size={18} className={`${iconColor} shrink-0`} />
       <span className="flex-1 text-sm text-zinc-100 truncate">{node.name}</span>
       {isFolder ? (
         !selectable && <ChevronRight size={16} className="text-zinc-600 shrink-0" />

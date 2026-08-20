@@ -58,121 +58,9 @@ function sortTreeFolders(group, orderOf) {
   group.children.forEach((child) => sortTreeFolders(child, orderOf))
 }
 
-function SearchGroup({ group, depth, onTap, productCounts }) {
-  const indent = 16 + depth * 16
-  return (
-    <>
-      {group.node && (
-        group.matched ? (
-          <button
-            onClick={() => onTap(group.node)}
-            className="w-full flex items-center gap-2 py-2 text-left text-xs font-medium text-amber-400 bg-zinc-900/60 active:bg-zinc-900"
-            style={{ paddingLeft: indent, paddingRight: 16 }}
-          >
-            <Folder size={14} className="shrink-0" />
-            <span className="flex-1 truncate">{group.node.name}</span>
-            <ChevronRight size={14} className="text-zinc-600 shrink-0" />
-          </button>
-        ) : (
-          <div
-            className="flex items-center gap-2 py-2 text-xs font-medium text-amber-400 bg-zinc-900/60"
-            style={{ paddingLeft: indent, paddingRight: 16 }}
-          >
-            <Folder size={14} className="shrink-0" />
-            {group.node.name}
-          </div>
-        )
-      )}
-      {group.categories.map((cat) => (
-        <NodeCard
-          key={cat.id}
-          node={cat}
-          onTap={onTap}
-          productCount={productCounts?.[cat.id]}
-          indent={indent + (group.node ? 16 : 0)}
-        />
-      ))}
-      {group.children.map((child) => (
-        <SearchGroup key={child.node.id} group={child} depth={depth + 1} onTap={onTap} productCounts={productCounts} />
-      ))}
-    </>
-  )
-}
+import { SearchGroup, FullTree } from '../components/shared/HierarchyTree'
 
 const EMPTY_SET = new Set()
-
-// `selectable` activează checkbox-urile (SPEC_MutareCrossFolder §3.2 — mod
-// selecție Mutare cross-folder). Folderele temporare sunt deja filtrate de
-// `getChildren`, deci nu apar aici.
-// Fold/unfold per-folder: checkbox-ul (selecție) și rândul (deschide/închide
-// folderul) au target-uri de tap separate, ca să nu se interfereze.
-// `visibleIds`, dacă e setat (căutare activă), restrânge nodurile afișate la
-// rezultate + lanțul lor de foldere-părinte (foldarea e ignorată în acest caz).
-function FullTree({ parentId, depth, getChildren, selectable, selectedIds, onToggle, collapsedIds, onToggleFold, visibleIds, currentFolderId, productCounts }) {
-  let children = getChildren(parentId)
-  if (visibleIds) children = children.filter((n) => visibleIds.has(n.id))
-  return children.map((node) => {
-    const isFolder = node.type === 'folder'
-    const isCollapsed = isFolder && !visibleIds && collapsedIds.has(node.id)
-    // Echivalentul folderului curent (ultimul, evidențiat în breadcrumb) trebuie
-    // colorat la fel și aici, ca să se vadă unde te afli direct în arbore.
-    const isCurrent = isFolder && node.id === currentFolderId
-    return (
-      <div key={node.id}>
-        <div
-          className="flex items-center gap-2 py-2.5 text-sm border-b border-zinc-900"
-          style={{ paddingLeft: 16 + depth * 16, paddingRight: 16 }}
-        >
-          {selectable && (
-            <span
-              onClick={() => onToggle(node.id)}
-              className={[
-                'shrink-0 flex items-center justify-center w-5 h-5 rounded-full border',
-                selectedIds.has(node.id) ? 'bg-blue-600 border-blue-600 text-white' : 'border-zinc-600 text-transparent',
-              ].join(' ')}
-            >
-              <Check size={14} />
-            </span>
-          )}
-          <div
-            className="flex-1 flex items-center gap-2 min-w-0"
-            onClick={isFolder ? () => onToggleFold(node.id) : (selectable ? () => onToggle(node.id) : undefined)}
-          >
-            {isFolder
-              ? (isCollapsed ? <ChevronRight size={14} className="text-zinc-500 shrink-0" /> : <ChevronDown size={14} className="text-zinc-500 shrink-0" />)
-              : <span className="w-3.5 shrink-0" />
-            }
-            {isFolder
-              ? <Folder size={16} className="text-amber-400 shrink-0" />
-              : <Tag size={16} className="text-blue-400 shrink-0" />
-            }
-            <span className={isCurrent ? 'flex-1 text-amber-400 font-semibold truncate' : 'flex-1 text-zinc-100 truncate'}>
-              {node.name}
-            </span>
-            {node.type === 'category' && (
-              <NodeCount value={productCounts?.[node.id]} />
-            )}
-          </div>
-        </div>
-        {isFolder && !isCollapsed && (
-          <FullTree
-            parentId={node.id}
-            depth={depth + 1}
-            getChildren={getChildren}
-            selectable={selectable}
-            selectedIds={selectedIds}
-            onToggle={onToggle}
-            collapsedIds={collapsedIds}
-            onToggleFold={onToggleFold}
-            visibleIds={visibleIds}
-            currentFolderId={currentFolderId}
-            productCounts={productCounts}
-          />
-        )}
-      </div>
-    )
-  })
-}
 
 export default function CatalogPage() {
   const nodes = useCatalogStore((s) => s.nodes)
@@ -648,6 +536,7 @@ export default function CatalogPage() {
             visibleIds={searchVisibleIds}
             currentFolderId={currentFolderId}
             productCounts={productCounts}
+            onNodeTap={handleNodeTap}
           />
           {isSearching && searchVisibleIds?.size === 0 && (
             <div className="px-4 py-8 text-center text-sm text-zinc-500">
@@ -716,7 +605,12 @@ export default function CatalogPage() {
       )}
 
       {/* Action bar — mod selecție (deasupra BottomBar-ului) */}
-      <ActionBar onContinue={handleContinue} />
+      <ActionBar 
+        selectionMode={selectionMode}
+        selectedCount={selectedNodeIds.size}
+        onClear={clearSelection}
+        onContinue={handleContinue} 
+      />
 
       {/* Toast */}
       {toast && (
@@ -787,6 +681,7 @@ export default function CatalogPage() {
         tempFolderId={tempFolderId}
         onPicked={handleDestinationPicked}
         allRootSelection={allRootSelection}
+        getValidDestinations={getValidMoveDestinations}
       />
       <SubgroupSheet
         open={subgroupSheetOpen}

@@ -1,17 +1,11 @@
 import { X } from 'lucide-react'
-import { useCatalogStore } from '../../store/useCatalogStore'
 
 // Bară de acțiune pentru modul selecție (Organize).
 // position: absolute, deasupra BottomBar-ului (NU fixed, NU sub TopBar — bottom-design).
-export default function ActionBar({ onContinue }) {
-  const selectionMode = useCatalogStore((s) => s.selectionMode)
-  const selectedNodeIds = useCatalogStore((s) => s.selectedNodeIds)
-  const clearSelection = useCatalogStore((s) => s.clearSelection)
-
+export default function ActionBar({ selectionMode, selectedCount, onClear, onContinue }) {
   if (!selectionMode) return null
 
-  const count = selectedNodeIds.size
-  const canContinue = count >= 1
+  const canContinue = selectedCount >= 1
 
   return (
     <div
@@ -19,7 +13,7 @@ export default function ActionBar({ onContinue }) {
       style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom))' }}
     >
       <button
-        onClick={clearSelection}
+        onClick={onClear}
         className="shrink-0 flex items-center gap-1.5 text-sm text-zinc-300 active:text-zinc-100"
       >
         <X size={18} />
@@ -38,7 +32,7 @@ export default function ActionBar({ onContinue }) {
             : 'bg-zinc-700 text-zinc-500',
         ].join(' ')}
       >
-        {`Organize  <  ${count}  >`}
+        {`Organize  <  ${selectedCount}  >`}
       </button>
     </div>
   )
