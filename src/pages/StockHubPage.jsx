@@ -471,11 +471,10 @@ export default function StockHubPage() {
       <DestinationPicker
         open={destinationPickerOpen}
         onClose={() => setDestinationPickerOpen(false)}
-        tempFolderId={tempFolderId}
+        tempFolderId={tempFolderId || 'virtual'}
         onPicked={handleDestinationPicked}
         allRootSelection={allRootSelection}
-        getValidDestinations={(id) => {
-          // exclude sub-folders of id
+        getValidDestinations={() => {
           const excluded = new Set()
           const getDesc = (parent) => {
             spaces.filter(s => s.parentId === parent).forEach(c => {
@@ -483,9 +482,9 @@ export default function StockHubPage() {
               getDesc(c.id)
             })
           }
-          if (id) {
-            excluded.add(id)
-            getDesc(id)
+          for (const sId of selectedNodeIds) {
+            excluded.add(sId)
+            getDesc(sId)
           }
           return spaces.filter(s => s.type === 'folder' && !excluded.has(s.id))
         }}
