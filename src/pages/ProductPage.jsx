@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Package, Tag, Folder, ArrowLeft, Pencil } from 'lucide-react'
+import { ChevronLeft, Package, Tag, Folder, ArrowLeft, Pencil, ShoppingCart } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
+import { useCartStore } from '../store/useCartStore'
 import { useAppStore } from '../store/useAppStore'
 import { normalize } from '../lib/search'
 import BottomSheet from '../components/catalog/BottomSheet'
@@ -164,13 +165,22 @@ export default function ProductPage() {
                 {product.nameId}
               </h1>
 
-              <div className="mt-3 flex items-center gap-4 text-sm">
+              <div className="mt-3 flex items-center justify-between text-sm">
                 <div>
                   <span className="text-xs text-zinc-500 block">Preț de listă</span>
                   <span className="font-semibold text-zinc-100">
                     {product.listPrice != null ? `${product.listPrice} RON` : 'Necompletat'}
                   </span>
                 </div>
+                <button 
+                  onClick={() => {
+                    useCartStore.getState().addItem(product)
+                    showToast('Produs adăugat în coș')
+                  }}
+                  className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white transition-colors"
+                >
+                  <ShoppingCart size={20} />
+                </button>
               </div>
             </div>
           </div>
@@ -254,8 +264,19 @@ export default function ProductPage() {
             {product.nameId}
           </div>
           <button
-            onClick={() => { closeCatalogMenu(); setEditOpen(true) }}
+            onClick={() => { 
+              closeCatalogMenu(); 
+              useCartStore.getState().addItem(product);
+              showToast('Adăugat în coș ✓');
+            }}
             className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className="text-zinc-400"><ShoppingCart size={18} /></span>
+            <span className="flex-1 text-left">Adaugă în coș</span>
+          </button>
+          <button
+            onClick={() => { closeCatalogMenu(); setEditOpen(true) }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700 mt-1"
           >
             <span className="text-zinc-400"><Pencil size={18} /></span>
             <span className="flex-1 text-left">Editează produsul</span>

@@ -13,6 +13,7 @@ import SettingsPage from './pages/SettingsPage'
 import LoginPage from './pages/LoginPage'
 import { useCatalogStore } from './store/useCatalogStore'
 import { useAuthStore } from './store/useAuthStore'
+import { useStockStore } from './store/useStockStore'
 
 function RequireAuth({ children }) {
   const user = useAuthStore((s) => s.user)
@@ -28,6 +29,7 @@ export default function App() {
   const user = useAuthStore((s) => s.user)
   const tenantId = useAuthStore((s) => s.tenantId)
   const fetchCatalog = useCatalogStore((s) => s.fetchCatalog)
+  const fetchSpaces = useStockStore((s) => s.fetchSpaces)
 
   useEffect(() => {
     init()
@@ -37,8 +39,11 @@ export default function App() {
   // dată după ce sesiunea + tenantul sunt cunoscute; mutațiile ulterioare îl
   // reîmprospătează.
   useEffect(() => {
-    if (user && tenantId) fetchCatalog()
-  }, [user, tenantId, fetchCatalog])
+    if (user && tenantId) {
+      fetchCatalog()
+      fetchSpaces()
+    }
+  }, [user, tenantId, fetchCatalog, fetchSpaces])
 
   return (
     <BrowserRouter>

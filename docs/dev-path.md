@@ -78,6 +78,18 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: aurora - cos de tranzactie functional si integrare stockhub cu date reale`] — `build: aurora - cos de tranzactie functional si integrare stockhub cu date reale`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-20
+- **Build Word Curent**: `aurora`
+- **Descriere Detaliată**:
+  - **Migrație Bază de Date (`20260820180000_rpc_commit_cart.sql`)**: Creare tabel `stock_alerts`, creare view `spaces_summary` și implementare funcție atomică RPC `commit_cart` pentru procesarea transferurilor de stoc între catalog și spații.
+  - **StockHub & Date Reale (`useStockStore.js`, `StockHubPage.jsx`)**: Integrare store cu Supabase. `StockHubPage` afișează acum date live, folosește un efect de încărcare skeleton și prezintă alerte expandabile inline pentru produse cu stoc negativ (opțiunea C de UX confirmată).
+  - **Proces de Checkout Real (`CartOverlay.jsx`)**: Suprapunerea coșului preia dinamic sursa și destinația din `useStockStore`, procesează tranzacția async și afișează starea cu spinner și notificări clare prin toast.
+  - **Integrare Adaugă în Coș (`ProductPage.jsx`, `App.jsx`)**: Adăugat buton „Adaugă în coș” în meniul contextual din pagina produsului. `App.jsx` declanșează preîncărcarea spațiilor (`fetchSpaces()`) la inițializarea utilizatorului.
+
+---
+
 ### [Commit `build: aurora - modul filtrare locala 2 coloane, persistenta stare si control date schema`] — `build: aurora - modul filtrare locala 2 coloane, persistenta stare si control date schema`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-18
