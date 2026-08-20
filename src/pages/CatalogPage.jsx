@@ -43,6 +43,7 @@ export default function CatalogPage() {
   const enterSelectionMode = useCatalogStore((s) => s.enterSelectionMode)
   const toggleNodeSelection = useCatalogStore((s) => s.toggleNodeSelection)
   const clearSelection = useCatalogStore((s) => s.clearSelection)
+  const getValidMoveDestinations = useCatalogStore((s) => s.getValidMoveDestinations)
   const moveNodes = useCatalogStore((s) => s.moveNodes)
   const createTempFolder = useCatalogStore((s) => s.createTempFolder)
   const dissolveTempFolder = useCatalogStore((s) => s.dissolveTempFolder)
