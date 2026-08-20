@@ -500,7 +500,7 @@ export default function CatalogPage() {
             visibleIds={searchVisibleIds}
             currentFolderId={currentFolderId}
             productCounts={productCounts}
-            onNodeTap={handleNodeTap}
+            onNodeTap={handleTap}
           />
           {isSearching && searchVisibleIds?.size === 0 && (
             <div className="px-4 py-8 text-center text-sm text-zinc-500">
