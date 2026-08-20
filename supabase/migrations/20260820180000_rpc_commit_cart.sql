@@ -18,10 +18,10 @@ create index idx_stock_alerts_resolved on stock_alerts(resolved_at);
 alter table stock_alerts enable row level security;
 
 create policy "Tenant members can view their stock_alerts" on stock_alerts
-  for select using (tenant_id = (select get_session_tenant_id()));
+  for select using (tenant_id = (select current_tenant_id()));
 
 create policy "Tenant members can update their stock_alerts" on stock_alerts
-  for update using (tenant_id = (select get_session_tenant_id()));
+  for update using (tenant_id = (select current_tenant_id()));
 
 -- 2. VIEW pentru spaces summary (înlocuiește mock-urile din StockHub)
 create or replace view spaces_summary as
@@ -58,7 +58,7 @@ declare
   v_alerts jsonb := '[]'::jsonb;
 begin
   -- Preia tenant-ul curent din sesiune
-  v_tenant_id := get_session_tenant_id();
+  v_tenant_id := current_tenant_id();
   if v_tenant_id is null then
     raise exception 'Unauthorized';
   end if;
