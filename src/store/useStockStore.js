@@ -23,6 +23,26 @@ export const useStockStore = create((set, get) => ({
     return { ok: true, data }
   },
 
+  createSpace: async (name, allowNegativeStock = false) => {
+    // Luăm tenantId din useAuthStore
+    const tenantId = (await import('./useAuthStore')).useAuthStore.getState().tenantId
+
+    const { error } = await supabase
+      .from('spaces')
+      .insert({
+        tenant_id: tenantId,
+        name,
+        allow_negative_stock: allowNegativeStock,
+      })
+
+    if (error) {
+      return { ok: false, error: error.message }
+    }
+
+    await get().fetchSpaces()
+    return { ok: true }
+  },
+
   fetchAlerts: async () => {
     const { data, error } = await supabase
       .from('stock_alerts')

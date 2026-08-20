@@ -9,6 +9,7 @@ export default function BottomBar({ hidden }) {
   const setSearchQuery = useAppStore((s) => s.setSearchQuery)
   const searchPlaceholder = useAppStore((s) => s.searchPlaceholder)
   const openCatalogMenu = useAppStore((s) => s.openCatalogMenu)
+  const openStockHubMenu = useAppStore((s) => s.openStockHubMenu)
   const bottomBarHidden = useAppStore((s) => s.bottomBarHidden)
 
   const { pathname } = useLocation()
@@ -16,11 +17,13 @@ export default function BottomBar({ hidden }) {
   // toate folosesc meniul contextual (catalogMenuOpen), nu meniul lateral.
   const isProductPage = pathname.startsWith('/catalog/product')
   const isCatalogFamily = pathname.startsWith('/catalog')
+  const isStockHub = pathname.startsWith('/stockhub')
   const MenuIcon = NAV_ITEMS.find((item) => item.path === pathname)?.Icon
     ?? (isProductPage ? Package : isCatalogFamily ? BookOpen : Menu)
 
   const handleMenuPress = () => {
     if (isCatalogFamily) openCatalogMenu()
+    else if (isStockHub) openStockHubMenu()
     else toggleSideMenu()
   }
 

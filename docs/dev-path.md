@@ -78,6 +78,18 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: aurora - stockhub UX aliniat cu catalogpage (empty state, creare space, meniu contextual)`] — `build: aurora - stockhub UX aliniat cu catalogpage (empty state, creare space, meniu contextual)`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-20
+- **Build Word Curent**: `aurora`
+- **Descriere Detaliată**:
+  - Aliniere UX `StockHubPage` cu comportamentul consacrat din `CatalogPage` conform specificațiilor Picker v2 (`SPEC_Picker_v2.md`).
+  - Adăugare suport pentru vizualizarea stării „Gol” cu instrucțiuni specifice de creare.
+  - Implementarea logicii de căutare a spațiilor și crearea unuia nou din `BottomBar` via `usePicker` (mod `inline`) și noul action `createSpace` din store.
+  - S-a introdus un meniu contextual dedicat `StockHub`, apelat prin iconița `Warehouse` din bara de navigare, conținând acțiunea placeholder „Organizează spațiile”.
+
+---
+
 ### [Commit `build: aurora - cos de tranzactie functional si integrare stockhub cu date reale`] — `build: aurora - cos de tranzactie functional si integrare stockhub cu date reale`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20
