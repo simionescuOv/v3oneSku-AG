@@ -78,6 +78,19 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: aurora - conversie cart din overlay in pagina, integrare picker v2 standalone`] — `build: aurora - conversie cart din overlay in pagina, integrare picker v2 standalone`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-20
+- **Build Word Curent**: `aurora`
+- **Descriere Detaliată**:
+  - S-a eliminat componenta de overlay `CartOverlay` și a fost transformată într-o rută normală (pagină) accesibilă la `/cart` (`CartPage`).
+  - Navigarea către `/cart` se face din FAB-ul global, refolosind layout-ul `AppShell` (deci BottomBar-ul global rămâne vizibil).
+  - Au fost șterse elementele native HTML `<select>` pentru Sursă și Destinație, fiind înlocuite cu un mecanism de selecție `Picker v2`.
+  - La apăsarea Sursă/Destinație se deschide un `BottomSheet` deasupra formularului, iar căutarea este legată automat (prin mod `inline` din `usePicker`) de `BottomBar`-ul global.
+  - S-au eliminat variabilele globale `isOpen` și funcțiile `openCart`/`closeCart` din `useCartStore`.
+
+---
+
 ### [Commit `build: aurora - stockhub UX aliniat cu catalogpage (empty state, creare space, meniu contextual)`] — `build: aurora - stockhub UX aliniat cu catalogpage (empty state, creare space, meniu contextual)`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20

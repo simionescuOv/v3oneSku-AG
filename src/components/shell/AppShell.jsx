@@ -1,15 +1,16 @@
 import { useCallback } from 'react'
 import { ShoppingCart } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import TopBar from './TopBar'
 import MainContent from './MainContent'
 import BottomBar from './BottomBar'
 import SideMenu from '../nav/SideMenu'
-import CartOverlay from '../cart/CartOverlay'
 import { useAppStore } from '../../store/useAppStore'
 import { useCartStore } from '../../store/useCartStore'
 import { useViewportHeight } from '../../hooks/useViewportHeight'
 
 export default function AppShell() {
+  const navigate = useNavigate()
   const bottomHidden = useAppStore((s) => s.bottomBarScrollHidden)
   const setBottomHidden = useAppStore((s) => s.setBottomBarScrollHidden)
   const { height, offsetTop } = useViewportHeight()
@@ -17,7 +18,7 @@ export default function AppShell() {
   const handleScrollDown = useCallback(() => setBottomHidden(true), [setBottomHidden])
   const handleScrollUp = useCallback(() => setBottomHidden(false), [setBottomHidden])
 
-  const { items, openCart } = useCartStore()
+  const { items } = useCartStore()
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
 
   return (
@@ -29,12 +30,11 @@ export default function AppShell() {
       <MainContent onScrollDown={handleScrollDown} onScrollUp={handleScrollUp} />
       <BottomBar hidden={bottomHidden} />
       <SideMenu />
-      <CartOverlay />
 
       {/* Global Cart FAB */}
       {items.length > 0 && (
         <button
-          onClick={openCart}
+          onClick={() => navigate('/cart')}
           className={[
             'absolute right-4 z-40 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white p-3.5 rounded-full shadow-lg shadow-black/50 transition-all duration-300',
             bottomHidden ? 'bottom-6' : 'bottom-20'

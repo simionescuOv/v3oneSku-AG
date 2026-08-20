@@ -4,10 +4,6 @@ export const useCartStore = create((set, get) => ({
   items: [],
   source: 'catalog', // Default source is catalog
   destination: null,
-  isOpen: false,
-
-  openCart: () => set({ isOpen: true }),
-  closeCart: () => set({ isOpen: false }),
 
   setSource: (source) => set({ source }),
   setDestination: (destination) => set({ destination }),
