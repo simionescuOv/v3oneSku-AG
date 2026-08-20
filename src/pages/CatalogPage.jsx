@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
-import { filterAndSort, normalize } from '../lib/search'
+import { filterAndSort, normalize, buildSearchTree, sortTreeFolders } from '../lib/search'
 import { usePicker } from '../hooks/usePicker'
 import NodeCard, { NodeCount } from '../components/catalog/NodeCard'
 import ProductCard from '../components/catalog/ProductCard'
@@ -20,43 +20,6 @@ const nodeLabel = (node) => node.name
 const ELLIPSIS_CRUMB = { id: '__ellipsis__', name: '…' }
 // Dezactivat temporar — notificările de succes după creare/mutare (erorile rămân vizibile).
 const SHOW_ACTION_TOASTS = false
-
-function buildSearchTree(matches, getAncestorFolders) {
-  const root = { node: null, children: [], categories: [], matched: false }
-
-  function getOrCreateChild(cursor, folderNode) {
-    let existing = cursor.children.find((c) => c.node.id === folderNode.id)
-    if (!existing) {
-      existing = { node: folderNode, children: [], categories: [], matched: false }
-      cursor.children.push(existing)
-    }
-    return existing
-  }
-
-  for (const item of matches) {
-    const chain = getAncestorFolders(item.id)
-    let cursor = root
-    for (const folder of chain) {
-      cursor = getOrCreateChild(cursor, folder)
-    }
-    if (item.type === 'category') {
-      cursor.categories.push(item)
-    } else {
-      // folder matched directly — represent it as its own (tappable) node in the tree
-      const entry = getOrCreateChild(cursor, item)
-      entry.matched = true
-    }
-  }
-  return root
-}
-
-// A3 — Scoring-ul ordonează categoriile în interiorul unui grup-folder, dar NU
-// rearanjează grupurile-folder între ele: ordinea folderelor rămâne cea naturală
-// (după poziția în arbore), independent de scorul rezultatelor din ele.
-function sortTreeFolders(group, orderOf) {
-  group.children.sort((a, b) => orderOf(a.node.id) - orderOf(b.node.id))
-  group.children.forEach((child) => sortTreeFolders(child, orderOf))
-}
 
 import { SearchGroup, FullTree } from '../components/shared/HierarchyTree'
 
@@ -220,11 +183,11 @@ export default function CatalogPage() {
   })
   const searchTree = useMemo(() => {
     if (!isSearching) return null
-    const tree = buildSearchTree(searchMatches, getAncestorFolders)
+    const tree = buildSearchTree(nodes, searchMatches)
     const orderOf = (id) => nodes.findIndex((n) => n.id === id)
     sortTreeFolders(tree, orderOf)
     return tree
-  }, [isSearching, searchMatches, getAncestorFolders, nodes])
+  }, [nodes, searchMatches, isSearching])
 
   const showCreate = !selectionMode && pickerShowCreate
 

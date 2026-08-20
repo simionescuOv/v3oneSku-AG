@@ -39,3 +39,50 @@ export function filterAndSort(items, query, getLabel = (x) => x) {
   scored.sort((a, b) => a.score - b.score)
   return scored.map((s) => s.item)
 }
+
+export function getAncestorFolders(nodes, nodeId) {
+  const node = nodes.find((n) => n.id === nodeId)
+  if (!node) return []
+  const chain = []
+  let parentId = node.parentId
+  while (parentId) {
+    const parent = nodes.find((n) => n.id === parentId)
+    if (!parent || parent.isTemp) break
+    chain.unshift(parent)
+    parentId = parent.parentId
+  }
+  return chain
+}
+
+export function buildSearchTree(nodes, matches) {
+  const root = { node: null, children: [], categories: [], matched: false }
+
+  function getOrCreateChild(cursor, folderNode) {
+    let existing = cursor.children.find((c) => c.node.id === folderNode.id)
+    if (!existing) {
+      existing = { node: folderNode, children: [], categories: [], matched: false }
+      cursor.children.push(existing)
+    }
+    return existing
+  }
+
+  for (const item of matches) {
+    const chain = getAncestorFolders(nodes, item.id)
+    let cursor = root
+    for (const folder of chain) {
+      cursor = getOrCreateChild(cursor, folder)
+    }
+    if (item.type === 'category' || item.type === 'space') {
+      cursor.categories.push(item)
+    } else {
+      const entry = getOrCreateChild(cursor, item)
+      entry.matched = true
+    }
+  }
+  return root
+}
+
+export function sortTreeFolders(group, orderOf) {
+  group.children.sort((a, b) => orderOf(a.node.id) - orderOf(b.node.id))
+  group.children.forEach((child) => sortTreeFolders(child, orderOf))
+}
