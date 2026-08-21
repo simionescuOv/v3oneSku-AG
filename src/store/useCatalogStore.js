@@ -20,12 +20,27 @@ function nameExistsGlobally(nodes, name, exceptId = null) {
   )
 }
 
-function getDescendantIds(nodes, id) {
+function buildIndices(nodes) {
+  const nodeMap = new Map()
+  const childrenMap = new Map()
+
+  for (const node of nodes) {
+    nodeMap.set(node.id, node)
+    const parentId = node.parentId
+    if (!childrenMap.has(parentId)) {
+      childrenMap.set(parentId, [])
+    }
+    childrenMap.get(parentId).push(node)
+  }
+  return { nodeMap, childrenMap }
+}
+
+function getDescendantIds(childrenMap, id) {
   const result = new Set()
   const queue = [id]
   while (queue.length) {
     const cur = queue.shift()
-    const children = nodes.filter((n) => n.parentId === cur)
+    const children = childrenMap.get(cur) || []
     for (const c of children) {
       result.add(c.id)
       queue.push(c.id)
@@ -78,19 +93,28 @@ const mapAttributeOption = (row) => ({
   position: row.position,
 })
 
-export const useCatalogStore = create((set, get) => ({
-  nodes: [],
-  trash: [],
-  products: [],
-  categoryAttributes: [],
-  attributeOptions: [],
-  loading: false,
-  loaded: false,
-  loadError: null,
+export const useCatalogStore = create((set, get) => {
+  const setNodes = (nodes) => {
+    const { nodeMap, childrenMap } = buildIndices(nodes)
+    set({ nodes, nodeMap, childrenMap })
+  }
 
-  currentFolderId: null,
-  treeExpanded: false,
-  toggleTreeExpanded: () => set((s) => ({ treeExpanded: !s.treeExpanded })),
+  return {
+    nodes: [],
+    nodeMap: new Map(),
+    childrenMap: new Map(),
+    trash: [],
+    products: [],
+    categoryAttributes: [],
+    attributeOptions: [],
+    loading: false,
+    loaded: false,
+    loadError: null,
+
+    currentFolderId: null,
+    treeExpanded: false,
+    toggleTreeExpanded: () => set((s) => ({ treeExpanded: !s.treeExpanded })),
+    setNodes,
 
   // ── Selection mode (Grupare / Mutare) ───────────────────────────────
   selectionMode: null,
@@ -139,8 +163,10 @@ export const useCatalogStore = create((set, get) => ({
       return { ok: false, error: firstError.message }
     }
 
+    const nodes = nodesRes.data.map(mapNode)
+    get().setNodes(nodes)
+
     set({
-      nodes: nodesRes.data.map(mapNode),
       products: productsRes.data.map(mapProduct),
       categoryAttributes: attrsRes.data.map(mapCategoryAttribute),
       attributeOptions: optsRes.data.map(mapAttributeOption),
@@ -165,20 +191,20 @@ export const useCatalogStore = create((set, get) => ({
   navigate: (folderId) => set({ currentFolderId: folderId }),
 
   navigateUp: () => {
-    const { nodes, currentFolderId } = get()
+    const { nodeMap, currentFolderId } = get()
     if (!currentFolderId) return
-    const current = nodes.find((n) => n.id === currentFolderId)
+    const current = nodeMap.get(currentFolderId)
     set({ currentFolderId: current?.parentId ?? null })
   },
 
   // ── Derived helpers (sincrone, peste cache-ul local) ─────────────────
   getBreadcrumb: () => {
-    const { nodes, currentFolderId } = get()
+    const { nodeMap, currentFolderId } = get()
     if (!currentFolderId) return []
     const crumbs = []
     let id = currentFolderId
     while (id) {
-      const node = nodes.find((n) => n.id === id)
+      const node = nodeMap.get(id)
       if (!node) break
       crumbs.unshift(node)
       id = node.parentId
@@ -187,22 +213,23 @@ export const useCatalogStore = create((set, get) => ({
   },
 
   getChildren: (parentId) => {
-    const { nodes } = get()
-    const children = nodes.filter((n) => n.parentId === parentId && !n.isTemp)
+    const { childrenMap } = get()
+    const children = childrenMap.get(parentId) || []
+    const validChildren = children.filter((n) => !n.isTemp)
     return [
-      ...children.filter((n) => n.type === 'folder'),
-      ...children.filter((n) => n.type === 'category'),
+      ...validChildren.filter((n) => n.type === 'folder'),
+      ...validChildren.filter((n) => n.type === 'category'),
     ]
   },
 
   getAncestorFolders: (nodeId) => {
-    const { nodes } = get()
-    const node = nodes.find((n) => n.id === nodeId)
+    const { nodeMap } = get()
+    const node = nodeMap.get(nodeId)
     if (!node) return []
     const chain = []
     let parentId = node.parentId
     while (parentId) {
-      const parent = nodes.find((n) => n.id === parentId)
+      const parent = nodeMap.get(parentId)
       if (!parent || parent.isTemp) break
       chain.unshift(parent)
       parentId = parent.parentId
@@ -211,8 +238,8 @@ export const useCatalogStore = create((set, get) => ({
   },
 
   getValidMoveDestinations: (nodeId) => {
-    const { nodes } = get()
-    const excluded = getDescendantIds(nodes, nodeId)
+    const { nodes, childrenMap } = get()
+    const excluded = getDescendantIds(childrenMap, nodeId)
     excluded.add(nodeId)
     return nodes.filter((n) => n.type === 'folder' && !n.isTemp && !excluded.has(n.id))
   },
@@ -391,4 +418,5 @@ export const useCatalogStore = create((set, get) => ({
     await get().fetchCatalog()
     return res
   },
-}))
+  }
+})
