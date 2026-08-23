@@ -4,7 +4,7 @@ export function NodeCount({ value }) {
   return <span className="text-sm font-semibold text-zinc-400 shrink-0">{value ?? 0}</span>
 }
 
-export default function NodeCard({ node, onTap, selectable = false, selected = false, productCount, indent }) {
+export default function NodeCard({ node, onTap, selectable = false, selected = false, productCount, subtitle, subtitleClassName, indent }) {
   const isFolder = node.type === 'folder'
   const Icon = isFolder ? Folder : (node.type === 'space' ? Warehouse : Tag)
   const iconColor = isFolder ? 'text-amber-400' : 'text-blue-400'
@@ -30,7 +30,12 @@ export default function NodeCard({ node, onTap, selectable = false, selected = f
         </span>
       )}
       <Icon size={18} className={`${iconColor} shrink-0`} />
-      <span className="flex-1 text-sm text-zinc-100 truncate">{node.name}</span>
+      <div className="flex-1 min-w-0">
+        <span className="text-sm text-zinc-100 truncate block">{node.name}</span>
+        {subtitle && (
+          <span className={`text-xs truncate block ${subtitleClassName || 'text-zinc-500'}`}>{subtitle}</span>
+        )}
+      </div>
       {isFolder ? (
         !selectable && <ChevronRight size={16} className="text-zinc-600 shrink-0" />
       ) : (

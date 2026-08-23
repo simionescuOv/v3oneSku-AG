@@ -1,5 +1,9 @@
-import { useEffect, useState, useMemo } from 'react'
-import { AlertTriangle, Check, Plus, ChevronRight, ChevronDown, FolderInput, UnfoldVertical, FoldVertical, ArrowLeft } from 'lucide-react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { useNavigate as useRouterNavigate } from 'react-router-dom'
+import {
+  Plus, FolderInput, ChevronLeft,
+  UnfoldVertical, FoldVertical,
+} from 'lucide-react'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
 import { usePicker } from '../hooks/usePicker'
@@ -11,16 +15,17 @@ import DestinationPicker from '../components/catalog/DestinationPicker'
 import SubgroupSheet from '../components/catalog/SubgroupSheet'
 import { buildSearchTree } from '../lib/search'
 
+const ELLIPSIS_CRUMB = { id: '__ellipsis__', name: '…' }
+
 export default function StockHubPage() {
   const { 
-    spaces, alerts, isLoading, fetchSpaces, fetchAlerts, resolveAlert, 
-    createSpace, createFolder, moveNodes, groupNodes,
+    spaces, alerts, isLoading, fetchSpaces, fetchAlerts,
+    createSpace, moveNodes, groupNodes,
     currentFolderId, navigate, navigateUp, getBreadcrumb, getChildren,
     selectionMode, selectedNodeIds, enterSelectionMode, toggleNodeSelection, clearSelection
   } = useStockStore()
   
-  const { searchQuery, setSearchQuery, stockHubMenuOpen, closeStockHubMenu } = useAppStore()
-  const [expandedAlerts, setExpandedAlerts] = useState({})
+  const { searchQuery, setSearchQuery, setSearchPlaceholder, clearSearch, stockHubMenuOpen, closeStockHubMenu } = useAppStore()
   
   // Stări locale pentru UI
   const [toast, setToast] = useState(null)
@@ -36,6 +41,16 @@ export default function StockHubPage() {
   const [allRootSelection, setAllRootSelection] = useState(false)
   const [skipSubgroupQuestion, setSkipSubgroupQuestion] = useState(false)
 
+  // Breadcrumb expand/collapse
+  const [crumbsExpanded, setCrumbsExpanded] = useState(false)
+
+  // Refs for history/back navigation
+  const toastTimer = useRef(null)
+  const isPopRef = useRef(false)
+  const selectionModeRef = useRef(selectionMode)
+  selectionModeRef.current = selectionMode
+  const goHome = useRouterNavigate()
+
   // Închidem meniul automat pe unmount (safety)
   useEffect(() => {
     return () => closeStockHubMenu()
@@ -46,16 +61,49 @@ export default function StockHubPage() {
     fetchAlerts()
   }, [spaces.length, fetchSpaces, fetchAlerts])
 
-  const showToast = (msg) => {
+  // ── Placeholder ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    setSearchPlaceholder('Caută sau creează spații...')
+  }, [setSearchPlaceholder])
+
+  // ── Back gesture (Android/browser) → exit selection sau navigate up ──────────
+  useEffect(() => {
+    const onPopState = () => {
+      if (selectionModeRef.current) {
+        clearSelection()
+        return
+      }
+      isPopRef.current = true
+      navigateUp()
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [navigateUp, clearSelection])
+
+  useEffect(() => {
+    if (isPopRef.current) {
+      isPopRef.current = false
+      return
+    }
+    if (currentFolderId !== null) {
+      window.history.pushState({ stockHubFolder: currentFolderId }, '')
+    }
+  }, [currentFolderId])
+
+  // Breadcrumb se resetează la collapsed când schimbăm folderul
+  useEffect(() => { setCrumbsExpanded(false) }, [currentFolderId])
+
+  const showToast = useCallback((msg) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast(msg)
-    setTimeout(() => setToast(null), 3000)
-  }
+    toastTimer.current = setTimeout(() => setToast(null), 3000)
+  }, [])
 
   const isSearching = searchQuery.trim().length > 0
   const breadcrumb = getBreadcrumb()
   const currentChildren = getChildren(currentFolderId)
 
-  // ── Căutare (Folosim `buildSearchTree` identic cu Catalogul) ─────────
+  // ── Căutare ──────────────────────────────────────────────────────────
   const { filteredItems: searchNodes } = usePicker({
     mode: 'inline',
     items: spaces,
@@ -72,43 +120,51 @@ export default function StockHubPage() {
   const exactMatch = searchNodes.some(
     (n) => n.name.trim().toLowerCase() === searchQuery.trim().toLowerCase()
   )
-  const showCreate = isSearching && !exactMatch
+  const showCreate = isSearching && !exactMatch && !selectionMode
 
-  // ── Handlers pentru alerte ───────────────────────────────────────────
-  const toggleAlerts = (spaceId) => {
-    setExpandedAlerts(prev => ({ ...prev, [spaceId]: !prev[spaceId] }))
-  }
-
-  const handleResolve = async (alertId) => {
-    await resolveAlert(alertId)
-    fetchAlerts()
-  }
-
+  // ── Helpers pentru info spații ───────────────────────────────────────
   const getAlertsForSpace = (spaceId) => alerts.filter(a => a.space_id === spaceId)
 
+  const getSpaceSubtitle = (node) => {
+    if (node.type !== 'space') return null
+    const parts = []
+    parts.push(`${node.product_count || 0} produse`)
+    parts.push(`${node.total_units || 0} unități`)
+    if (node.allow_negative_stock) parts.push('negativ permis')
+    const spaceAlerts = getAlertsForSpace(node.id)
+    if (spaceAlerts.length > 0) parts.push(`⚠ ${spaceAlerts.length} alertă`)
+    return parts.join('  ·  ')
+  }
+
+  const getSpaceSubtitleClass = (node) => {
+    if (node.type !== 'space') return undefined
+    if ((node.total_units || 0) < 0) return 'text-red-400'
+    const spaceAlerts = getAlertsForSpace(node.id)
+    if (spaceAlerts.length > 0) return 'text-amber-400/70'
+    return 'text-zinc-500'
+  }
+
   // ── Navigare ─────────────────────────────────────────────────────────
-  const handleNodeTap = (node) => {
+  const handleNodeTap = useCallback((node) => {
     if (selectionMode) {
       toggleNodeSelection(node.id)
     } else if (node.type === 'folder') {
       navigate(node.id)
-    } else {
-      // It's a space. We might just toggle its alerts or show details in future.
-      toggleAlerts(node.id)
     }
-  }
+    // Spații: nu au acțiune la tap în vizualizarea normală
+  }, [selectionMode, toggleNodeSelection, navigate])
 
-  const handleToggleFold = (id) => {
+  const handleToggleFold = useCallback((id) => {
     setCollapsedIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
-  }
+  }, [])
 
-  // ── Creare Spațiu (Manual, din căutare) ──────────────────────────────
-  const handleCreateFromSearch = async () => {
+  // ── Creare Spațiu ────────────────────────────────────────────────────
+  const handleCreateFromSearch = useCallback(async () => {
     const trimmed = searchQuery.trim()
     if (!trimmed) return
     const res = await createSpace(trimmed, false)
@@ -118,21 +174,21 @@ export default function StockHubPage() {
       setSearchQuery('')
       showToast(`Spațiul "${trimmed}" creat`)
     }
-  }
+  }, [searchQuery, createSpace, setSearchQuery, showToast])
 
-  // ── Flux Organize (Selecție, Mutare, Grupare) ────────────────────────
-  const handleOrganize = () => {
+  // ── Flux Organize ────────────────────────────────────────────────────
+  const handleOrganize = useCallback(() => {
     closeStockHubMenu()
+    clearSearch()
     enterSelectionMode('cross-folder')
-  }
+  }, [closeStockHubMenu, clearSearch, enterSelectionMode])
 
   const organizeDisabled = spaces.length === 0
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     if (selectedNodeIds.size === 0) return
     setDestinationPickerOpen(true)
     
-    // Verificăm dacă toate nodurile sunt din root (parentId === null)
     let allRoot = true
     for (const id of selectedNodeIds) {
       const node = spaces.find((n) => n.id === id)
@@ -142,26 +198,24 @@ export default function StockHubPage() {
       }
     }
     setAllRootSelection(allRoot)
-    setTempFolderId(null) // în StockHub nu avem folder temporar în DB, așa că trecem null
-  }
+    setTempFolderId(null)
+  }, [selectedNodeIds, spaces])
 
-  const handleDestinationPicked = (folderId, folderName, isNewFolderRequest) => {
+  const handleDestinationPicked = useCallback((folderId, folderName, isNewFolderRequest) => {
     setDestinationPickerOpen(false)
     if (isNewFolderRequest) {
-      setTempFolderId(null) // destinația e rădăcina, dar vrem un folder nou
+      setTempFolderId(null)
       setSkipSubgroupQuestion(true)
       setSubgroupSheetOpen(true)
     } else {
-      setTempFolderId(folderId) // aici e destinația dorită
+      setTempFolderId(folderId)
       setSkipSubgroupQuestion(false)
       setSubgroupSheetOpen(true)
     }
-  }
+  }, [])
 
-  const handleSubgroupNo = async () => {
+  const handleSubgroupNo = useCallback(async () => {
     setSubgroupSheetOpen(false)
-    
-    // Mutați nodurile direct în folderId ales (sau root dacă e null)
     const res = await moveNodes(Array.from(selectedNodeIds), tempFolderId)
     if (res.ok) {
       showToast('Spațiile au fost mutate.')
@@ -171,74 +225,175 @@ export default function StockHubPage() {
     } else {
       showToast(res.error)
     }
-  }
+  }, [selectedNodeIds, tempFolderId, moveNodes, clearSelection, navigate, showToast])
 
-  const handleSubgroupYes = async (folderName) => {
+  const handleSubgroupYes = useCallback(async (folderName) => {
     setSubgroupSheetOpen(false)
-    
-    // Creare folder + mutare
-    // Aici setăm temporar `currentFolderId` ca fiind target-ul ales, pentru crearea folderului
     const previousFolder = currentFolderId
-    navigate(tempFolderId) 
-
+    navigate(tempFolderId)
     const res = await groupNodes(Array.from(selectedNodeIds), folderName)
-    
-    navigate(previousFolder) // restore
-
+    navigate(previousFolder)
     if (res.ok) {
       showToast(`A fost creat grupul "${folderName}"`)
       clearSelection()
-      navigate(tempFolderId) // Mergem în destinația unde s-a creat noul folder
+      navigate(tempFolderId)
     } else {
       showToast(res.error)
     }
+  }, [selectedNodeIds, tempFolderId, currentFolderId, groupNodes, clearSelection, navigate, showToast])
+
+  const handleToggleTree = useCallback(() => {
+    setTreeExpanded(prev => !prev)
+    closeStockHubMenu()
+  }, [closeStockHubMenu])
+
+  // ── Breadcrumb (identic cu CatalogPage) ──────────────────────────────
+  const fullCrumbs = useMemo(
+    () => [{ id: null, name: 'StockHub' }, ...breadcrumb],
+    [breadcrumb, currentFolderId]
+  )
+  const isCrumbTruncated = fullCrumbs.length > 3
+  const collapsedCrumbs = isCrumbTruncated
+    ? [fullCrumbs[0], ELLIPSIS_CRUMB, fullCrumbs[fullCrumbs.length - 1]]
+    : fullCrumbs
+
+  const crumbClasses = (crumb, isLast) => {
+    const isRootCrumb = crumb.id === null
+    return [
+      'text-sm',
+      isRootCrumb
+        ? isLast
+          ? 'shrink-0 px-2.5 py-1 rounded-lg border border-blue-400/60 text-blue-400 font-semibold'
+          : 'shrink-0 px-2.5 py-1 rounded-lg border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100'
+        : isLast
+          ? 'text-amber-400 font-semibold'
+          : 'text-zinc-400 hover:text-zinc-100',
+    ].join(' ')
   }
 
-  // ── Redare Lista ─────────────────────────────────────────────────────
-  const renderList = () => {
-    // Select-Mode (lista hibridă pentru selectare din folderul curent)
-    if (selectionMode) {
-      const selectionItems = treeExpanded 
-        ? spaces 
-        : (isSearching ? searchNodes : currentChildren)
-        
-      return (
-        <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800 pb-16">
-          {treeExpanded ? (
-            <FullTree
-              parentId={null}
-              depth={0}
-              getChildren={getChildren}
-              selectable={true}
-              selectedIds={selectedNodeIds}
-              onToggle={toggleNodeSelection}
-              collapsedIds={collapsedIds}
-              onToggleFold={handleToggleFold}
-              visibleIds={isSearching ? searchVisibleIds : undefined}
-              currentFolderId={currentFolderId}
-              onNodeTap={handleNodeTap}
-            />
-          ) : (
-            selectionItems.map(node => (
-              <NodeCard
-                key={node.id}
-                node={node}
-                selectable
-                selected={selectedNodeIds.has(node.id)}
-                onTap={handleNodeTap}
-              />
-            ))
+  const goToCrumb = (id) => {
+    setCrumbsExpanded(false)
+    navigate(id)
+  }
+
+  const handleBack = useCallback(() => {
+    if (selectionMode) clearSelection()
+    else goHome('/')
+  }, [selectionMode, clearSelection, goHome])
+
+  // ── Render ───────────────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header — breadcrumb identic cu CatalogPage */}
+      <div className="flex-none flex items-start gap-1 px-2 py-2 border-b border-zinc-800">
+        <button
+          onClick={handleBack}
+          className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 active:text-zinc-100 active:bg-zinc-800"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        {crumbsExpanded && isCrumbTruncated ? (
+          <div className="flex flex-wrap content-start items-center gap-x-1.5 gap-y-1.5 min-h-8 min-w-0 flex-1">
+            {fullCrumbs.map((crumb, i, arr) => {
+              const isLast = i === arr.length - 1
+              return (
+                <span key={crumb.id ?? `full-${i}`} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-zinc-600 text-sm">|</span>}
+                  <button onClick={() => goToCrumb(crumb.id)} className={crumbClasses(crumb, isLast)}>
+                    {crumb.name}
+                  </button>
+                </span>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 min-h-8 min-w-0 flex-1 overflow-hidden">
+            {collapsedCrumbs.map((crumb, i, arr) => {
+              const isLast = i === arr.length - 1
+              const isEllipsis = crumb === ELLIPSIS_CRUMB
+              return (
+                <span
+                  key={crumb.id ?? (isEllipsis ? 'ellipsis' : `c-${i}`)}
+                  className={['flex items-center gap-1.5', isLast ? 'min-w-0 flex-1' : 'shrink-0'].join(' ')}
+                >
+                  {i > 0 && <span className="text-zinc-600 text-sm shrink-0">|</span>}
+                  {isEllipsis ? (
+                    <button
+                      onClick={() => setCrumbsExpanded(true)}
+                      className="shrink-0 px-1.5 rounded text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+                      aria-label="Arată toată calea"
+                    >
+                      …
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => goToCrumb(crumb.id)}
+                      className={[crumbClasses(crumb, isLast), isLast ? 'min-w-0 truncate' : 'whitespace-nowrap'].join(' ')}
+                    >
+                      {crumb.name}
+                    </button>
+                  )}
+                </span>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Main content */}
+      {isLoading && spaces.length === 0 ? (
+        <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="px-4 py-3.5 animate-pulse h-14"></div>
+          ))}
+        </div>
+      ) : treeExpanded ? (
+        <div
+          className="flex-1 min-h-0 overflow-y-auto"
+          style={{ paddingBottom: selectionMode ? '3.5rem' : undefined }}
+        >
+          <FullTree
+            parentId={null}
+            depth={0}
+            getChildren={getChildren}
+            selectable={selectionMode === 'cross-folder'}
+            selectedIds={selectedNodeIds}
+            onToggle={toggleNodeSelection}
+            collapsedIds={collapsedIds}
+            onToggleFold={handleToggleFold}
+            visibleIds={isSearching ? searchVisibleIds : undefined}
+            currentFolderId={currentFolderId}
+            onNodeTap={handleNodeTap}
+          />
+          {isSearching && searchVisibleIds?.size === 0 && (
+            <div className="px-4 py-8 text-center text-sm text-zinc-500">
+              Niciun rezultat
+            </div>
           )}
-          {selectionItems.length === 0 && (
+        </div>
+      ) : selectionMode ? (
+        <div
+          className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800"
+          style={{ paddingBottom: '3.5rem' }}
+        >
+          {(isSearching ? searchNodes : currentChildren).map((node) => (
+            <NodeCard
+              key={node.id}
+              node={node}
+              selectable
+              selected={selectedNodeIds.has(node.id)}
+              onTap={(n) => toggleNodeSelection(n.id)}
+              productCount={node.type === 'space' ? node.product_count : undefined}
+              subtitle={getSpaceSubtitle(node)}
+              subtitleClassName={getSpaceSubtitleClass(node)}
+            />
+          ))}
+          {(isSearching ? searchNodes : currentChildren).length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-zinc-500">Niciun element</div>
           )}
         </div>
-      )
-    }
-
-    // Mod Căutare
-    if (isSearching) {
-      return (
+      ) : isSearching ? (
         <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
           <SearchGroup group={searchTree} depth={0} onTap={handleNodeTap} />
           {showCreate && (
@@ -247,172 +402,34 @@ export default function StockHubPage() {
               className="w-full flex items-center gap-3 px-4 py-3.5 text-left text-blue-400 active:bg-zinc-900"
             >
               <Plus size={18} className="shrink-0" />
-              <span className="text-sm">Adaugă spațiul „{searchQuery.trim()}”</span>
+              <span className="text-sm">Adaugă spațiul „{searchQuery.trim()}"</span>
             </button>
           )}
         </div>
-      )
-    }
-
-    // Arbore deschis complet
-    if (treeExpanded) {
-      return (
-        <div className="flex-1 min-h-0 overflow-y-auto pb-16">
-          <FullTree
-            parentId={null}
-            depth={0}
-            getChildren={getChildren}
-            collapsedIds={collapsedIds}
-            onToggleFold={handleToggleFold}
-            currentFolderId={currentFolderId}
-            onNodeTap={handleNodeTap}
-          />
-        </div>
-      )
-    }
-
-    // Empty state
-    if (currentChildren.length === 0) {
-      return (
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center min-h-[50vh]">
+      ) : currentChildren.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-zinc-400 text-sm leading-relaxed">
             Acest folder e gol.<br />
             Scrie un nume în bara de căutare ca să creezi primul spațiu.
           </p>
         </div>
-      )
-    }
-
-    // Vizualizare normală a folderului curent
-    return (
-      <div className="flex-1 min-h-0 overflow-y-auto pb-24 px-4">
-        <ul className="space-y-2 mt-2">
-          {currentChildren.map(node => {
-            if (node.type === 'folder') {
-              return (
-                <li key={node.id} className="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900">
-                  <NodeCard node={node} onTap={handleNodeTap} />
-                </li>
-              )
-            }
-
-            // Spațiu (Afișează alertele)
-            const spaceAlerts = getAlertsForSpace(node.id)
-            const hasAlerts = spaceAlerts.length > 0
-            const isExpanded = expandedAlerts[node.id]
-
-            return (
-              <li key={node.id} className="px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800">
-                <div 
-                  className="flex items-center justify-between mb-1 cursor-pointer"
-                  onClick={() => handleNodeTap(node)}
-                >
-                  <span className="text-sm font-medium text-zinc-100">{node.name}</span>
-                  {node.allow_negative_stock && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                      negativ permis
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-4 text-xs text-zinc-500 mb-2">
-                  <span>{node.product_count || 0} produse</span>
-                  <span className={node.total_units < 0 ? 'text-red-400' : ''}>
-                    {node.total_units || 0} unități
-                  </span>
-                </div>
-
-                {hasAlerts && (
-                  <div className="mt-3 pt-3 border-t border-red-500/20">
-                    <button 
-                      onClick={() => toggleAlerts(node.id)}
-                      className="flex items-center gap-2 text-xs font-medium text-red-400 hover:text-red-300 transition-colors w-full"
-                    >
-                      <AlertTriangle size={14} className="shrink-0" />
-                      <span className="flex-1 text-left">{spaceAlerts.length} produse cu stoc negativ</span>
-                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                    </button>
-                    
-                    {isExpanded && (
-                      <div className="mt-2 space-y-1.5 pl-5">
-                        {spaceAlerts.map(alert => (
-                          <div key={alert.id} className="flex items-center justify-between text-xs bg-zinc-950/50 p-2 rounded-lg">
-                            <span className="text-zinc-300 truncate mr-2">
-                              <span className="text-zinc-500 mr-1">•</span>
-                              {alert.products?.name_id || 'Produs sters'}: <span className="text-red-400 font-medium">{alert.stock_value} un.</span>
-                            </span>
-                            <button
-                              onClick={() => handleResolve(alert.id)}
-                              className="flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded transition-colors shrink-0"
-                            >
-                              <Check size={12} className="text-green-400" />
-                              Rezolvă
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-    )
-  }
-
-  // ── Render ───────────────────────────────────────────────────────────
-  return (
-    <div className="flex flex-col h-full bg-zinc-950 text-zinc-100">
-      {/* Header cu Breadcrumb */}
-      <div className="flex-none bg-zinc-950 border-b border-zinc-900 z-10 p-4">
-        {breadcrumb.length > 0 ? (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={navigateUp}
-              className="p-2 -ml-2 text-zinc-400 hover:text-zinc-100 active:bg-zinc-800 rounded-xl"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div className="flex-1 min-w-0 flex items-center text-sm">
-              <span className="text-zinc-500 truncate" onClick={() => navigate(null)}>StockHub</span>
-              {breadcrumb.slice(0, -1).map(node => (
-                <div key={node.id} className="flex items-center shrink-0">
-                  <ChevronRight size={14} className="text-zinc-600 mx-1" />
-                  <span className="text-zinc-500 truncate max-w-[80px]" onClick={() => navigate(node.id)}>
-                    {node.name}
-                  </span>
-                </div>
-              ))}
-              <ChevronRight size={14} className="text-zinc-600 mx-1 shrink-0" />
-              <span className="text-amber-400 font-semibold truncate">
-                {breadcrumb[breadcrumb.length - 1].name}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <h1 className="text-xl font-bold text-zinc-100 leading-tight">StockHub</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              {spaces.length} noduri în sistem
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Continut Principal */}
-      {isLoading && spaces.length === 0 ? (
-        <div className="px-6 space-y-2 mt-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 animate-pulse h-16"></div>
+      ) : (
+        <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
+          {currentChildren.map((node) => (
+            <NodeCard
+              key={node.id}
+              node={node}
+              onTap={handleNodeTap}
+              productCount={node.type === 'space' ? node.product_count : undefined}
+              subtitle={getSpaceSubtitle(node)}
+              subtitleClassName={getSpaceSubtitleClass(node)}
+            />
           ))}
         </div>
-      ) : (
-        renderList()
       )}
 
-      {/* FAB - Create shortcut if searching */}
-      {showCreate && !selectionMode && (
+      {/* FAB „+" */}
+      {showCreate && (
         <button
           onClick={handleCreateFromSearch}
           className="absolute right-4 z-20 flex items-center justify-center w-14 h-14 rounded-full bg-blue-600 text-white shadow-xl active:bg-blue-700"
@@ -422,6 +439,7 @@ export default function StockHubPage() {
         </button>
       )}
 
+      {/* Action bar — mod selecție */}
       <ActionBar 
         selectionMode={selectionMode}
         selectedCount={selectedNodeIds.size}
@@ -453,10 +471,7 @@ export default function StockHubPage() {
             <span className="flex-1 text-left">Organizează spațiile</span>
           </button>
           <button
-            onClick={() => {
-              setTreeExpanded(!treeExpanded)
-              closeStockHubMenu()
-            }}
+            onClick={handleToggleTree}
             className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
           >
             <span className="text-zinc-400">
@@ -467,7 +482,7 @@ export default function StockHubPage() {
         </div>
       </BottomSheet>
 
-      {/* Sheets pasul final (Organize) */}
+      {/* Sheets (Organize) */}
       <DestinationPicker
         open={destinationPickerOpen}
         onClose={() => setDestinationPickerOpen(false)}
