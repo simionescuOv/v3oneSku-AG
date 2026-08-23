@@ -42,7 +42,14 @@ semnalele de mai jos. Dacă DA la oricare, oprește-te — nu implementa.
 
 ## Regulă de Documentare a Dezvoltării — `docs/dev-path.md`
 
-**ÎNAINTE de fiecare commit** realizat în acest proiect, agentul are obligația de a include cuvântul de build curent în titlul commit-ului Git (format: `build: <build_word> - <mesaj>` sau `[<build_word>] <mesaj>`), de a actualiza fișierul `docs/dev-path.md` și de a-l include în staging (`git add`) împreună cu fișierele modificate. În felul acesta, modificarea de cod și actualizarea jurnalului sunt salvate **într-un singur commit unitar** (nu sunt necesare două commit-uri separate). Intrarea va conține:
+**ÎNAINTE de fiecare commit** realizat în acest proiect, agentul are obligația de a include cuvântul de build curent în titlul commit-ului Git (format: `build: <build_word> - <mesaj>` sau `[<build_word>] <mesaj>`), de a actualiza fișierul `docs/dev-path.md` și de a-l include în staging (`git add`) împreună cu fișierele modificate. În felul acesta, modificarea de cod și actualizarea jurnalului sunt salvate **într-un singur commit unitar** (nu sunt necesare două commit-uri separate).
+
+**Mecanismul în cascadă N-1 pentru Hash-urile de Commit:**
+1. Află hash-ul scurt al commit-ului anterior ($N-1$) prin `git rev-parse --short HEAD`.
+2. Completează hash-ul real pe antetul intrării precedente (ex: `### [Commit 46f21f1] — build: ...`).
+3. Adaugă noua intrare în capul listei marcată `### [Commit Pending] — build: ...`.
+
+Intrarea va conține:
 - Titlul exact al commit-ului din Git (cu prefixul de build) și data/ramura.
 - **Build Word Curent**: cuvântul de build activ în aplicație la momentul commit-ului (astfel încât să fie clar din ce ciclu de build face parte fiecare commit).
 - O descriere amplă în limbaj natural a ceea ce s-a modificat/adăugat, de ce și cum interacționează cu restul sistemului.

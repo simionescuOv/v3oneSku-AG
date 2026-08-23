@@ -2,13 +2,17 @@
 
 > **REGULĂ OBLIGATORIE PENTRU TOȚI AGENȚII DE COD / VIBECODING:**
 > **ÎNAINTE de a rula comanda `git commit`**, actualizați OBLIGATORIU acest fișier și includeți-l în `git add` împreună cu restul fișierelor, astfel încât modificările de cod și înregistrarea din jurnal să fie salvate **ÎNTR-UN SINGUR COMMIT unitar** (fără commit-uri separate). Titlul commit-ului Git TREBUIE să conțină obligatoriu cuvântul de build curent (format: `build: <build_word> - <mesaj>` sau `[<build_word>] <mesaj>`).
-> 1. Adăugați o nouă intrare în secțiunea **„Jurnalul Commit-urilor (Chronological Log)”** de mai jos.
-> 2. Notați:
+>
+> **Mecanismul în cascadă N-1 pentru Hash-urile de Commit:**
+> 1. Află hash-ul scurt al commit-ului anterior rulând `git rev-parse --short HEAD` (sau `git log -1 --format="%h"`).
+> 2. Completează hash-ul real pe antetul intrării anterioare (ex: `### [Commit 46f21f1] — build: ...`).
+> 3. Adaugă noua intrare în capul listei marcată temporar `### [Commit Pending] — build: ...`.
+> 4. Notați în intrare:
 >    - **Titlul exact al commit-ului din Git** (conținând cuvântul de build curent)
 >    - **Data și Ramura**
 >    - **Build Word Curent**: cuvântul de build activ în aplicație la momentul commit-ului (indică clar din ce ciclu/versiune de build face parte commit-ul, chiar dacă acesta nu se schimbă la fiecare commit).
 >    - **Descrierea amplă în limbaj natural**: ce funcționalitate a fost adăugată/modificată, de ce s-a luat această decizie, ce fișiere/module au fost atinse și cum interacționează cu restul sistemului.
-> 3. Actualizați sumarul secțiunii **„Starea Funcționalităților Actuale”** dacă s-au adăugat capacități noi.
+> 5. Actualizați sumarul secțiunii **„Starea Funcționalităților Actuale”** dacă s-au adăugat capacități noi.
 
 ---
 
@@ -78,7 +82,17 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `build: busola - fix cart search, bottomsheet display and update button text`] — `build: busola - fix cart search, bottomsheet display and update button text`
+### [Commit `Pending`] — `build: busola | commit: orizont - actualizare protocol dev-path cu mecanism in cascada N-1 pentru hash-uri`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-23
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Mecanism în Cascadă N-1 pentru Hash-uri**: S-a adoptat protocolul prin care fiecare commit nou completează retroactiv hash-ul Git exact al commit-ului precedent (`git rev-parse --short HEAD`), lăsând doar commit-ul în curs marcat `Pending`.
+  - **Sincronizare Istoric (Backfill)**: Toate intrările istorice din `docs/dev-path.md` au fost actualizate cu hash-urile lor reale din `git log`.
+  - **Actualizare Instrucțiuni**: Regulile au fost consemnate unitar în `docs/dev-path.md`, `GEMINI.MD` (Regula 9) și `CLAUDE.md`.
+  - **Actualizare Commit Word**: `COMMIT_WORD` setat la `orizont` în `HomePage.jsx`.
+
+### [Commit `46f21f1`] — `build: busola - fix cart search, bottomsheet display and update button text`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-23
 - **Build Word Curent**: `busola`
@@ -87,7 +101,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
   - **Vizibilitate BottomBar la selecție**: S-a adăugat proprietatea `aboveBottomBar={true}` pe `BottomSheet` în `CartPage` pentru ca bara de căutare să nu mai fie acoperită.
   - **Modificare text buton checkout**: Butonul de confirmare arată acum totalul produselor („Confirmă tranzacția cu X bucăți”), bazat pe numărul de unități (`totalItems`).
 
-### [Commit `build: aurora - organizare stockhub pe foldere, breadcrumbs si extragere ierarhie reutilizabila`] — `build: aurora - organizare stockhub pe foldere, breadcrumbs si extragere ierarhie reutilizabila`
+### [Commit `3e4137b`] — `build: aurora - organizare stockhub pe foldere, breadcrumbs si extragere ierarhie reutilizabila`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20
 - **Build Word Curent**: `aurora`
@@ -101,7 +115,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: aurora - conversie cart din overlay in pagina, integrare picker v2 standalone`] — `build: aurora - conversie cart din overlay in pagina, integrare picker v2 standalone`
+### [Commit `01b8da9`] — `build: aurora - conversie cart din overlay in pagina, integrare picker v2 standalone`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20
 - **Build Word Curent**: `aurora`
@@ -114,7 +128,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: aurora - stockhub UX aliniat cu catalogpage (empty state, creare space, meniu contextual)`] — `build: aurora - stockhub UX aliniat cu catalogpage (empty state, creare space, meniu contextual)`
+### [Commit `5c41ec4`] — `build: aurora - stockhub UX aliniat cu catalogpage (empty state, creare space, meniu contextual)`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20
 - **Build Word Curent**: `aurora`
@@ -126,7 +140,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: aurora - cos de tranzactie functional si integrare stockhub cu date reale`] — `build: aurora - cos de tranzactie functional si integrare stockhub cu date reale`
+### [Commit `fc288b9`] — `build: aurora - cos de tranzactie functional si integrare stockhub cu date reale`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20
 - **Build Word Curent**: `aurora`
@@ -138,7 +152,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: aurora - modul filtrare locala 2 coloane, persistenta stare si control date schema`] — `build: aurora - modul filtrare locala 2 coloane, persistenta stare si control date schema`
+### [Commit `01c398e`] — `build: aurora - modul filtrare locala 2 coloane, persistenta stare si control date schema`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-18
 - **Build Word Curent**: `aurora`
@@ -151,7 +165,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: castor - update build word for vercel deployment and push`] — `build: castor - update build word for vercel deployment and push`
+### [Commit `8ef256f`] — `build: castor - update build word for vercel deployment and push`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
 - **Build Word Curent**: `castor`
@@ -161,7 +175,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: busola - optimizare bulk import produse pentru viteza instantanee`] — `build: busola - optimizare bulk import produse pentru viteza instantanee`
+### [Commit `e3fe608`] — `build: busola - optimizare bulk import produse pentru viteza instantanee`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
 - **Build Word Curent**: `busola`
@@ -173,7 +187,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: busola - import date user - implementare functionalitate`] — `build: busola - import date user - implementare functionalitate`
+### [Commit `4ea1bfd`] — `build: busola - import date user - implementare functionalitate`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
 - **Build Word Curent**: `busola`
@@ -186,7 +200,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: busola - sort category products newest first`] — `build: busola - sort category products newest first`
+### [Commit `c181282`] — `build: busola - sort category products newest first`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
 - **Build Word Curent**: `busola`
@@ -196,7 +210,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: busola - fix nameid and form state reset on picker swap`] — `build: busola - fix nameid and form state reset on picker swap`
+### [Commit `40d89ad`] — `build: busola - fix nameid and form state reset on picker swap`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
 - **Build Word Curent**: `busola`
@@ -206,7 +220,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: busola - switch nameid generator to client-side local-first`] — `build: busola - switch nameid generator to client-side local-first`
+### [Commit `5395a74`] — `build: busola - switch nameid generator to client-side local-first`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
 - **Build Word Curent**: `busola`
@@ -217,7 +231,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: busola - nameid acum poate fi setat de user`] — `build: busola - nameid acum poate fi setat de user`
+### [Commit `76422fb`] — `build: busola - nameid acum poate fi setat de user`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-17
 - **Build Word Curent**: `busola`
@@ -230,7 +244,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit `build: busola - enforce build word in git commit message title`] — `build: busola - enforce build word in git commit message title`
+### [Commit `b8ffa1b`] — `build: busola - enforce build word in git commit message title`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-16
 - **Build Word Curent**: `busola`
