@@ -78,6 +78,15 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
+### [Commit `build: busola - fix cart search, bottomsheet display and update button text`] — `build: busola - fix cart search, bottomsheet display and update button text`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-23
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Reparare filtrare produse în Cart**: `CartPage` aplică acum corect `filterAndSort` (folosind `searchQuery` din store) peste `items` atunci când nu este deschis picker-ul de Sursă/Destinație.
+  - **Vizibilitate BottomBar la selecție**: S-a adăugat proprietatea `aboveBottomBar={true}` pe `BottomSheet` în `CartPage` pentru ca bara de căutare să nu mai fie acoperită.
+  - **Modificare text buton checkout**: Butonul de confirmare arată acum totalul produselor („Confirmă tranzacția cu X bucăți”), bazat pe numărul de unități (`totalItems`).
+
 ### [Commit `build: aurora - organizare stockhub pe foldere, breadcrumbs si extragere ierarhie reutilizabila`] — `build: aurora - organizare stockhub pe foldere, breadcrumbs si extragere ierarhie reutilizabila`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-20

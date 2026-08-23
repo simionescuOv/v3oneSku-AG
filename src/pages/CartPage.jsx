@@ -6,6 +6,7 @@ import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
 import { usePicker } from '../hooks/usePicker'
 import BottomSheet from '../components/catalog/BottomSheet'
+import { filterAndSort } from '../lib/search'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -91,6 +92,10 @@ export default function CartPage() {
     return s ? s.name : 'Alege...'
   }
 
+  const visibleCartItems = pickerType === null && searchQuery.trim()
+    ? filterAndSort(items, searchQuery, (item) => item.product.nameId)
+    : items
+
   return (
     <div className="flex flex-col h-full bg-zinc-950 text-zinc-100">
       {/* Header */}
@@ -149,14 +154,14 @@ export default function CartPage() {
           </div>
         )}
         
-        {items.length === 0 ? (
+        {visibleCartItems.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-3 py-16">
             <ShoppingCart size={48} className="opacity-20" />
-            <p className="text-sm">Coșul este gol.</p>
+            <p className="text-sm">Coșul este gol sau n-am găsit nimic.</p>
           </div>
         ) : (
           <div className="divide-y divide-zinc-800/70">
-            {items.map((item) => (
+            {visibleCartItems.map((item) => (
               <div
                 key={item.product.id}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-900/30 transition-colors"
@@ -229,7 +234,7 @@ export default function CartPage() {
                   Se procesează...
                 </>
               ) : (
-                'Confirmă Tranzacția'
+                `Confirmă tranzacția cu ${totalItems} bucăți`
               )}
             </button>
           </div>
@@ -239,6 +244,7 @@ export default function CartPage() {
       {/* Picker BottomSheet */}
       <BottomSheet 
         open={pickerType !== null} 
+        aboveBottomBar={true}
         onClose={() => {
           setPickerType(null)
           setSearchQuery('')
