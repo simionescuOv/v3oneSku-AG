@@ -81,6 +81,8 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 ### [Commit `Pending`]
 - **Microtask**: *Ascunderea butonului plutitor de coș pe pagina `/cart`*.
   - S-a modificat `AppShell.jsx` pentru a ascunde global butonul plutitor de coș (Floating Action Button) atunci când utilizatorul se află pe ruta `/cart` (`location.pathname !== '/cart'`), deoarece pe această pagină butonul era redundant. S-a folosit hook-ul `useLocation` din `react-router-dom`.
+- **Microtask**: *Deschiderea implicită a meniului lateral pe HomePage*.
+  - S-a modificat componenta `HomePage.jsx` adăugând un efect (`useEffect`) care apelează automat `openSideMenu` din `useAppStore` la montare. Astfel, când utilizatorul revine pe pagina Home din alte secțiuni (ex. Catalog), meniul principal este afișat automat, reducând numărul de acțiuni necesare pentru navigare (ex. spre StockHub).
 
 ### [Commit `7bde136`] — `build: fagure | commit: far - grupare mobila pe categorii in cos + tree analitic modal`
 - **Ramură**: `functionalitati`
