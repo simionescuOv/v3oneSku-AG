@@ -101,7 +101,7 @@ export function FullTree({
               : <span className="w-3.5 shrink-0" />
             }
             <Icon size={16} className={`${iconColor} shrink-0`} />
-            <span className={isCurrent ? 'flex-1 text-amber-400 font-semibold truncate' : 'flex-1 text-zinc-100 truncate'}>
+            <span className={isCurrent ? 'flex-1 text-green-400 font-semibold truncate' : 'flex-1 text-zinc-100 truncate'}>
               {node.name}
             </span>
             {isLeaf && (

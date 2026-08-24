@@ -19,6 +19,10 @@ export default function CartPage() {
   
   // 'source' | 'destination' | null
   const [pickerType, setPickerType] = useState(null)
+  
+  const cartMenuOpen = useAppStore((s) => s.cartMenuOpen)
+  const closeCartMenu = useAppStore((s) => s.closeCartMenu)
+  const [deleteMode, setDeleteMode] = useState(false)
 
   useEffect(() => {
     if (spaces.length === 0) {
@@ -208,13 +212,15 @@ export default function CartPage() {
                 </div>
 
                 {/* Remove button */}
-                <button
-                  onClick={() => removeItem(item.product.id)}
-                  className="p-2 ml-1 text-zinc-600 hover:text-red-400 rounded-lg active:bg-zinc-900 transition-colors shrink-0"
-                  title="Elimină"
-                >
-                  <Trash2 size={18} />
-                </button>
+                {deleteMode && (
+                  <button
+                    onClick={() => removeItem(item.product.id)}
+                    className="p-2 ml-1 text-red-500 hover:text-red-400 rounded-lg bg-red-500/10 active:bg-red-500/20 transition-colors shrink-0 animate-in fade-in slide-in-from-right-2"
+                    title="Elimină"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -272,6 +278,24 @@ export default function CartPage() {
               </div>
             )}
           </div>
+        </div>
+      </BottomSheet>
+
+      {/* Context Menu pentru Coș */}
+      <BottomSheet open={cartMenuOpen} onClose={closeCartMenu}>
+        <div className="px-4 pb-6 space-y-1">
+          <button
+            onClick={() => {
+              setDeleteMode(!deleteMode)
+              closeCartMenu()
+            }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className={deleteMode ? "text-zinc-400" : "text-red-400"}>
+              <Trash2 size={18} />
+            </span>
+            <span className="flex-1 text-left">{deleteMode ? 'Anulează modul ștergere' : 'Șterge elemente...'}</span>
+          </button>
         </div>
       </BottomSheet>
 

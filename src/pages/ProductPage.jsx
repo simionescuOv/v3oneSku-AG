@@ -135,7 +135,7 @@ export default function ProductPage() {
             </span>
           ))}
           <span className="text-zinc-600">/</span>
-          <span className="text-amber-400 font-semibold truncate max-w-[140px]">{product.nameId}</span>
+          <span className="text-green-400 font-semibold truncate max-w-[140px]">{product.nameId}</span>
         </div>
       </div>
 

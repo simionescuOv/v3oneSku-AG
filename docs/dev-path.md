@@ -1,18 +1,14 @@
 # oneSku — Parcursul Dezvoltării & Jurnal Tehnic (`dev-path.md`)
 
 > **REGULĂ OBLIGATORIE PENTRU TOȚI AGENȚII DE COD / VIBECODING:**
-> **ÎNAINTE de a rula comanda `git commit`**, actualizați OBLIGATORIU acest fișier și includeți-l în `git add` împreună cu restul fișierelor, astfel încât modificările de cod și înregistrarea din jurnal să fie salvate **ÎNTR-UN SINGUR COMMIT unitar** (fără commit-uri separate). Titlul commit-ului Git TREBUIE să conțină obligatoriu cuvântul de build curent (format: `build: <build_word> - <mesaj>` sau `[<build_word>] <mesaj>`).
->
-> **Mecanismul în cascadă N-1 pentru Hash-urile de Commit:**
-> 1. Află hash-ul scurt al commit-ului anterior rulând `git rev-parse --short HEAD` (sau `git log -1 --format="%h"`).
-> 2. Completează hash-ul real pe antetul intrării anterioare (ex: `### [Commit 46f21f1] — build: ...`).
-> 3. Adaugă noua intrare în capul listei marcată temporar `### [Commit Pending] — build: ...`.
-> 4. Notați în intrare:
->    - **Titlul exact al commit-ului din Git** (conținând cuvântul de build curent)
->    - **Data și Ramura**
->    - **Build Word Curent**: cuvântul de build activ în aplicație la momentul commit-ului (indică clar din ce ciclu/versiune de build face parte commit-ul, chiar dacă acesta nu se schimbă la fiecare commit).
->    - **Descrierea amplă în limbaj natural**: ce funcționalitate a fost adăugată/modificată, de ce s-a luat această decizie, ce fișiere/module au fost atinse și cum interacționează cu restul sistemului.
-> 5. Actualizați sumarul secțiunii **„Starea Funcționalităților Actuale”** dacă s-au adăugat capacități noi.
+> - `git commit` se rulează **EXCLUSIV la cererea expresă a utilizatorului** (ex: „salvează în git”, „fă commit”).
+> - La fiecare sarcină măruntă/ajustare, agentul modifică codul și adaugă direct un nou bullet point în secțiunea de sus `### [Commit Pending]` din acest fișier (care funcționează ca draft viu/activ).
+> - Când utilizatorul solicită `git commit`:
+>   1. Află hash-ul scurt al commit-ului anterior rulând `git rev-parse --short HEAD`.
+>   2. Completează hash-ul real pe antetul intrării precedente (ex: `### [Commit 46f21f1] — build: ...`).
+>   3. Generează un nou `COMMIT_WORD`, îl actualizează în `src/pages/HomePage.jsx` și finalizează titlul intrării curente.
+>   4. Include toate modificările în `git add .` și rulează `git commit` (format: `build: <build_word> | commit: <commit_word> - <mesaj>`).
+>   5. Deschide o nouă secțiune `### [Commit Pending]` pentru viitoarele modificări.
 
 ---
 
@@ -82,7 +78,33 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `Pending`] — `build: busola | commit: orizont - actualizare protocol dev-path cu mecanism in cascada N-1 pentru hash-uri`
+### [Commit `Pending`] — `build: busola | commit: <în lucru> - <descriere de lucru>`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-23
+- **Build Word Curent**: `busola`
+- **Descriere Detaliată**:
+  - **Tranziție la Workflow cu Commit-uri la Cerere & Draft Live în `dev-path.md`**:
+    - *Cerință*: Reducerea frecvenței de commit-uri pentru a permite rezolvarea rapidă a sarcinilor mărunte cu verificare în browser, fără commit automat la fiecare pas și fără fișiere auxiliare temporare.
+    - *Rezolvare*: S-a stabilit ca `dev-path.md` să fie spațiul unic de jurnalizare continuă (secțiunea `[Commit Pending]` acumulează direct fiecare micro-sarcină), iar `git commit` se execută strict la solicitarea expresă a utilizatorului („salvează în git” / „fă commit”). Regulile au fost consemnate în `GEMINI.MD` (Regula 9), `CLAUDE.md` și `docs/dev-path.md`.
+  - **Îmbunătățire Vizibilitate Element Activ (Verde în loc de Galben)**:
+    - S-a modificat culoarea de evidențiere a elementului activ (folder, categorie, produs etc.) din galben (`text-amber-400`) în verde (`text-green-400`).
+    - Schimbarea a fost aplicată atât pe ultimul element din breadcrumb (calea din antet), cât și în arborele de navigare (folosit în modul Unfold), pentru o diferențiere vizuală mult mai clară față de restul elementelor alb-gri.
+  - **Insignă Cantitate Coș pe Cardul Produsului (`ProductCard.jsx`)**:
+    - S-a implementat afișarea unei insigne (badge) roșii direct pe butonul de coș al fiecărui produs, care arată câte unități din acel produs sunt deja în coș.
+    - Optimizare de performanță: S-a folosit un selector fin de stare (Zustand) care returnează doar cantitatea produsului curent, astfel încât doar cardul afectat se va re-randa la modificarea coșului, evitând penalizările de performanță pe liste lungi.
+  - **Îmbunătățire a Mecanismului de Căutare (`search.js`)**:
+    - S-a modificat funcția de despărțire a textului în cuvinte-cheie (`split`). Acum, liniuța (`-`) este considerată un separator de cuvânt, la fel ca spațiul (`split(/[\s-]+/)`).
+    - Acest lucru permite găsirea cu ușurință a elementelor compuse, cum ar fi un produs denumit „name-id”, căutând doar „id” (sau „name”).
+  - **Meniu Contextual și Mod de Ștergere pentru Coș (`CartPage.jsx`, `BottomBar.jsx`)**:
+    - S-a configurat butonul de meniu din bara de jos (BottomBar) să deschidă un meniu contextual dedicat paginii Coș atunci când este apăsat pe această pagină, în loc de meniul lateral al sistemului.
+    - Butoanele de ștergere a elementelor din coș au fost ascunse implicit pentru a preveni ștergerile accidentale și pentru a curăța interfața.
+    - S-a adăugat opțiunea „Șterge elemente...” în meniul contextual, care activează un mod de ștergere (`deleteMode`). Când acesta este activ, butoanele roșii de ștergere sunt afișate lângă fiecare produs din listă.
+  - **Rezolvare Suprapunere Butoane Flotante (FAB)**:
+    - Butoanele de acțiune `+` (Adăugare element) din paginile principale (`CatalogPage`, `CategoryPage`, `StockHubPage`) au fost ajustate pentru a preveni suprapunerea peste butonul global de Coș în momentul căutării.
+    - S-a implementat stivuirea verticală (Vertical Stacking): butonul `+` ascultă dinamic starea coșului și, dacă există elemente în el, se ridică automat pe ecran (la `9rem` de la bază) pentru a face loc vizual butonului de Coș aflat dedesubt.
+
+
+### [Commit `4e8a81e`] — `build: busola | commit: orizont - actualizare protocol dev-path cu mecanism in cascada N-1 pentru hash-uri`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-23
 - **Build Word Curent**: `busola`

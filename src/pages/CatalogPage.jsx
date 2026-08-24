@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
+import { useCartStore } from '../store/useCartStore'
 import { filterAndSort, normalize, buildSearchTree, sortTreeFolders } from '../lib/search'
 import { usePicker } from '../hooks/usePicker'
 import NodeCard, { NodeCount } from '../components/catalog/NodeCard'
@@ -26,6 +27,7 @@ import { SearchGroup, FullTree } from '../components/shared/HierarchyTree'
 const EMPTY_SET = new Set()
 
 export default function CatalogPage() {
+  const hasCart = useCartStore((s) => s.items.length > 0)
   const nodes = useCatalogStore((s) => s.nodes)
   const products = useCatalogStore((s) => s.products)
   const currentFolderId = useCatalogStore((s) => s.currentFolderId)
@@ -355,7 +357,7 @@ export default function CatalogPage() {
           ? 'shrink-0 px-2.5 py-1 rounded-lg border border-blue-400/60 text-blue-400 font-semibold'
           : 'shrink-0 px-2.5 py-1 rounded-lg border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100'
         : isLast
-          ? 'text-amber-400 font-semibold'
+          ? 'text-green-400 font-semibold'
           : 'text-zinc-400 hover:text-zinc-100',
     ].join(' ')
   }
@@ -562,7 +564,7 @@ export default function CatalogPage() {
         <button
           onClick={handleCreateFromSearch}
           className="absolute right-4 z-20 flex items-center justify-center w-14 h-14 rounded-full bg-blue-600 text-white shadow-xl active:bg-blue-700"
-          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom))' }}
+          style={{ bottom: `calc(${hasCart ? '9rem' : '5rem'} + env(safe-area-inset-bottom))` }}
         >
           <Plus size={24} />
         </button>

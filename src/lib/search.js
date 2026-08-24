@@ -5,7 +5,7 @@ export function normalize(str) {
 }
 
 export function scoreMatch(label, tokens) {
-  const words = normalize(label).split(/\s+/)
+  const words = normalize(label).split(/[\s-]+/).filter(Boolean)
   let total = 0
   const usedWords = new Set()
   for (const tok of tokens) {
@@ -30,7 +30,7 @@ export function scoreMatch(label, tokens) {
 export function filterAndSort(items, query, getLabel = (x) => x) {
   const q = normalize(query.trim())
   if (!q) return items
-  const tokens = q.split(/\s+/)
+  const tokens = q.split(/[\s-]+/).filter(Boolean)
   const scored = []
   for (const item of items) {
     const s = scoreMatch(getLabel(item), tokens)

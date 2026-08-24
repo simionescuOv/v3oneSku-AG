@@ -1,6 +1,6 @@
 // Cuvânt generat la acest push, pentru verificarea versiunii deployed pe Vercel.
 const BUILD_WORD = 'busola'
-const COMMIT_WORD = 'orizont'
+const COMMIT_WORD = 'clepsidra'
 
 export default function HomePage() {
   return (

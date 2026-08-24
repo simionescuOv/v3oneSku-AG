@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
+import { useCartStore } from '../store/useCartStore'
 import { usePicker } from '../hooks/usePicker'
 import BottomSheet from '../components/catalog/BottomSheet'
 import { SearchGroup, FullTree } from '../components/shared/HierarchyTree'
@@ -18,6 +19,8 @@ import { buildSearchTree } from '../lib/search'
 const ELLIPSIS_CRUMB = { id: '__ellipsis__', name: '…' }
 
 export default function StockHubPage() {
+  const hasCart = useCartStore((s) => s.items.length > 0)
+  
   const { 
     spaces, alerts, isLoading, fetchSpaces, fetchAlerts,
     createSpace, moveNodes, groupNodes,
@@ -266,7 +269,7 @@ export default function StockHubPage() {
           ? 'shrink-0 px-2.5 py-1 rounded-lg border border-blue-400/60 text-blue-400 font-semibold'
           : 'shrink-0 px-2.5 py-1 rounded-lg border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100'
         : isLast
-          ? 'text-amber-400 font-semibold'
+          ? 'text-green-400 font-semibold'
           : 'text-zinc-400 hover:text-zinc-100',
     ].join(' ')
   }
@@ -428,12 +431,12 @@ export default function StockHubPage() {
         </div>
       )}
 
-      {/* FAB „+" */}
+      {/* FAB „+" — vizibil doar la match inexact sau la zero rezultate de căutare */}
       {showCreate && (
         <button
           onClick={handleCreateFromSearch}
           className="absolute right-4 z-20 flex items-center justify-center w-14 h-14 rounded-full bg-blue-600 text-white shadow-xl active:bg-blue-700"
-          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom))' }}
+          style={{ bottom: `calc(${hasCart ? '9rem' : '5rem'} + env(safe-area-inset-bottom))` }}
         >
           <Plus size={24} />
         </button>

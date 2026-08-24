@@ -5,6 +5,12 @@ import { useCartStore } from '../../store/useCartStore'
 // `meta` = atributele-cheie rezumate (ex: „Negru · 128GB"); `listPrice` opțional.
 export default function ProductCard({ product, meta, onTap }) {
   const addItem = useCartStore((s) => s.addItem)
+  
+  // Selector optimizat: componenta se va re-randa DOAR dacă `quantityInCart` se modifică pentru ACEST produs.
+  const quantityInCart = useCartStore((s) => {
+    const cartItem = s.items.find((item) => item.product.id === product.id)
+    return cartItem ? cartItem.quantity : 0
+  })
 
   const handleAddToCart = (e) => {
     e.stopPropagation()
@@ -28,9 +34,14 @@ export default function ProductCard({ product, meta, onTap }) {
         )}
         <button 
           onClick={handleAddToCart}
-          className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 active:bg-zinc-700 transition-colors"
+          className="relative p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 active:bg-zinc-700 transition-colors"
         >
           <ShoppingCart size={18} />
+          {quantityInCart > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-[16px] px-1 flex items-center justify-center rounded-full pointer-events-none border border-zinc-900">
+              {quantityInCart > 99 ? '99+' : quantityInCart}
+            </span>
+          )}
         </button>
       </div>
     </div>

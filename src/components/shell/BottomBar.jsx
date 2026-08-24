@@ -18,12 +18,14 @@ export default function BottomBar({ hidden }) {
   const isProductPage = pathname.startsWith('/catalog/product')
   const isCatalogFamily = pathname.startsWith('/catalog')
   const isStockHub = pathname.startsWith('/stockhub')
+  const isCartPage = pathname === '/cart'
   const MenuIcon = NAV_ITEMS.find((item) => item.path === pathname)?.Icon
     ?? (isProductPage ? Package : isCatalogFamily ? BookOpen : Menu)
 
   const handleMenuPress = () => {
     if (isCatalogFamily) openCatalogMenu()
     else if (isStockHub) openStockHubMenu()
+    else if (isCartPage) useAppStore.getState().openCartMenu()
     else toggleSideMenu()
   }
 

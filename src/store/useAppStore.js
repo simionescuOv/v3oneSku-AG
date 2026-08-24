@@ -23,6 +23,11 @@ export const useAppStore = create((set) => ({
   openStockHubMenu: () => set({ stockHubMenuOpen: true }),
   closeStockHubMenu: () => set({ stockHubMenuOpen: false }),
 
+  // Cart context menu trigger (BottomBar -> CartPage)
+  cartMenuOpen: false,
+  openCartMenu: () => set({ cartMenuOpen: true }),
+  closeCartMenu: () => set({ cartMenuOpen: false }),
+
   // Forțează ascunderea BottomBar-ului (sheet fără căutare — ex: GroupNameSheet)
   bottomBarHidden: false,
   setBottomBarHidden: (v) => set({ bottomBarHidden: v }),
