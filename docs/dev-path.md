@@ -78,9 +78,16 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `Pending`] — `build: busola | commit: <în lucru> - <descriere de lucru>`
+### [Commit `Pending`] — `build: fagure | commit: pian - actualizare build word pentru push`
 - **Ramură**: `functionalitati`
-- **Data**: 2026-08-23
+- **Data**: 2026-08-24
+- **Build Word Curent**: `fagure`
+- **Descriere Detaliată**:
+  - **Actualizare BUILD_WORD**: S-a generat cuvântul „fagure” conform protocolului de push, pentru marcarea și validarea noii versiuni pe Vercel.
+
+### [Commit `168cd7f`] — `build: busola | commit: clepsidra - 6 microtasks`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-24
 - **Build Word Curent**: `busola`
 - **Descriere Detaliată**:
   - **Tranziție la Workflow cu Commit-uri la Cerere & Draft Live în `dev-path.md`**:
