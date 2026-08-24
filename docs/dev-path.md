@@ -78,7 +78,17 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `Pending`] — `build: fagure | commit: valiza - arhitectura cautare unificata BottomBar + fix CatalogPage filtru activ`
+### [Commit `Pending`] — `build: fagure | commit: far - grupare mobila pe categorii in cos + tree analitic modal`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-24
+- **Build Word Curent**: `fagure`
+- **Descriere Detaliată**:
+  - **Arhitectură Mobile-First pentru Coș (`CartPage.jsx` & `useAppStore.js`)**:
+    - **Vizualizare Principală (Operațională)**: S-a adăugat posibilitatea de a comuta între „Listă Simplă” și „Grupare pe Categorii” direct din meniul coșului (stare globală `cartGroupByCategory`). Gruparea se face brut (doar categorii, flat) pentru a menține ecranul neaglomerat, ideal pentru telefoane. Butoanele de cantitate și ștergere rămân pe deplin funcționale.
+    - **Dialog Analitic „Tree” (BottomSheet)**: Structura ierarhică completă (Foldere -> Categorii -> Produse) a fost extrasă într-un modal Read-Only dedicat (85% ecran). Calculele costisitoare de ierarhie (`buildSearchTree`) sunt acum *lazy-evaluated* doar când acest modal este deschis, mărind performanța. Bara globală de căutare rămâne vizibilă și funcționează perfect ca filtru live.
+    - **Meniu de Context Inteligent**: Dacă utilizatorul deschide meniul din BottomBar în timp ce se află în Tree și apasă o opțiune de acțiune operațională, modalul Tree se închide automat pentru o experiență fluidă și neîntreruptă.
+
+### [Commit `411674b`] — `build: fagure | commit: valiza - arhitectura cautare unificata BottomBar + fix CatalogPage filtru activ`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-24
 - **Build Word Curent**: `fagure`

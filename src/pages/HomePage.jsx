@@ -1,6 +1,6 @@
 // Cuvinte de validare generare build (se actualizează la fiecare push / commit major)
 const BUILD_WORD = 'fagure'
-const COMMIT_WORD = 'valiza'
+const COMMIT_WORD = 'far'
 
 export default function HomePage() {
   return (

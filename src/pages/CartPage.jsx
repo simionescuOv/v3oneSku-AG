@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingCart, Trash2, Package, Loader2, ArrowLeft } from 'lucide-react'
+import { ShoppingCart, Trash2, Package, Loader2, ArrowLeft, FolderTree, List, Folder, Tag } from 'lucide-react'
 import { useCartStore } from '../store/useCartStore'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
+import { useCatalogStore } from '../store/useCatalogStore'
 import { usePicker } from '../hooks/usePicker'
 import BottomSheet from '../components/catalog/BottomSheet'
-import { filterAndSort } from '../lib/search'
+import { filterAndSort, buildSearchTree, sortTreeFolders } from '../lib/search'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -22,7 +23,21 @@ export default function CartPage() {
   
   const cartMenuOpen = useAppStore((s) => s.cartMenuOpen)
   const closeCartMenu = useAppStore((s) => s.closeCartMenu)
+  const cartGroupByCategory = useAppStore((s) => s.cartGroupByCategory)
+  const toggleCartGroupByCategory = useAppStore((s) => s.toggleCartGroupByCategory)
   const [deleteMode, setDeleteMode] = useState(false)
+  const [treeSheetOpen, setTreeSheetOpen] = useState(false)
+
+  // Dacă meniul principal este invocat cât timp Arborele e deschis, îl tratăm ca pe o comandă de ieșire
+  useEffect(() => {
+    if (cartMenuOpen && treeSheetOpen) {
+      closeCartMenu()
+      setTreeSheetOpen(false)
+    }
+  }, [cartMenuOpen, treeSheetOpen, closeCartMenu])
+
+  const nodes = useCatalogStore((s) => s.nodes)
+  const liveProducts = useCatalogStore((s) => s.products)
 
   useEffect(() => {
     if (spaces.length === 0) {
@@ -100,6 +115,140 @@ export default function CartPage() {
     ? filterAndSort(items, searchQuery, (item) => item.product.nameId)
     : items
 
+  // 1. Grupare plană (doar pe categorii) pentru vizualizarea principală
+  const groupedCartItems = useMemo(() => {
+    if (!cartGroupByCategory) return null
+    const groups = {}
+    visibleCartItems.forEach(item => {
+      const liveProduct = liveProducts.find(p => p.id === item.product.id)
+      const cid = liveProduct ? liveProduct.categoryId : item.product.categoryId
+      
+      if (!groups[cid]) {
+        const node = nodes.find(n => n.id === cid)
+        groups[cid] = { node, items: [] }
+      }
+      groups[cid].items.push(item)
+    })
+    
+    return Object.values(groups).sort((a, b) => (a.node?.name || '').localeCompare(b.node?.name || ''))
+  }, [visibleCartItems, cartGroupByCategory, liveProducts, nodes])
+
+  // 2. Arbore ierarhic complet (calculat lazy, doar când BottomSheet e deschis)
+  const treeData = useMemo(() => {
+    if (!treeSheetOpen) return null
+    const grouped = {}
+    const activeCids = new Set()
+
+    visibleCartItems.forEach(item => {
+      const liveProduct = liveProducts.find(p => p.id === item.product.id)
+      const cid = liveProduct ? liveProduct.categoryId : item.product.categoryId
+      if (!grouped[cid]) grouped[cid] = []
+      grouped[cid].push(item)
+      activeCids.add(cid)
+    })
+
+    const activeCatNodes = nodes.filter(n => n.type === 'category' && activeCids.has(n.id))
+    const root = buildSearchTree(nodes, activeCatNodes)
+    const orderOf = (id) => nodes.findIndex((n) => n.id === id)
+    sortTreeFolders(root, orderOf)
+
+    return { root, grouped }
+  }, [visibleCartItems, nodes, liveProducts, treeSheetOpen])
+
+  const CartItemRow = ({ item, indent = 16 }) => (
+    <div className="flex items-center gap-3 py-3 hover:bg-zinc-900/30 transition-colors" style={{ paddingLeft: indent, paddingRight: 16 }}>
+      {/* Icon */}
+      <div className="text-blue-400 shrink-0">
+        <Package size={20} />
+      </div>
+
+      {/* Name & price */}
+      <div className="flex-1 min-w-0">
+        <span className="block text-sm font-medium text-zinc-100 truncate">
+          {item.product.nameId}
+        </span>
+        {item.product.listPrice != null && (
+          <span className="block text-xs text-zinc-500 mt-0.5">
+            {item.product.listPrice} RON
+          </span>
+        )}
+      </div>
+
+      {/* Compact Quantity Controls */}
+      <div className="flex items-center bg-zinc-900 rounded-lg border border-zinc-800 shrink-0 overflow-hidden">
+        <button
+          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+          className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 active:bg-zinc-800 text-base"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          inputMode="numeric"
+          value={item.quantity || ''}
+          onChange={(e) => updateQuantity(item.product.id, e.target.value)}
+          className="w-10 h-8 bg-transparent text-center text-sm font-semibold text-zinc-100 outline-none hide-arrows"
+          onFocus={(e) => e.target.select()}
+        />
+        <button
+          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+          className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 active:bg-zinc-800 text-base"
+        >
+          +
+        </button>
+      </div>
+
+      {/* Remove button */}
+      {deleteMode && (
+        <button
+          onClick={() => removeItem(item.product.id)}
+          className="p-2 ml-1 text-red-500 hover:text-red-400 rounded-lg bg-red-500/10 active:bg-red-500/20 transition-colors shrink-0 animate-in fade-in slide-in-from-right-2"
+          title="Elimină"
+        >
+          <Trash2 size={18} />
+        </button>
+      )}
+    </div>
+  )
+
+  const ReadonlyCartTree = ({ group, depth = 0 }) => {
+    const indent = 16 + depth * 16
+    return (
+      <div key={group.node ? group.node.id : 'root'}>
+        {group.node && (
+          <div className="flex items-center gap-2 py-2 text-amber-400 bg-zinc-900/60 border-b border-zinc-900" style={{ paddingLeft: indent, paddingRight: 16 }}>
+            <Folder size={14} className="shrink-0" />
+            <span className="text-xs font-bold uppercase tracking-wider truncate">{group.node.name}</span>
+          </div>
+        )}
+
+        {group.categories.map(cat => (
+          <div key={cat.id}>
+            <div className="flex items-center gap-2 py-1.5 text-blue-400 bg-zinc-900/20 border-b border-zinc-900/50" style={{ paddingLeft: indent + (group.node ? 16 : 0), paddingRight: 16 }}>
+              <Tag size={13} className="shrink-0" />
+              <span className="text-xs font-semibold truncate">{cat.name}</span>
+            </div>
+            <div className="divide-y divide-zinc-800/70 border-b border-zinc-800/70">
+              {(treeData?.grouped[cat.id] || []).map(item => (
+                <div key={item.product.id} className="flex items-center gap-2 py-2" style={{ paddingLeft: indent + (group.node ? 32 : 16), paddingRight: 16 }}>
+                  <Package size={14} className="text-zinc-600 shrink-0" />
+                  <span className="flex-1 text-sm text-zinc-300 truncate">{item.product.nameId}</span>
+                  <span className="text-xs font-medium text-zinc-500 shrink-0 px-2 py-0.5 bg-zinc-900 rounded-md">
+                    x{item.quantity}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {group.children.map(child => (
+          <ReadonlyCartTree key={child.node.id} group={child} depth={depth + 1} />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-full bg-zinc-950 text-zinc-100">
       {/* Header */}
@@ -164,65 +313,30 @@ export default function CartPage() {
             <p className="text-sm">Coșul este gol sau n-am găsit nimic.</p>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800/70">
-            {visibleCartItems.map((item) => (
-              <div
-                key={item.product.id}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-900/30 transition-colors"
-              >
-                {/* Icon */}
-                <div className="text-blue-400 shrink-0">
-                  <Package size={20} />
-                </div>
-
-                {/* Name & price */}
-                <div className="flex-1 min-w-0">
-                  <span className="block text-sm font-medium text-zinc-100 truncate">
-                    {item.product.nameId}
-                  </span>
-                  {item.product.listPrice != null && (
-                    <span className="block text-xs text-zinc-500 mt-0.5">
-                      {item.product.listPrice} RON
-                    </span>
-                  )}
-                </div>
-
-                {/* Compact Quantity Controls */}
-                <div className="flex items-center bg-zinc-900 rounded-lg border border-zinc-800 shrink-0 overflow-hidden">
-                  <button
-                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                    className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 active:bg-zinc-800 text-base"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={item.quantity || ''}
-                    onChange={(e) => updateQuantity(item.product.id, e.target.value)}
-                    className="w-10 h-8 bg-transparent text-center text-sm font-semibold text-zinc-100 outline-none hide-arrows"
-                    onFocus={(e) => e.target.select()}
-                  />
-                  <button
-                    onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                    className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 active:bg-zinc-800 text-base"
-                  >
-                    +
-                  </button>
-                </div>
-
-                {/* Remove button */}
-                {deleteMode && (
-                  <button
-                    onClick={() => removeItem(item.product.id)}
-                    className="p-2 ml-1 text-red-500 hover:text-red-400 rounded-lg bg-red-500/10 active:bg-red-500/20 transition-colors shrink-0 animate-in fade-in slide-in-from-right-2"
-                    title="Elimină"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                )}
+          <div className="pb-4">
+            {cartGroupByCategory && groupedCartItems ? (
+              <div className="flex flex-col">
+                {groupedCartItems.map((group) => (
+                  <div key={group.node ? group.node.id : 'unknown'}>
+                    <div className="flex items-center gap-2 py-2 px-4 text-blue-400 bg-zinc-900/40 border-b border-t border-zinc-900/80 mt-2 first:mt-0">
+                      <Tag size={13} className="shrink-0" />
+                      <span className="text-sm font-semibold truncate">{group.node ? group.node.name : 'Necategorizat'}</span>
+                    </div>
+                    <div className="divide-y divide-zinc-800/70 border-b border-zinc-800/70">
+                      {group.items.map(item => (
+                        <CartItemRow key={item.product.id} item={item} indent={16} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="divide-y divide-zinc-800/70 border-b border-zinc-800/70">
+                {visibleCartItems.map((item) => (
+                  <CartItemRow key={item.product.id} item={item} indent={16} />
+                ))}
+              </div>
+            )}
           </div>
         )}
         
@@ -286,6 +400,31 @@ export default function CartPage() {
         <div className="px-4 pb-6 space-y-1">
           <button
             onClick={() => {
+              toggleCartGroupByCategory()
+              closeCartMenu()
+            }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className="text-zinc-400">
+              {cartGroupByCategory ? <List size={18} /> : <Tag size={18} />}
+            </span>
+            <span className="flex-1 text-left">{cartGroupByCategory ? 'Afișare: Listă Simplă' : 'Afișare: Pe Categorii'}</span>
+          </button>
+          <button
+            onClick={() => {
+              setTreeSheetOpen(true)
+              closeCartMenu()
+            }}
+            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
+          >
+            <span className="text-zinc-400">
+              <FolderTree size={18} />
+            </span>
+            <span className="flex-1 text-left">Vezi structura ierarhică (Tree)</span>
+          </button>
+          <div className="h-px bg-zinc-800/50 my-1 mx-2" />
+          <button
+            onClick={() => {
               setDeleteMode(!deleteMode)
               closeCartMenu()
             }}
@@ -296,6 +435,29 @@ export default function CartPage() {
             </span>
             <span className="flex-1 text-left">{deleteMode ? 'Anulează modul ștergere' : 'Șterge elemente...'}</span>
           </button>
+        </div>
+      </BottomSheet>
+
+      {/* Tree View Bottom Sheet */}
+      <BottomSheet 
+        open={treeSheetOpen} 
+        onClose={() => setTreeSheetOpen(false)}
+        aboveBottomBar={true}
+      >
+        <div className="flex flex-col h-[85vh]">
+          <div className="flex-none px-4 pb-4 border-b border-zinc-800/50">
+            <h2 className="text-lg font-semibold text-zinc-100">Structura Ierarhică</h2>
+            <p className="text-xs text-zinc-500 mt-1">Conținutul coșului grupat pe foldere și categorii.</p>
+          </div>
+          <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
+            {treeData && treeData.root && treeData.root.children.length > 0 ? (
+              <ReadonlyCartTree group={treeData.root} />
+            ) : (
+              <div className="py-12 text-center text-sm text-zinc-500">
+                Nu există produse afișabile.
+              </div>
+            )}
+          </div>
         </div>
       </BottomSheet>
 

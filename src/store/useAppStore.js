@@ -28,6 +28,10 @@ export const useAppStore = create((set) => ({
   openCartMenu: () => set({ cartMenuOpen: true }),
   closeCartMenu: () => set({ cartMenuOpen: false }),
 
+  // Setare vizualizare coș (simplu sau grupat pe categorii)
+  cartGroupByCategory: false,
+  toggleCartGroupByCategory: () => set((s) => ({ cartGroupByCategory: !s.cartGroupByCategory })),
+
   // Forțează ascunderea BottomBar-ului (sheet fără căutare — ex: GroupNameSheet)
   bottomBarHidden: false,
   setBottomBarHidden: (v) => set({ bottomBarHidden: v }),
