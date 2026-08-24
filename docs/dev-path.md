@@ -78,7 +78,28 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `Pending`] — `build: fagure | commit: pian - actualizare build word pentru push`
+### [Commit `Pending`] — `build: fagure | commit: valiza - arhitectura cautare unificata BottomBar + fix CatalogPage filtru activ`
+- **Ramură**: `functionalitati`
+- **Data**: 2026-08-24
+- **Build Word Curent**: `fagure`
+- **Descriere Detaliată**:
+  - **[NOU] Hook `useBottomSearch` (`src/hooks/useBottomSearch.js`)**:
+    - Introdus ca **contract arhitectural** (ARCH_BottomSearch): orice pagină/componentă care afișează o listă scrollabilă cu BottomBar vizibil TREBUIE să treacă lista prin `useBottomSearch` sau `usePicker`.
+    - Filtru pur și transparent: dacă `searchQuery` e gol returnează referința originală (zero re-render); dacă nu, aplică `filterAndSort` (motorul canonic din `lib/search`).
+    - Parametru `enabled` pentru dezactivare explicită în contexte care nu necesită căutare.
+    - Documentat cu extension point `ARCH_SearchableAttrs` pentru funcționalitatea viitoare de atribute căutabile per-categorie.
+  - **[FIX] Bug `CatalogPage.jsx` — căutarea nu funcționa pe lista „Rezultate filtrare"**:
+    - Cauza: `filteredProducts` (useMemo) filtra doar după `filteredProductIds.has(p.id)`, ignorând complet `searchQuery`.
+    - Rezolvare: separarea în 2 pași — (1) filtrul persistent din `FilterSheet` → `filteredProducts`; (2) căutarea live din BottomBar → `visibleFilteredProducts` via `useBottomSearch`.
+    - `labelFn` caută în `nameId + numeCătegorie + tags` (intenționat fără valorile de atribute — în context global Catalog nu există schemă per-categorie).
+    - Mesaj empty state diferențiat: „Niciun produs nu corespunde filtrelor selectate" vs. „Niciun produs nu corespunde căutării".
+  - **[UX] Placeholder contextual `CatalogPage.jsx`**:
+    - Când filtrul e activ, placeholder-ul BottomBar devine `'Caută în rezultate...'` (anterior static indiferent de context).
+  - **[DOC] `GEMINI.MD` — secțiuni arhitecturale noi**:
+    - `ARCH_BottomSearch`: convenția + tabelul stării curente per context.
+    - `ARCH_SearchableAttrs`: planul în 3 pași pentru funcționalitatea viitoare „atribute căutabile per-categorie" — documentat, NU implementat.
+
+### [Commit `671105b`] — `build: fagure | commit: pian - actualizare build word pentru push`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-24
 - **Build Word Curent**: `fagure`
@@ -109,8 +130,6 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
   - **Rezolvare Suprapunere Butoane Flotante (FAB)**:
     - Butoanele de acțiune `+` (Adăugare element) din paginile principale (`CatalogPage`, `CategoryPage`, `StockHubPage`) au fost ajustate pentru a preveni suprapunerea peste butonul global de Coș în momentul căutării.
     - S-a implementat stivuirea verticală (Vertical Stacking): butonul `+` ascultă dinamic starea coșului și, dacă există elemente în el, se ridică automat pe ecran (la `9rem` de la bază) pentru a face loc vizual butonului de Coș aflat dedesubt.
-
-
 ### [Commit `4e8a81e`] — `build: busola | commit: orizont - actualizare protocol dev-path cu mecanism in cascada N-1 pentru hash-uri`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-23

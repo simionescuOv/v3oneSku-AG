@@ -8,6 +8,7 @@ import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
 import { useCartStore } from '../store/useCartStore'
 import { filterAndSort, normalize, buildSearchTree, sortTreeFolders } from '../lib/search'
+import { useBottomSearch } from '../hooks/useBottomSearch'
 import { usePicker } from '../hooks/usePicker'
 import NodeCard, { NodeCount } from '../components/catalog/NodeCard'
 import ProductCard from '../components/catalog/ProductCard'
@@ -101,6 +102,18 @@ export default function CatalogPage() {
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
   }, [products, filteredProductIds])
 
+  // Pasul 2: aplică căutarea live din BottomBar peste produsele pre-filtrate.
+  // `labelFn` concatenează nameId + numele categoriei + tags — intenționat fără
+  // valorile de atribute, deoarece în lista globală (Catalog) nu există schema
+  // per-categorie; nameId + categoria + tags sunt suficiente pentru identificare.
+  // (ARCH_SearchableAttrs: când va exista flag-ul `searchable`, labelFn va fi
+  //  extins în CategoryPage, nu aici — contextele sunt diferite.)
+  const { results: visibleFilteredProducts } = useBottomSearch(
+    filteredProducts,
+    (p) => [p.nameId, categoryMap.get(p.categoryId) || '', (p.tags || []).join(' ')].join(' '),
+    { enabled: filteredProductIds !== null }
+  )
+
   const productCounts = useMemo(() => {
     const counts = {}
     for (const p of products) {
@@ -117,10 +130,14 @@ export default function CatalogPage() {
     return catName || tagStr || ''
   }
 
-  // ── Placeholder ──────────────────────────────────────────────────────────────
+  // ── Placeholder — contextual în funcție de modul activ ──────────────────────
   useEffect(() => {
-    setSearchPlaceholder('Caută categorie sau folder...')
-  }, [setSearchPlaceholder])
+    setSearchPlaceholder(
+      filteredProductIds !== null
+        ? 'Caută în rezultate...'
+        : 'Caută categorie sau folder...'
+    )
+  }, [setSearchPlaceholder, filteredProductIds])
 
   // ── Cleanup foldere temporare orfane (SPEC_MutareCrossFolder §2.4, §3.6) ──────
   useEffect(() => {
@@ -446,7 +463,7 @@ export default function CatalogPage() {
           {/* Header mod filtrare */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-blue-950/30 border-b border-blue-900/40 text-xs shrink-0">
             <span className="text-blue-300 font-medium">
-              Rezultate filtrare ({filteredProducts.length})
+              Rezultate filtrare ({visibleFilteredProducts.length})
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -470,7 +487,7 @@ export default function CatalogPage() {
 
           {/* Listă produse filtrate */}
           <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
-            {filteredProducts.map((p) => (
+            {visibleFilteredProducts.map((p) => (
               <ProductCard
                 key={p.id}
                 product={p}
@@ -478,9 +495,11 @@ export default function CatalogPage() {
                 onTap={(prod) => goHome('/catalog/product/' + encodeURIComponent(prod.nameId))}
               />
             ))}
-            {filteredProducts.length === 0 && (
+            {visibleFilteredProducts.length === 0 && (
               <div className="px-4 py-12 text-center text-sm text-zinc-500">
-                Niciun produs nu corespunde filtrelor selectate
+                {filteredProducts.length === 0
+                  ? 'Niciun produs nu corespunde filtrelor selectate'
+                  : 'Niciun produs nu corespunde căutării'}
               </div>
             )}
           </div>

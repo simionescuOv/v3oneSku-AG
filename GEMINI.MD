@@ -18,3 +18,42 @@
 11. UI SELECTION PROTOCOL (PICKER v2): Whenever the user needs to select an item from a list (e.g. source, destination, category), NEVER use native HTML `<select>` dropdowns. Instead, ALWAYS use the standard Picker mechanism as described in `docs/specs/SPEC_Picker_v2.md`. The form UI should look like an input displaying the selected item; tapping it opens a dedicated bottom-sheet/dialog picker (integrating with `usePicker` and `BottomBar` search). After selection, the picker closes and the chosen item appears in the UI.
 
 13. PREFIXUL `plan-`: Dacă promptul utilizatorului începe cu cuvântul `plan-`, este INTERZIS să modifici absolut orice fișier (nicio linie de cod, nicio modificare). Discuția se află strict în stadiu de planificare și dezbatere. Doar vei citi fișierele și vei răspunde utilizatorului cu idei sau un plan teoretic.
+
+## ARCH_BottomSearch — Convenție: BottomBar search → lista vizibilă
+
+**Regulă:** Orice componentă/pagină care afișează o listă scrollabilă cu BottomBar vizibil
+TREBUIE să treacă lista prin `useBottomSearch` (filtru pur) sau `usePicker` (când e nevoie
+și de logică create/select). Nu există excepții.
+
+- `useBottomSearch(items, labelFn, { enabled })` — `src/hooks/useBottomSearch.js`
+- `usePicker({ mode: 'inline', items, labelFn, query })` — `src/hooks/usePicker.js`
+
+Dacă un context particular necesită dezactivarea căutării, se folosește `enabled: false`
+**explicit** — nu omiterea hook-ului.
+
+**Starea curentă (implementat):**
+
+| Context | Mecanism |
+|---|---|
+| CatalogPage — noduri | `usePicker` |
+| CatalogPage — filtru activ (produse) | `useBottomSearch` (Pasul 2 după filtrul persistent) |
+| CategoryPage — produse | `usePicker` (include filtrul persistent automat via `baseCategoryProducts`) |
+| StockHubPage — spații | `usePicker` |
+| CartPage — picker sursă/dest | `usePicker` |
+| CartPage — lista coș | `filterAndSort` direct în `visibleCartItems` |
+
+## ARCH_SearchableAttrs — Extensie viitoare: atribute căutabile per-categorie
+
+**Problemă:** `getSearchableLabel` din `CategoryPage` concatenează toate atributele
+produsului, inclusiv texte lungi (ex: „Descriere"), generând false positives și degradând
+relevanța căutării.
+
+**Soluție planificată (3 pași independenți, NU implementat încă):**
+
+1. **Migrare DB:** `ALTER TABLE category_attributes ADD COLUMN searchable boolean DEFAULT true;`
+2. **Store + SchemaSheet UI:** expune toggle „Căutabil" alături de „Filtrabil" / „Preview card"
+3. **CategoryPage:** actualizează `getSearchableLabel` să respecte `attr.searchable`
+
+**Principiu arhitectural:** `useBottomSearch` și `usePicker` sunt **agnostice** față de
+structura datelor — nu vor necesita nicio modificare. Toată logica „ce intră în căutare"
+trăiește exclusiv în `labelFn` transmis de pagina consumatoare.
