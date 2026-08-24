@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { ShoppingCart } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import TopBar from './TopBar'
 import MainContent from './MainContent'
 import BottomBar from './BottomBar'
@@ -11,6 +11,7 @@ import { useViewportHeight } from '../../hooks/useViewportHeight'
 
 export default function AppShell() {
   const navigate = useNavigate()
+  const location = useLocation()
   const bottomHidden = useAppStore((s) => s.bottomBarScrollHidden)
   const setBottomHidden = useAppStore((s) => s.setBottomBarScrollHidden)
   const { height, offsetTop } = useViewportHeight()
@@ -32,7 +33,7 @@ export default function AppShell() {
       <SideMenu />
 
       {/* Global Cart FAB */}
-      {items.length > 0 && (
+      {items.length > 0 && location.pathname !== '/cart' && (
         <button
           onClick={() => navigate('/cart')}
           className={[

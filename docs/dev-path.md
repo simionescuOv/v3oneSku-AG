@@ -78,7 +78,11 @@
 
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
-### [Commit `Pending`] — `build: fagure | commit: far - grupare mobila pe categorii in cos + tree analitic modal`
+### [Commit `Pending`]
+- **Microtask**: *Ascunderea butonului plutitor de coș pe pagina `/cart`*.
+  - S-a modificat `AppShell.jsx` pentru a ascunde global butonul plutitor de coș (Floating Action Button) atunci când utilizatorul se află pe ruta `/cart` (`location.pathname !== '/cart'`), deoarece pe această pagină butonul era redundant. S-a folosit hook-ul `useLocation` din `react-router-dom`.
+
+### [Commit `7bde136`] — `build: fagure | commit: far - grupare mobila pe categorii in cos + tree analitic modal`
 - **Ramură**: `functionalitati`
 - **Data**: 2026-08-24
 - **Build Word Curent**: `fagure`
