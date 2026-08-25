@@ -79,10 +79,27 @@
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit `Pending`]
-- **Microtask**: *Ascunderea butonului plutitor de coș pe pagina `/cart`*.
-  - S-a modificat `AppShell.jsx` pentru a ascunde global butonul plutitor de coș (Floating Action Button) atunci când utilizatorul se află pe ruta `/cart` (`location.pathname !== '/cart'`), deoarece pe această pagină butonul era redundant. S-a folosit hook-ul `useLocation` din `react-router-dom`.
-- **Microtask**: *Deschiderea implicită a meniului lateral pe HomePage*.
-  - S-a modificat componenta `HomePage.jsx` adăugând un efect (`useEffect`) care apelează automat `openSideMenu` din `useAppStore` la montare. Astfel, când utilizatorul revine pe pagina Home din alte secțiuni (ex. Catalog), meniul principal este afișat automat, reducând numărul de acțiuni necesare pentru navigare (ex. spre StockHub).
+
+### [Commit `Pending`] — `build: fagure | commit: telescop - stockhub primele modificari`
+- **Ramură**: `noiFeat`
+- **Data**: 2026-08-25
+- **Build Word Curent**: `fagure`
+- **Descriere Detaliată**:
+  - **Microtask**: *Ascunderea butonului plutitor de coș pe pagina `/cart`*.
+    - S-a modificat `AppShell.jsx` pentru a ascunde global butonul plutitor de coș (Floating Action Button) atunci când utilizatorul se află pe ruta `/cart` (`location.pathname !== '/cart'`), deoarece pe această pagină butonul era redundant. S-a folosit hook-ul `useLocation` din `react-router-dom`.
+  - **Microtask**: *Deschiderea implicită a meniului lateral pe HomePage*.
+    - S-a modificat componenta `HomePage.jsx` adăugând un efect (`useEffect`) care apelează automat `openSideMenu` din `useAppStore` la montare. Astfel, când utilizatorul revine pe pagina Home din alte secțiuni (ex. Catalog), meniul principal este afișat automat, reducând numărul de acțiuni necesare pentru navigare (ex. spre StockHub).
+  - **Microtask**: *Implementare Pagina unui Space (Stoc + Flux) și fix calcul tranzacții*.
+    - S-a creat `SpacePage.jsx` cu navigare pe baza rutei `/stockhub/space/:spaceId`.
+    - Integrare completă cu `BottomBar` pentru căutare și meniu contextual (tab-uri Stoc / Flux acționate din meniu).
+    - S-au adăugat componentele vizuale `SpaceProductCard.jsx` (stoc proeminent, design adaptabil) și `FluxFeed.jsx` (feed tranzacții cu blocuri duale Intrare/Ieșire și headers zilnice sticky).
+    - Componenta `FluxFeed` folosește o convenție pură UX: afișează strict **valoarea absolută** a cantității (fără negații duble "Ieșire: -1").
+    - S-au adăugat query-uri noi în `useStockStore.js`: `fetchSpaceProducts` (date agregate din `space_products` + `products`) și `fetchSpaceTransactions` (inbound și outbound agregate pe zi).
+    - **[BUGFIX]**: Corectat operatorul din migrația `20260820180000_rpc_commit_cart.sql` (linia de update sursă a provocat creșterea stocului în loc de scădere din cauza inserării inițiale negative). Corectura folosește `stock = stock - v_quantity`. Creat fișier de migrație aplicabil pe server `20260825192000_fix_rpc_commit_cart.sql`.
+  - **Microtask**: *Impunere regulă de proveniență a produselor din coș în funcție de sursă*.
+    - S-a modificat `useCartStore.js` adăugând `sourceLocked` pentru a lega strict coșul de spațiul (sau catalogul) de unde a fost adăugat primul produs, blocând adăugarea din surse externe.
+    - S-a adaptat `CartPage.jsx` pentru a reflecta vizual starea de „BLOCAT” pe butonul de sursă.
+    - S-a modificat `SpaceProductCard.jsx` și `SpacePage.jsx` pentru a pasa explicit `sourceId` la adăugarea în coș.
 
 ### [Commit `7bde136`] — `build: fagure | commit: far - grupare mobila pe categorii in cos + tree analitic modal`
 - **Ramură**: `functionalitati`

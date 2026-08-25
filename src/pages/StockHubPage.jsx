@@ -153,9 +153,10 @@ export default function StockHubPage() {
       toggleNodeSelection(node.id)
     } else if (node.type === 'folder') {
       navigate(node.id)
+    } else if (node.type === 'space') {
+      goHome('/stockhub/space/' + node.id)
     }
-    // Spații: nu au acțiune la tap în vizualizarea normală
-  }, [selectionMode, toggleNodeSelection, navigate])
+  }, [selectionMode, toggleNodeSelection, navigate, goHome])
 
   const handleToggleFold = useCallback((id) => {
     setCollapsedIds((prev) => {

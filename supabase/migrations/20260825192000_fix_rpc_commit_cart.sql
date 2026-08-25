@@ -1,43 +1,7 @@
--- 1. Tabel pentru alerte de stoc negativ neașteptat
-create table stock_alerts (
-  id           uuid primary key default gen_random_uuid(),
-  tenant_id    uuid not null references tenants(id) on delete cascade,
-  space_id     uuid not null references spaces(id) on delete cascade,
-  product_id   uuid not null references products(id) on delete cascade,
-  stock_value  numeric not null,
-  resolved_at  timestamptz,
-  created_at   timestamptz not null default now()
-);
+-- Fix for commit_cart RPC: source space stock deduction double-negative bug
+-- The previous logic attempted to do `stock - excluded.stock`, but `excluded.stock` was already negative (-v_quantity), resulting in an addition.
+-- This explicitly subtracts the absolute quantity (`v_quantity`).
 
--- Indexuri pentru performanță
-create index idx_stock_alerts_tenant on stock_alerts(tenant_id);
-create index idx_stock_alerts_space on stock_alerts(space_id);
-create index idx_stock_alerts_resolved on stock_alerts(resolved_at);
-
--- RLS pentru stock_alerts
-alter table stock_alerts enable row level security;
-
-create policy "Tenant members can view their stock_alerts" on stock_alerts
-  for select using (tenant_id = (select current_tenant_id()));
-
-create policy "Tenant members can update their stock_alerts" on stock_alerts
-  for update using (tenant_id = (select current_tenant_id()));
-
--- 2. VIEW pentru spaces summary (înlocuiește mock-urile din StockHub)
-create or replace view spaces_summary as
-select
-  s.id,
-  s.tenant_id,
-  s.name,
-  s.allow_negative_stock,
-  s.created_at,
-  coalesce(count(distinct sp.product_id), 0) as product_count,
-  coalesce(sum(sp.stock), 0) as total_units
-from spaces s
-left join space_products sp on sp.space_id = s.id
-group by s.id;
-
--- 3. RPC pentru commit_cart (tranzacție atomică)
 create or replace function commit_cart(
   p_source_type          text,
   p_source_space_id      uuid,
@@ -118,6 +82,7 @@ begin
       
     elsif p_source_type = 'space' then
       -- Scade din sursă
+      -- Explicit folosim - v_quantity pe update (cantitatea absolută pozitivă)
       insert into space_products (tenant_id, space_id, product_id, stock)
       values (v_tenant_id, p_source_space_id, v_product_id, -v_quantity)
       on conflict (space_id, product_id)

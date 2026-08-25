@@ -11,7 +11,7 @@ import { filterAndSort, buildSearchTree, sortTreeFolders } from '../lib/search'
 
 export default function CartPage() {
   const navigate = useNavigate()
-  const { items, updateQuantity, removeItem, source, setSource, destination, setDestination, clearCart } = useCartStore()
+  const { items, updateQuantity, removeItem, source, sourceLocked, setSource, destination, setDestination, clearCart } = useCartStore()
   const { spaces, fetchSpaces, commitCart } = useStockStore()
   const { searchQuery, setSearchQuery } = useAppStore()
   
@@ -277,10 +277,14 @@ export default function CartPage() {
         <div className="flex items-center gap-3">
           <span className="w-16 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Sursă</span>
           <button 
-            onClick={() => setPickerType('source')}
-            className="flex-1 text-left bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 active:bg-zinc-800 transition-colors"
+            onClick={() => {
+              if (!sourceLocked) setPickerType('source')
+            }}
+            disabled={sourceLocked}
+            className={`flex-1 text-left bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 transition-colors ${sourceLocked ? 'opacity-70 cursor-not-allowed' : 'active:bg-zinc-800'}`}
           >
             {getSpaceName(source)}
+            {sourceLocked && <span className="ml-2 text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-500 font-semibold uppercase">Blocat</span>}
           </button>
         </div>
 

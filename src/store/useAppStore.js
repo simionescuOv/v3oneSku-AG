@@ -23,6 +23,11 @@ export const useAppStore = create((set) => ({
   openStockHubMenu: () => set({ stockHubMenuOpen: true }),
   closeStockHubMenu: () => set({ stockHubMenuOpen: false }),
 
+  // Space context menu trigger (BottomBar → SpacePage)
+  spaceMenuOpen: false,
+  openSpaceMenu: () => set({ spaceMenuOpen: true }),
+  closeSpaceMenu: () => set({ spaceMenuOpen: false }),
+
   // Cart context menu trigger (BottomBar -> CartPage)
   cartMenuOpen: false,
   openCartMenu: () => set({ cartMenuOpen: true }),

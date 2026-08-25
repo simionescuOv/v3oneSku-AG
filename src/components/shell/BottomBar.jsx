@@ -10,20 +10,23 @@ export default function BottomBar({ hidden }) {
   const searchPlaceholder = useAppStore((s) => s.searchPlaceholder)
   const openCatalogMenu = useAppStore((s) => s.openCatalogMenu)
   const openStockHubMenu = useAppStore((s) => s.openStockHubMenu)
+  const openSpaceMenu = useAppStore((s) => s.openSpaceMenu)
   const bottomBarHidden = useAppStore((s) => s.bottomBarHidden)
 
   const { pathname } = useLocation()
-  // „Familia Catalog" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
+  // „Familia Catalog\" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
   // toate folosesc meniul contextual (catalogMenuOpen), nu meniul lateral.
   const isProductPage = pathname.startsWith('/catalog/product')
   const isCatalogFamily = pathname.startsWith('/catalog')
-  const isStockHub = pathname.startsWith('/stockhub')
+  const isSpacePage = pathname.startsWith('/stockhub/space/')
+  const isStockHub = pathname.startsWith('/stockhub') && !isSpacePage
   const isCartPage = pathname === '/cart'
   const MenuIcon = NAV_ITEMS.find((item) => item.path === pathname)?.Icon
     ?? (isProductPage ? Package : isCatalogFamily ? BookOpen : Menu)
 
   const handleMenuPress = () => {
     if (isCatalogFamily) openCatalogMenu()
+    else if (isSpacePage) openSpaceMenu()
     else if (isStockHub) openStockHubMenu()
     else if (isCartPage) useAppStore.getState().openCartMenu()
     else toggleSideMenu()

@@ -280,9 +280,9 @@ src/
 - `BottomBar` generalizat la „familia /catalog" pentru meniul contextual
 
 ### StockHub
-- [ ] Pagina unui Space (tab Stoc + tab Flux)
-- [ ] Dialogul de filtrare (model eMAG, categorie ca filtru)
-- [ ] Tab Flux — feed WhatsApp-style al tranzacțiilor
+- [x] Pagina unui Space (tab Stoc + tab Flux)
+- [ ] Dialogul de filtrare (model eMAG, categorie ca filtru) pe tab Flux
+- [x] Tab Flux — feed WhatsApp-style al tranzacțiilor (UI integrat)
 
 ### Storefront
 - [ ] Layer de prezentare (override-uri publice)

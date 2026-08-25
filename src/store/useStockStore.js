@@ -206,4 +206,118 @@ export const useStockStore = create((set, get) => ({
 
     return { ok: true, transactionId: data.transaction_id, alerts: data.alerts }
   },
+
+  // ── Pagina unui Space ────────────────────────────────────────────────
+  // Produsele din Space: space_products (stoc + delta locală) + produsele din
+  // Catalog (NameID, atribute, categorie) citite live prin pointer.
+  fetchSpaceProducts: async (spaceId) => {
+    const { data, error } = await supabase
+      .from('space_products')
+      .select(`
+        space_id,
+        product_id,
+        stock,
+        local_tags,
+        updated_at,
+        products (
+          id,
+          name_id,
+          category_id,
+          attributes,
+          tags,
+          list_price,
+          categories ( name )
+        )
+      `)
+      .eq('space_id', spaceId)
+      .order('updated_at', { ascending: false })
+
+    if (error) return { ok: false, error: error.message }
+
+    const mapped = data.map((row) => ({
+      productId: row.product_id,
+      spaceId: row.space_id,
+      stock: row.stock,
+      localTags: row.local_tags ?? [],
+      updatedAt: row.updated_at,
+      // date din Catalog (live prin pointer)
+      nameId: row.products?.name_id ?? '—',
+      categoryId: row.products?.category_id ?? null,
+      categoryName: row.products?.categories?.name ?? null,
+      attributes: row.products?.attributes ?? {},
+      tags: row.products?.tags ?? [],
+      listPrice: row.products?.list_price ?? null,
+      // referință completă pentru coș
+      catalogProduct: row.products
+        ? {
+            id: row.products.id,
+            nameId: row.products.name_id,
+            categoryId: row.products.category_id,
+            attributes: row.products.attributes ?? {},
+            tags: row.products.tags ?? [],
+            listPrice: row.products.list_price,
+          }
+        : null,
+    }))
+
+    return { ok: true, data: mapped }
+  },
+
+  // Tranzacțiile unui Space: toate în care Space-ul e sursă SAU destinație,
+  // cu item-urile aferente și NameID-ul produselor.
+  fetchSpaceTransactions: async (spaceId) => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(`
+        id,
+        source_type,
+        source_space_id,
+        destination_space_id,
+        created_at,
+        transaction_items (
+          product_id,
+          quantity,
+          products ( name_id )
+        ),
+        source_space:spaces!source_space_id ( name ),
+        destination_space:spaces!destination_space_id ( name )
+      `)
+      .or(`source_space_id.eq.${spaceId},destination_space_id.eq.${spaceId}`)
+      .order('created_at', { ascending: false })
+
+    if (error) return { ok: false, error: error.message }
+
+    // Transformă fiecare tranzacție într-un bloc Flux
+    const blocks = data.map((tx) => {
+      const isInbound = tx.destination_space_id === spaceId
+      const direction = isInbound ? 'inbound' : 'outbound'
+
+      let sourceLabel = ''
+      if (tx.source_type === 'catalog') {
+        sourceLabel = 'din catalog'
+      } else if (isInbound) {
+        sourceLabel = `← ${tx.source_space?.name ?? '?'}`
+      } else {
+        sourceLabel = `→ ${tx.destination_space?.name ?? '?'}`
+      }
+
+      const items = (tx.transaction_items ?? []).map((item) => ({
+        nameId: item.products?.name_id ?? '—',
+        qty: item.quantity,
+      }))
+
+      const totalQty = items.reduce((sum, i) => sum + Number(i.qty), 0)
+
+      return {
+        id: tx.id,
+        direction,
+        sourceLabel,
+        createdAt: tx.created_at,
+        items,
+        totalQty,
+      }
+    })
+
+    return { ok: true, data: blocks }
+  },
 }))

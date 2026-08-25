@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore'
 
 // Cuvinte de validare generare build (se actualizează la fiecare push / commit major)
 const BUILD_WORD = 'fagure'
-const COMMIT_WORD = 'far'
+const COMMIT_WORD = 'telescop'
 
 export default function HomePage() {
   const openSideMenu = useAppStore((s) => s.openSideMenu)

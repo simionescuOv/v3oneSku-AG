@@ -7,6 +7,7 @@ import CatalogPage from './pages/CatalogPage'
 import CategoryPage from './pages/CategoryPage'
 import ProductPage from './pages/ProductPage'
 import StockHubPage from './pages/StockHubPage'
+import SpacePage from './pages/SpacePage'
 import StorefrontPage from './pages/StorefrontPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="catalog/category/:categoryId" element={<CategoryPage />} />
           <Route path="catalog/product/:nameId" element={<ProductPage />} />
           <Route path="stockhub"   element={<StockHubPage />} />
+          <Route path="stockhub/space/:spaceId" element={<SpacePage />} />
           <Route path="storefront" element={<StorefrontPage />} />
           <Route path="dashboard"  element={<DashboardPage />} />
           <Route path="settings"   element={<SettingsPage />} />
