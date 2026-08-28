@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+
 import { ShoppingCart, Trash2, Package, Loader2, ArrowLeft, FolderTree, List, Folder, Tag } from 'lucide-react'
 import { useCartStore } from '../store/useCartStore'
 import { useStockStore } from '../store/useStockStore'
@@ -7,11 +7,36 @@ import { useAppStore } from '../store/useAppStore'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { usePicker } from '../hooks/usePicker'
 import BottomSheet from '../components/catalog/BottomSheet'
+import ContextMenu from '../components/shell/ContextMenu'
 import { filterAndSort, buildSearchTree, sortTreeFolders } from '../lib/search'
 
 export default function CartPage() {
-  const navigate = useNavigate()
   const { items, updateQuantity, removeItem, source, sourceLocked, setSource, destination, setDestination, clearCart } = useCartStore()
+  const closeCart = useAppStore(s => s.closeCart)
+
+  // Helper pentru a închide curat coșul din UI fără să lase stări în browser
+  const handleUIClose = () => {
+    if (window.history.state?.virtualPage === 'cart') {
+      window.history.back()
+    } else {
+      closeCart()
+    }
+  }
+
+  useEffect(() => {
+    if (window.history.state?.virtualPage !== 'cart') {
+      window.history.pushState({ virtualPage: 'cart' }, '')
+    }
+
+    const handlePopState = (e) => {
+      e.preventDefault()
+      closeCart()
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [closeCart])
   const { spaces, fetchSpaces, commitCart } = useStockStore()
   const { searchQuery, setSearchQuery } = useAppStore()
   
@@ -78,7 +103,7 @@ export default function CartPage() {
     }
     
     clearCart()
-    navigate('/catalog') // go back to catalog after success
+    handleUIClose() // go back to catalog after success
   }
 
   // --- Logica pentru Picker ---
@@ -254,7 +279,7 @@ export default function CartPage() {
       {/* Header */}
       <div className="flex-none flex items-center gap-3 px-4 py-4 shrink-0 border-b border-zinc-800">
         <button 
-          onClick={() => navigate(-1)}
+          onClick={() => handleUIClose()}
           className="p-2 -ml-2 text-zinc-400 hover:text-zinc-100 bg-zinc-900 rounded-xl active:bg-zinc-800"
         >
           <ArrowLeft size={20} />
@@ -400,47 +425,38 @@ export default function CartPage() {
       </BottomSheet>
 
       {/* Context Menu pentru Coș */}
-      <BottomSheet open={cartMenuOpen} onClose={closeCartMenu}>
-        <div className="px-4 pb-6 space-y-1">
-          <button
-            onClick={() => {
+      <ContextMenu
+        open={cartMenuOpen}
+        onClose={closeCartMenu}
+        options={[
+          {
+            label: cartGroupByCategory ? 'Afișare: Listă Simplă' : 'Afișare: Pe Categorii',
+            icon: cartGroupByCategory ? <List size={18} /> : <Tag size={18} />,
+            onClick: () => {
               toggleCartGroupByCategory()
               closeCartMenu()
-            }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400">
-              {cartGroupByCategory ? <List size={18} /> : <Tag size={18} />}
-            </span>
-            <span className="flex-1 text-left">{cartGroupByCategory ? 'Afișare: Listă Simplă' : 'Afișare: Pe Categorii'}</span>
-          </button>
-          <button
-            onClick={() => {
+            }
+          },
+          {
+            label: 'Vezi structura ierarhică (Tree)',
+            icon: <FolderTree size={18} />,
+            onClick: () => {
               setTreeSheetOpen(true)
               closeCartMenu()
-            }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400">
-              <FolderTree size={18} />
-            </span>
-            <span className="flex-1 text-left">Vezi structura ierarhică (Tree)</span>
-          </button>
-          <div className="h-px bg-zinc-800/50 my-1 mx-2" />
-          <button
-            onClick={() => {
+            }
+          },
+          'divider',
+          {
+            label: 'Activează Ștergerea Multiplă',
+            icon: <Trash2 size={18} />,
+            danger: true,
+            onClick: () => {
               setDeleteMode(!deleteMode)
               closeCartMenu()
-            }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className={deleteMode ? "text-zinc-400" : "text-red-400"}>
-              <Trash2 size={18} />
-            </span>
-            <span className="flex-1 text-left">{deleteMode ? 'Anulează modul ștergere' : 'Șterge elemente...'}</span>
-          </button>
-        </div>
-      </BottomSheet>
+            }
+          }
+        ]}
+      />
 
       {/* Tree View Bottom Sheet */}
       <BottomSheet 

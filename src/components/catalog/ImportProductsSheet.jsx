@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Upload,
   FileUp,
@@ -79,6 +79,16 @@ export default function ImportProductsSheet({ open, onClose, categoryId, showToa
 
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
 
+  // Gestul Back navighează înapoi prin pașii wizard-ului
+  // OBLIGATORIU înainte de orice early return (Rules of Hooks)
+  const handleBackIntercept = useCallback(() => {
+    if (step === 'result') { setStep('mapping'); return true }
+    if (step === 'mapping') { setStep('upload'); return true }
+    // 'progress' = import în curs — nu permitem Back
+    if (step === 'progress') return true
+    return false // 'upload' → BottomSheet se închide
+  }, [step])
+
   if (!open) return null
 
   // ── Gestionare fișier încărcat ────────────────────────────────────────────
@@ -158,7 +168,7 @@ export default function ImportProductsSheet({ open, onClose, categoryId, showToa
   const issues = step === 'mapping' ? validateImportConfigs(columnConfigs, rows, products) : []
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose} onBackIntercept={handleBackIntercept}>
       <div className="px-4 pb-6 max-h-[85dvh] overflow-y-auto">
         {/* ────────────────── PAS 1: ÎNCĂRCARE FIȘIER ────────────────── */}
         {step === 'upload' && (

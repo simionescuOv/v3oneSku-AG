@@ -13,19 +13,21 @@ export const useCartStore = create((set, get) => ({
     const { items, source, sourceLocked } = get()
     
     // If cart has items and the new item comes from a different source,
-    // we can either block it or warn. Let's just block it or maybe clear and start over?
-    // The user said "Only the products added to the cart are from the space we are in".
-    // Let's prevent adding if it doesn't match the current source.
-    if (items.length > 0 && source !== sourceId) {
+    // we block it. However, if the cart was started from the catalog (sourceLocked is false),
+    // we allow adding more items from the catalog, even if the user temporarily changed
+    // the transaction source in the cart to a specific space.
+    const canAdd = source === sourceId || (!sourceLocked && sourceId === 'catalog')
+    
+    if (items.length > 0 && !canAdd) {
       alert(`Coșul conține deja produse din ${source === 'catalog' ? 'Catalog' : 'alt spațiu'}. Finalizează tranzacția sau golește coșul înainte de a adăuga din ${sourceId === 'catalog' ? 'Catalog' : 'acest spațiu'}.`)
       return
     }
 
     const existingItem = items.find((item) => item.product.id === product.id)
     
-    // If cart is empty, lock the source to where the item was added from
+    // If cart is empty, lock the source ONLY IF the item was added from a space (StockHub).
     if (items.length === 0) {
-      set({ source: sourceId, sourceLocked: true })
+      set({ source: sourceId, sourceLocked: sourceId !== 'catalog' })
     }
     
     if (existingItem) {

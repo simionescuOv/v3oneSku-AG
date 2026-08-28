@@ -116,10 +116,62 @@ function FluxBlock({ block }) {
   )
 }
 
-export default function FluxFeed({ blocks }) {
-  const days = useMemo(() => groupByDay(blocks), [blocks])
+function AlertBlock({ alert }) {
+  return (
+    <div className="flex w-full px-4 py-1 justify-center">
+      <div className="flex items-center gap-2 max-w-[85%] rounded-xl px-3 py-1.5 bg-red-950/40 border border-red-900/50">
+        <span className="text-red-500 font-bold text-sm">⚠</span>
+        <span className="text-xs text-red-200">
+          Stoc negativ ({alert.stockValue}): <span className="font-semibold">{alert.productName}</span>
+        </span>
+        <span className="text-[10px] text-red-400/60 ml-2 whitespace-nowrap">{formatTime(alert.createdAt)}</span>
+      </div>
+    </div>
+  )
+}
 
-  if (blocks.length === 0) {
+export default function FluxFeed({ blocks, alerts = [] }) {
+  const days = useMemo(() => {
+    // 1. Combine blocks (transactions) and alerts
+    const feedItems = [
+      ...blocks.map(b => ({ ...b, itemType: 'transaction' })),
+      ...alerts.map(a => ({
+        itemType: 'alert',
+        id: `alert-${a.id}`,
+        createdAt: a.created_at,
+        productName: a.products?.name_id || 'Produs sters',
+        stockValue: a.stock_value,
+      }))
+    ]
+
+    // 2. Sort descending (newest first). 
+    // If times are very close, ensure Transaction comes BEFORE (above) Alert in the UI.
+    feedItems.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime()
+      const dateB = new Date(b.createdAt).getTime()
+      
+      if (Math.abs(dateA - dateB) < 2000) { // within 2 seconds
+        if (a.itemType === 'transaction' && b.itemType === 'alert') return -1 // a (tx) before b (alert)
+        if (a.itemType === 'alert' && b.itemType === 'transaction') return 1  // b (tx) before a (alert)
+      }
+      return dateB - dateA
+    })
+
+    // 3. Group by day
+    const daysMap = new Map()
+    for (const item of feedItems) {
+      const dateObj = new Date(item.createdAt)
+      const key = dateObj.toDateString()
+      if (!daysMap.has(key)) {
+        daysMap.set(key, { label: formatDate(item.createdAt), date: dateObj.getTime(), items: [] })
+      }
+      daysMap.get(key).items.push(item)
+    }
+    
+    return Array.from(daysMap.values()).sort((a, b) => b.date - a.date)
+  }, [blocks, alerts])
+
+  if (blocks.length === 0 && alerts.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center px-8 text-center">
         <p className="text-zinc-500 text-sm leading-relaxed">
@@ -130,23 +182,28 @@ export default function FluxFeed({ blocks }) {
   }
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto py-2 space-y-4">
-      {days.map((day, di) => (
-        <div key={di}>
-          {/* Sticky day header */}
-          <div className="sticky top-0 z-10 flex justify-center py-1.5">
-            <span className="text-xs text-zinc-400 bg-zinc-950/90 backdrop-blur-sm px-3 py-1 rounded-full border border-zinc-800">
-              {day.label}
-            </span>
+    <div className="flex-1 min-h-0 py-2 overflow-y-auto">
+      {/* Wrapper pentru centrarea fluxului pe ecrane late */}
+      <div className="max-w-2xl mx-auto space-y-4">
+        {days.map((day, di) => (
+          <div key={di}>
+            {/* Sticky day header */}
+            <div className="sticky top-0 z-10 flex justify-center py-1.5">
+              <span className="text-xs text-zinc-400 bg-zinc-950/90 backdrop-blur-sm px-3 py-1 rounded-full border border-zinc-800 shadow-sm">
+                {day.label}
+              </span>
+            </div>
+            {/* Items for this day */}
+            <div className="space-y-2 mt-1">
+              {day.items.map((item) => (
+                item.itemType === 'alert' 
+                  ? <AlertBlock key={item.id} alert={item} />
+                  : <FluxBlock key={item.id} block={item} />
+              ))}
+            </div>
           </div>
-          {/* Blocks for this day */}
-          <div className="space-y-2 mt-1">
-            {day.blocks.map((block) => (
-              <FluxBlock key={block.id} block={block} />
-            ))}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }

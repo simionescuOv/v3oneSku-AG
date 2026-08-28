@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useNavigate as useRouterNavigate } from 'react-router-dom'
 import {
   Plus, FolderInput, ChevronLeft,
-  UnfoldVertical, FoldVertical,
+  UnfoldVertical, FoldVertical, FolderPlus
 } from 'lucide-react'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
@@ -14,6 +14,7 @@ import NodeCard from '../components/catalog/NodeCard'
 import ActionBar from '../components/catalog/ActionBar'
 import DestinationPicker from '../components/catalog/DestinationPicker'
 import SubgroupSheet from '../components/catalog/SubgroupSheet'
+import ContextMenu from '../components/shell/ContextMenu'
 import { buildSearchTree } from '../lib/search'
 
 const ELLIPSIS_CRUMB = { id: '__ellipsis__', name: '…' }
@@ -458,33 +459,45 @@ export default function StockHubPage() {
         </div>
       )}
 
-      {/* Context Menu BottomSheet */}
-      <BottomSheet open={stockHubMenuOpen} onClose={closeStockHubMenu}>
-        <div className="px-4 pb-6 space-y-1">
-           <button
-            onClick={organizeDisabled ? undefined : handleOrganize}
-            disabled={organizeDisabled}
-            className={[
-              'w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm',
-              organizeDisabled
-                ? 'text-zinc-600 cursor-not-allowed'
-                : 'text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700',
-            ].join(' ')}
-          >
-            <span className={organizeDisabled ? 'text-zinc-600' : 'text-zinc-400'}><FolderInput size={18} /></span>
-            <span className="flex-1 text-left">Organizează spațiile</span>
-          </button>
-          <button
-            onClick={handleToggleTree}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400">
-              {treeExpanded ? <FoldVertical size={18} /> : <UnfoldVertical size={18} />}
-            </span>
-            <span className="flex-1 text-left">{treeExpanded ? 'Fold' : 'Unfold'}</span>
-          </button>
-        </div>
-      </BottomSheet>
+      <ContextMenu
+        open={stockHubMenuOpen}
+        onClose={closeStockHubMenu}
+        options={[
+          {
+            label: 'Organizează spațiile',
+            icon: <FolderInput size={18} />,
+            onClick: organizeDisabled ? undefined : handleOrganize,
+            disabled: organizeDisabled
+          },
+          {
+            label: 'Adaugă Spațiu Nou',
+            icon: <Plus size={18} />,
+            onClick: () => {
+              const newName = prompt('Numele noului spațiu de stocare:')
+              if (newName?.trim()) {
+                addSpace(newName.trim(), currentFolderId)
+                closeStockHubMenu()
+              }
+            }
+          },
+          {
+            label: 'Adaugă Grup Nou',
+            icon: <FolderPlus size={18} />,
+            onClick: () => {
+              const newName = prompt('Numele noului grup:')
+              if (newName?.trim()) {
+                addSpaceFolder(newName.trim(), currentFolderId)
+                closeStockHubMenu()
+              }
+            }
+          },
+          {
+            label: treeExpanded ? 'Fold' : 'Unfold',
+            icon: treeExpanded ? <FoldVertical size={18} /> : <UnfoldVertical size={18} />,
+            onClick: handleToggleTree
+          }
+        ].filter(opt => !opt.disabled)}
+      />
 
       {/* Sheets (Organize) */}
       <DestinationPicker

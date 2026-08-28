@@ -10,6 +10,7 @@ import SpaceProductCard from '../components/stockhub/SpaceProductCard'
 import FluxFeed from '../components/stockhub/FluxFeed'
 import BottomSheet from '../components/catalog/BottomSheet'
 import FilterSheet from '../components/catalog/FilterSheet'
+import ContextMenu from '../components/shell/ContextMenu'
 
 // Vizualizarea curentă a Space-ului: 'stoc' sau 'flux'
 // Comutarea se face din meniul de context (BottomBar), nu printr-un tab vizibil.
@@ -20,8 +21,10 @@ export default function SpacePage() {
 
   // ── Store-uri ────────────────────────────────────────────────────────
   const spaces = useStockStore((s) => s.spaces)
+  const alerts = useStockStore((s) => s.alerts)
   const fetchSpaceProducts = useStockStore((s) => s.fetchSpaceProducts)
   const fetchSpaceTransactions = useStockStore((s) => s.fetchSpaceTransactions)
+  const fetchAlerts = useStockStore((s) => s.fetchAlerts)
   const getBreadcrumb = useStockStore((s) => s.getBreadcrumb)
 
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
@@ -48,6 +51,11 @@ export default function SpacePage() {
   const space = useMemo(
     () => spaces.find((s) => s.id === spaceId),
     [spaces, spaceId]
+  )
+
+  const spaceAlerts = useMemo(
+    () => alerts.filter(a => a.space_id === spaceId),
+    [alerts, spaceId]
   )
 
   // Breadcrumb: StockHub → [Folder?] → Space
@@ -78,6 +86,7 @@ export default function SpacePage() {
     clearSearch()
     setSearchPlaceholder('Caută produs în spațiu...')
 
+    // Așteptăm doar datele critice pentru afișarea interfeței
     Promise.all([
       fetchSpaceProducts(spaceId),
       fetchSpaceTransactions(spaceId),
@@ -87,11 +96,14 @@ export default function SpacePage() {
       setIsLoading(false)
     })
 
+    // Alertele se încarcă în fundal (fire-and-forget), nu blochează afișarea
+    fetchAlerts()
+
     return () => {
       clearSearch()
       setSearchPlaceholder('Caută sau creează spații...')
     }
-  }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, clearSearch, setSearchPlaceholder])
+  }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, fetchAlerts, clearSearch, setSearchPlaceholder])
 
   // Închide meniul la unmount
   useEffect(() => () => closeSpaceMenu(), [closeSpaceMenu])
@@ -260,7 +272,12 @@ export default function SpacePage() {
                   meta={getProductMeta(p)}
                   sourceId={spaceId}
                   onTap={(cp) => {
-                    if (cp?.nameId) routerNavigate('/catalog/product/' + encodeURIComponent(cp.nameId))
+                    if (cp?.nameId) {
+                      routerNavigate(
+                        '/catalog/product/' + encodeURIComponent(cp.nameId), 
+                        { state: { sourceSpaceId: spaceId } }
+                      )
+                    }
                   }}
                 />
               ))}
@@ -284,7 +301,7 @@ export default function SpacePage() {
               <div className="w-6 h-6 rounded-full border-2 border-zinc-700 border-t-amber-400 animate-spin" />
             </div>
           ) : (
-            <FluxFeed blocks={fluxBlocks} />
+            <FluxFeed blocks={fluxBlocks} alerts={spaceAlerts} />
           )}
         </>
       )}
@@ -297,69 +314,34 @@ export default function SpacePage() {
       )}
 
       {/* Context Menu (BottomBar → SpacePage) */}
-      <BottomSheet open={spaceMenuOpen} onClose={closeSpaceMenu}>
-        <div className="px-4 pb-6 space-y-1">
-          {/* Comutare Stoc / Flux */}
-          <button
-            onClick={() => handleSwitchView('stoc')}
-            className={[
-              'w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm',
-              view === 'stoc'
-                ? 'bg-blue-950/40 text-blue-400'
-                : 'text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700',
-            ].join(' ')}
-          >
-            <span className={view === 'stoc' ? 'text-blue-400' : 'text-zinc-400'}>
-              <Warehouse size={18} />
-            </span>
-            <span className="flex-1 text-left">Stoc</span>
-            {view === 'stoc' && (
-              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
-                Activ
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => handleSwitchView('flux')}
-            className={[
-              'w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm',
-              view === 'flux'
-                ? 'bg-amber-950/40 text-amber-400'
-                : 'text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700',
-            ].join(' ')}
-          >
-            <span className={view === 'flux' ? 'text-amber-400' : 'text-zinc-400'}>
-              <SlidersHorizontal size={18} />
-            </span>
-            <span className="flex-1 text-left">Flux</span>
-            {view === 'flux' && (
-              <span className="text-[10px] font-semibold bg-amber-600 text-white px-2 py-0.5 rounded-full">
-                Activ
-              </span>
-            )}
-            {fluxBlocks.length > 0 && (
-              <span className="text-xs text-zinc-500">{fluxBlocks.length}</span>
-            )}
-          </button>
-
-          {/* Filtrare — disponibilă doar în Stoc */}
-          {view === 'stoc' && (
-            <button
-              onClick={() => { closeSpaceMenu(); setFilterOpen(true) }}
-              className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-            >
-              <span className="text-zinc-400"><SlidersHorizontal size={18} /></span>
-              <span className="flex-1 text-left">Filtrare</span>
-              {filteredProductIds !== null && (
-                <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
-                  Activ
-                </span>
-              )}
-            </button>
-          )}
-        </div>
-      </BottomSheet>
+      <ContextMenu
+        open={spaceMenuOpen}
+        onClose={closeSpaceMenu}
+        options={[
+          {
+            label: 'Stoc',
+            icon: <Warehouse size={18} />,
+            active: view === 'stoc',
+            badge: view === 'stoc' ? 'Activ' : undefined,
+            onClick: () => handleSwitchView('stoc')
+          },
+          {
+            label: 'Flux',
+            icon: <SlidersHorizontal size={18} />,
+            active: view === 'flux',
+            activeColor: 'amber',
+            badge: view === 'flux' ? 'Activ' : undefined,
+            onClick: () => handleSwitchView('flux')
+          },
+          view === 'stoc' ? 'divider' : null,
+          view === 'stoc' ? {
+            label: 'Filtrare',
+            icon: <SlidersHorizontal size={18} />,
+            badge: filteredProductIds !== null ? 'Activ' : undefined,
+            onClick: () => { closeSpaceMenu(); setFilterOpen(true) }
+          } : null
+        ].filter(Boolean)}
+      />
 
       {/* FilterSheet — identic cu cel din CategoryPage, dar fără fixedCategoryId */}
       <FilterSheet

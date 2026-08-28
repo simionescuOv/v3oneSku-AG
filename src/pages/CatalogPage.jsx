@@ -17,6 +17,7 @@ import FilterSheet from '../components/catalog/FilterSheet'
 import ActionBar from '../components/catalog/ActionBar'
 import DestinationPicker from '../components/catalog/DestinationPicker'
 import SubgroupSheet from '../components/catalog/SubgroupSheet'
+import ContextMenu from '../components/shell/ContextMenu'
 
 const nodeLabel = (node) => node.name
 const ELLIPSIS_CRUMB = { id: '__ellipsis__', name: '…' }
@@ -605,47 +606,32 @@ export default function CatalogPage() {
       )}
 
       {/* Context menu — Filtrare + Organize + Unfold/Fold */}
-      <BottomSheet open={catalogMenuOpen} onClose={closeCatalogMenu}>
-        <div className="px-4 pb-6 space-y-1">
-          <button
-            onClick={() => {
+      <ContextMenu
+        open={catalogMenuOpen}
+        onClose={closeCatalogMenu}
+        options={[
+          {
+            label: 'Filtrare',
+            icon: <SlidersHorizontal size={18} />,
+            badge: filteredProductIds !== null ? 'Activ' : undefined,
+            onClick: () => {
               closeCatalogMenu()
               setFilterSheetOpen(true)
-            }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400"><SlidersHorizontal size={18} /></span>
-            <span className="flex-1 text-left">Filtrare</span>
-            {filteredProductIds !== null && (
-              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
-                Activ
-              </span>
-            )}
-          </button>
-          <button
-            onClick={organizeDisabled ? undefined : handleOrganize}
-            disabled={organizeDisabled}
-            className={[
-              'w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm',
-              organizeDisabled
-                ? 'text-zinc-600 cursor-not-allowed'
-                : 'text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700',
-            ].join(' ')}
-          >
-            <span className={organizeDisabled ? 'text-zinc-600' : 'text-zinc-400'}><FolderInput size={18} /></span>
-            <span className="flex-1 text-left">Organize</span>
-          </button>
-          <button
-            onClick={handleToggleTree}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400">
-              {treeExpanded ? <FoldVertical size={18} /> : <UnfoldVertical size={18} />}
-            </span>
-            <span className="flex-1 text-left">{treeExpanded ? 'Fold' : 'Unfold'}</span>
-          </button>
-        </div>
-      </BottomSheet>
+            }
+          },
+          {
+            label: 'Organize',
+            icon: <FolderInput size={18} />,
+            onClick: organizeDisabled ? undefined : handleOrganize,
+            disabled: organizeDisabled
+          },
+          {
+            label: treeExpanded ? 'Fold' : 'Unfold',
+            icon: treeExpanded ? <FoldVertical size={18} /> : <UnfoldVertical size={18} />,
+            onClick: handleToggleTree
+          }
+        ].filter(opt => !opt.disabled)}
+      />
 
       {/* Dialog Filtrare 2 Coloane */}
       <FilterSheet

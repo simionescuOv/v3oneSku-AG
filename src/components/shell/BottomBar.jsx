@@ -1,4 +1,4 @@
-import { Menu, Search, BookOpen, Package } from 'lucide-react'
+import { Menu, Search, BookOpen, Package, X } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
@@ -15,20 +15,41 @@ export default function BottomBar({ hidden }) {
 
   const { pathname } = useLocation()
   // „Familia Catalog\" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
-  // toate folosesc meniul contextual (catalogMenuOpen), nu meniul lateral.
+  const cartOpen = useAppStore((s) => s.cartOpen)
+  
   const isProductPage = pathname.startsWith('/catalog/product')
   const isCatalogFamily = pathname.startsWith('/catalog')
   const isSpacePage = pathname.startsWith('/stockhub/space/')
   const isStockHub = pathname.startsWith('/stockhub') && !isSpacePage
-  const isCartPage = pathname === '/cart'
-  const MenuIcon = NAV_ITEMS.find((item) => item.path === pathname)?.Icon
-    ?? (isProductPage ? Package : isCatalogFamily ? BookOpen : Menu)
+  const isCartPage = cartOpen
+  
+  const bottomBarOverrides = useAppStore(s => s.bottomBarOverrides)
+  const currentOverride = bottomBarOverrides.length > 0 ? bottomBarOverrides[bottomBarOverrides.length - 1] : null
+
+  // Dacă e coșul deschis virtual, se ignoră pathname-ul pentru iconiță
+  const matchingItem = NAV_ITEMS.find((item) => item.path === pathname)
+  
+  // Iconița finală de meniu (suprascriere > coș > ruta curentă > default)
+  let FinalIcon = Menu
+  if (currentOverride) {
+    // Dacă am primit string 'X', folosim X din lucide-react (îl vom importa sus)
+    FinalIcon = currentOverride.icon === 'X' ? X : currentOverride.icon
+  } else if (isCartPage) {
+    FinalIcon = NAV_ITEMS.find(i => i.path === '/cart')?.Icon || Menu
+  } else {
+    FinalIcon = matchingItem?.Icon ?? (isProductPage ? Package : isCatalogFamily ? BookOpen : Menu)
+  }
 
   const handleMenuPress = () => {
-    if (isCatalogFamily) openCatalogMenu()
+    if (currentOverride) {
+      currentOverride.onClick()
+      return
+    }
+    
+    if (isCartPage) useAppStore.getState().openCartMenu()
+    else if (isCatalogFamily) openCatalogMenu()
     else if (isSpacePage) openSpaceMenu()
     else if (isStockHub) openStockHubMenu()
-    else if (isCartPage) useAppStore.getState().openCartMenu()
     else toggleSideMenu()
   }
 
@@ -60,9 +81,9 @@ export default function BottomBar({ hidden }) {
 
       <button
         onClick={handleMenuPress}
-        className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-800 text-zinc-300 active:bg-zinc-700"
+        className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-800 text-zinc-300 active:bg-zinc-700 transition-all duration-200"
       >
-        <MenuIcon size={20} />
+        <FinalIcon size={20} className={currentOverride ? "text-red-400" : ""} />
       </button>
     </footer>
   )

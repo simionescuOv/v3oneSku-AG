@@ -6,12 +6,17 @@ export const useAppStore = create((set) => ({
   closeSideMenu: () => set({ sideMenuOpen: false }),
   toggleSideMenu: () => set((s) => ({ sideMenuOpen: !s.sideMenuOpen })),
 
-  // BottomBar search — shared between bar and active sheets
+  // BottomBar search shared between bar and active sheets
   searchQuery: '',
   searchPlaceholder: 'Caută...',
   setSearchQuery: (q) => set({ searchQuery: q }),
   setSearchPlaceholder: (p) => set({ searchPlaceholder: p }),
   clearSearch: () => set({ searchQuery: '' }),
+
+  // BottomBar override (pentru BottomSheet-uri de tip aboveBottomBar)
+  bottomBarOverrides: [],
+  pushBottomBarOverride: (override) => set((s) => ({ bottomBarOverrides: [...s.bottomBarOverrides, override] })),
+  popBottomBarOverride: (id) => set((s) => ({ bottomBarOverrides: s.bottomBarOverrides.filter(o => o.id !== id) })),
 
   // Catalog context menu trigger (BottomBar → CatalogPage)
   catalogMenuOpen: false,
@@ -36,6 +41,11 @@ export const useAppStore = create((set) => ({
   // Setare vizualizare coș (simplu sau grupat pe categorii)
   cartGroupByCategory: false,
   toggleCartGroupByCategory: () => set((s) => ({ cartGroupByCategory: !s.cartGroupByCategory })),
+
+  // Stare Pagină Virtuală pentru Coș
+  cartOpen: false,
+  openCart: () => set({ cartOpen: true }),
+  closeCart: () => set({ cartOpen: false }),
 
   // Forțează ascunderea BottomBar-ului (sheet fără căutare — ex: GroupNameSheet)
   bottomBarHidden: false,

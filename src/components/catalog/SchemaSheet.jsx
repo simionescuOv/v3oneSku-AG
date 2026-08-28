@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ChevronRight, ChevronLeft, Plus, Type, List, Cog, Filter, Eye, Check } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
@@ -38,6 +38,14 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
   }, [open, setBottomBarHidden])
 
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
+
+  // Gestul Back navighează înapoi prin sub-view-uri înainte de a închide sheet-ul
+  // OBLIGATORIU înainte de orice early return (Rules of Hooks)
+  const handleBackIntercept = useCallback(() => {
+    if (view === 'options') { setView('edit'); return true }
+    if (view === 'add' || view === 'edit') { setView('list'); return true }
+    return false // view === 'list' → BottomSheet se închide
+  }, [view])
 
   if (!open) return null
 
@@ -105,7 +113,7 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose} onBackIntercept={handleBackIntercept}>
       <div className="px-4 pb-6">
         {view === 'list' && (
           <>

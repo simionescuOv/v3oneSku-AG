@@ -1,9 +1,9 @@
 # AGENT INSTRUCTIONS
 
 1. RESPONSE LANGUAGE: Always respond to the user in Romanian.
-2. VERIFICATION MARKER: Start EVERY response with: "🟢 [GEMINI.MD ACTIV]".
-3. READ-ONLY BY DEFAULT: Do not edit, create, or delete files without explicit confirmation.
-4. CONFIRMATION PROTOCOL: If file edits are required, present a brief plan first and wait for approval (e.g., "Aprobat").
+2. VERIFICATION MARKER & STATE: Start EVERY response by declaring the active state. If the user prompt starts with 'exe', start with: "🟢 [GEMINI.MD ACTIV - MOD: EXECUȚIE]". If the user prompt does NOT start with 'exe', start with: "🟢 [GEMINI.MD ACTIV - MOD: PLANIFICARE (fără modificări)]".
+3. DEFAULT LA PLANIFICARE: Ești obligat să operezi MEREU exclusiv în modul de planificare (strict teoretic, analizezi și propui soluții, fără a modifica absolut niciun fișier), indiferent cât de simplă pare sarcina.
+4. PERMISIUNEA DE EXECUȚIE (EXE): Ai permisiunea să modifici fișiere, să scrii cod sau să folosești tool-uri de scriere DOAR DACĂ promptul utilizatorului începe exact cu cuvântul `exe` (ex: "exe modifica butonul..."). Dacă lipsește cuvântul `exe`, trebuie să te limitezi la un plan și ÎȚI ESTE STRICT INTERZIS să apelezi tool-urile `replace_file_content`, `write_to_file` sau `run_command`.
 5. AUDIO TRANSCRIPTION PROTOCOL: Whenever the user sends a message via voice dictation / audio recording, start the response by displaying the exact audio transcription first.
 6. LOCAL-FIRST ARCHITECTURE: The app operates Local-First for ultra-fast performance. Reads, page navigation, search, filtering, and detail views MUST operate 100% client-side from local Zustand memory (`useCatalogStore`). Never add network fetch/select calls on route navigation. Network calls are strictly reserved for user-triggered mutations (add/edit/delete).
 9. DEV-PATH & COMMIT LA CERERE EXPLICITĂ:
@@ -17,7 +17,6 @@
 10. BUILD WORD & PUSH PROTOCOL: `git push` se execută EXCLUSIV la cererea expresă a utilizatorului (nu se face push automat după commit). La fiecare push solicitat, generează un cuvânt complet aleator din limba română care să NU aibă nicio similitudine tematică sau categorie comună cu cuvintele anterioare (este INTERZISĂ repetarea aceleiași tematici, ex: pietre prețioase, culori; cuvintele consecutive trebuie să provină din domenii complet necorelate — ex: *busola*, *castor*, *pendul*, *vulcan*). Actualizează `BUILD_WORD` în `src/pages/HomePage.jsx` și comunică cuvântul în răspuns pentru validarea versiunii live pe Vercel. Toate commit-urile ulterioare vor folosi acest nou cuvânt în titlul commit-ului până la următorul push.
 11. UI SELECTION PROTOCOL (PICKER v2): Whenever the user needs to select an item from a list (e.g. source, destination, category), NEVER use native HTML `<select>` dropdowns. Instead, ALWAYS use the standard Picker mechanism as described in `docs/specs/SPEC_Picker_v2.md`. The form UI should look like an input displaying the selected item; tapping it opens a dedicated bottom-sheet/dialog picker (integrating with `usePicker` and `BottomBar` search). After selection, the picker closes and the chosen item appears in the UI.
 
-13. PREFIXUL `plan-`: Dacă promptul utilizatorului începe cu cuvântul `plan-`, este INTERZIS să modifici absolut orice fișier (nicio linie de cod, nicio modificare). Discuția se află strict în stadiu de planificare și dezbatere. Doar vei citi fișierele și vei răspunde utilizatorului cu idei sau un plan teoretic.
 
 ## ARCH_BottomSearch — Convenție: BottomBar search → lista vizibilă
 
@@ -57,3 +56,12 @@ relevanța căutării.
 **Principiu arhitectural:** `useBottomSearch` și `usePicker` sunt **agnostice** față de
 structura datelor — nu vor necesita nicio modificare. Toată logica „ce intră în căutare"
 trăiește exclusiv în `labelFn` transmis de pagina consumatoare.
+
+## ARCH_ProductNavigation — Convenție: Navigarea către pagina de detalii a unui produs
+
+**Regulă:** Orice listă, card sau componentă care afișează produse și declanșează o navigare către `ProductPage` (`/catalog/product/:nameId`) dintr-un context specific unui Spațiu (StockHub), **TREBUIE** să atașeze ID-ul acelui spațiu în *state-ul* rutei.
+
+**Implementare necesară:**
+`routerNavigate('/catalog/product/' + encodeURIComponent(nameId), { state: { sourceSpaceId: spaceId } })`
+
+Această regulă este critică pentru a preveni deconectarea coșului de tranzacții de sursa spațiului din care utilizatorul a interacționat cu produsul, asigurând că adăugarea în coș din interiorul `ProductPage` respectă spațiul de origine.

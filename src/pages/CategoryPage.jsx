@@ -11,6 +11,7 @@ import ProductFormSheet from '../components/catalog/ProductFormSheet'
 import SchemaSheet from '../components/catalog/SchemaSheet'
 import ImportProductsSheet from '../components/catalog/ImportProductsSheet'
 import FilterSheet from '../components/catalog/FilterSheet'
+import ContextMenu from '../components/shell/ContextMenu'
 
 const EMPTY_CATEGORY_FILTER = { appliedFilters: {}, filteredProductIds: null }
 
@@ -321,44 +322,34 @@ export default function CategoryPage() {
         </div>
       )}
 
-      {/* Meniu contextual — Filtrare / Schema categoriei / Încarcă produse / Ștergere */}
-      <BottomSheet open={catalogMenuOpen} onClose={closeCatalogMenu}>
-        <div className="px-4 pb-6 space-y-1">
-          <button
-            onClick={() => { closeCatalogMenu(); setFilterOpen(true) }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400"><SlidersHorizontal size={18} /></span>
-            <span className="flex-1 text-left">Filtrare</span>
-            {filteredProductIds !== null && (
-              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
-                Activ
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => { closeCatalogMenu(); setSchemaOpen(true) }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400"><Settings size={18} /></span>
-            <span className="flex-1 text-left">Schema categoriei</span>
-          </button>
-          <button
-            onClick={() => { closeCatalogMenu(); setImportOpen(true) }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-zinc-400"><Upload size={18} /></span>
-            <span className="flex-1 text-left">Încarcă produse</span>
-          </button>
-          <button
-            onClick={() => { closeCatalogMenu(); setDeleteOpen(true) }}
-            className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-red-400 hover:bg-zinc-800 active:bg-zinc-700"
-          >
-            <span className="text-red-400"><Trash2 size={18} /></span>
-            <span className="flex-1 text-left">Șterge categoria</span>
-          </button>
-        </div>
-      </BottomSheet>
+      <ContextMenu
+        open={catalogMenuOpen}
+        onClose={closeCatalogMenu}
+        options={[
+          {
+            label: 'Filtrare',
+            icon: <SlidersHorizontal size={18} />,
+            badge: filteredProductIds !== null ? 'Activ' : undefined,
+            onClick: () => { closeCatalogMenu(); setFilterOpen(true) }
+          },
+          {
+            label: 'Schema categoriei',
+            icon: <Settings size={18} />,
+            onClick: () => { closeCatalogMenu(); setSchemaOpen(true) }
+          },
+          {
+            label: 'Încarcă produse',
+            icon: <Upload size={18} />,
+            onClick: () => { closeCatalogMenu(); setImportOpen(true) }
+          },
+          {
+            label: 'Șterge',
+            icon: <Trash2 size={18} />,
+            danger: true,
+            onClick: () => { closeCatalogMenu(); setDeleteOpen(true) }
+          }
+        ]}
+      />
 
       {/* Confirmare ștergere */}
       <BottomSheet open={deleteOpen} onClose={() => setDeleteOpen(false)}>

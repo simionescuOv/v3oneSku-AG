@@ -22,6 +22,9 @@ export default function AppShell() {
   const { items } = useCartStore()
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
 
+  const openCart = useAppStore((s) => s.openCart)
+  const cartOpen = useAppStore((s) => s.cartOpen)
+
   return (
     <div
       className="fixed inset-x-0 flex flex-col bg-zinc-950 text-zinc-100 overflow-hidden"
@@ -33,9 +36,9 @@ export default function AppShell() {
       <SideMenu />
 
       {/* Global Cart FAB */}
-      {items.length > 0 && location.pathname !== '/cart' && (
+      {items.length > 0 && !cartOpen && (
         <button
-          onClick={() => navigate('/cart')}
+          onClick={() => openCart()}
           className={[
             'absolute right-4 z-40 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white p-3.5 rounded-full shadow-lg shadow-black/50 transition-all duration-300',
             bottomHidden ? 'bottom-6' : 'bottom-20'

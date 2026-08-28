@@ -1,5 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { Outlet } from 'react-router-dom'
+import CartPage from '../../pages/CartPage'
+import { useAppStore } from '../../store/useAppStore'
 
 // Emite scroll events în sus spre BottomBar via callback prop.
 // NU atașăm scroll pe window — per spec §8.2.
@@ -27,9 +29,11 @@ export default function MainContent({ onScrollDown, onScrollUp }) {
     return () => el.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
 
+  const cartOpen = useAppStore(s => s.cartOpen)
+
   return (
     <main ref={ref} className="flex-1 overflow-y-auto">
-      <Outlet />
+      {cartOpen ? <CartPage /> : <Outlet />}
     </main>
   )
 }

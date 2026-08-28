@@ -186,6 +186,15 @@ export default function FilterSheet({
     })
   }, [draftFilters, indicesForEngine, products, fixedCategoryId])
 
+  const totalAccessibleProductsCount = useMemo(() => {
+    return computeFilteredProductIds({
+      activeFilters: {},
+      indices: indicesForEngine,
+      products,
+      fixedCategoryId,
+    }).size
+  }, [indicesForEngine, products, fixedCategoryId])
+
   // 5. Lista de valori posibile pentru dimensiunea activă
   const activeDimValues = useMemo(() => {
     if (!activeDimKey) return []
@@ -333,7 +342,9 @@ export default function FilterSheet({
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 shrink-0">
           <div className="flex items-center gap-2 min-w-0 pr-2">
             <SlidersHorizontal size={18} className="text-blue-400 shrink-0" />
-            <h2 className="text-sm font-semibold text-zinc-100 truncate">{dynamicTitle}</h2>
+            <h2 className="text-sm font-semibold text-zinc-100 truncate">
+              {dynamicTitle} <span className="text-zinc-500 font-normal ml-1">({totalAccessibleProductsCount})</span>
+            </h2>
             {totalActiveFilterCount > 0 && (
               <span className="text-[11px] font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full shrink-0">
                 {totalActiveFilterCount}

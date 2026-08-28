@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft, Package, Tag, Folder, ArrowLeft, Pencil, ShoppingCart } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useCartStore } from '../store/useCartStore'
@@ -11,6 +11,9 @@ import ProductFormSheet from '../components/catalog/ProductFormSheet'
 export default function ProductPage() {
   const { nameId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  
+  const sourceSpaceId = location.state?.sourceSpaceId || 'catalog'
 
   const products = useCatalogStore((s) => s.products)
   const nodes = useCatalogStore((s) => s.nodes)
@@ -174,7 +177,7 @@ export default function ProductPage() {
                 </div>
                 <button 
                   onClick={() => {
-                    useCartStore.getState().addItem(product)
+                    useCartStore.getState().addItem(product, sourceSpaceId)
                     showToast('Produs adăugat în coș')
                   }}
                   className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white transition-colors"
@@ -266,7 +269,7 @@ export default function ProductPage() {
           <button
             onClick={() => { 
               closeCatalogMenu(); 
-              useCartStore.getState().addItem(product);
+              useCartStore.getState().addItem(product, sourceSpaceId);
               showToast('Adăugat în coș ✓');
             }}
             className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm text-zinc-200 hover:bg-zinc-800 active:bg-zinc-700"

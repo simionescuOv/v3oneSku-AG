@@ -12,7 +12,6 @@ import StorefrontPage from './pages/StorefrontPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import LoginPage from './pages/LoginPage'
-import CartPage from './pages/CartPage'
 import { useCatalogStore } from './store/useCatalogStore'
 import { useAuthStore } from './store/useAuthStore'
 import { useStockStore } from './store/useStockStore'
@@ -69,7 +68,6 @@ export default function App() {
           <Route path="storefront" element={<StorefrontPage />} />
           <Route path="dashboard"  element={<DashboardPage />} />
           <Route path="settings"   element={<SettingsPage />} />
-          <Route path="cart"       element={<CartPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
