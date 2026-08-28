@@ -284,8 +284,10 @@ export default function CartPage() {
         >
           <ArrowLeft size={20} />
         </button>
-        <div>
-          <h1 className="text-xl font-bold text-zinc-100 leading-tight">Coș Tranzacție</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-bold text-zinc-100 leading-tight truncate">
+            Coș Tranzacție {source && source !== 'catalog' ? `— ${getSpaceName(source)}` : ''}
+          </h1>
           <p className="text-xs text-zinc-500">{items.length} produse • {totalItems} unități</p>
         </div>
       </div>

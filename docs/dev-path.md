@@ -81,6 +81,21 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 ### [Commit Pending]
 - **Descriere Detaliată**:
 
+### [Commit 4a5c929] — build: meteor | commit: termometru - Arhitectură Generic Filter System + div mTask
+- **Ramură**: `noiFeat`
+- **Data**: 2026-08-28
+- **Build Word Curent**: `meteor`
+- **Descriere Detaliată**:
+  - **Identificare Spațiu în Header-ul Coșului**: În `CartPage.jsx`, titlul paginii a fost modificat din "Coș Tranzacție" în "Coș Tranzacție — [Nume Spațiu]" pentru a oferi vizibilitate clară asupra spațiului sursă din care se face tranzacția. S-a adăugat și trunchiere text (`truncate`) pentru a preveni stricarea layout-ului la nume prea lungi.
+  - **Aliniere Meniu StockHub cu Catalog**: În `StockHubPage.jsx`, meniul contextual a fost curățat pentru a semăna exact cu cel din Catalog. Opțiunile "Adaugă Spațiu Nou" și "Adaugă Grup Nou" au fost șterse, deoarece spațiile noi se pot crea direct din bara de căutare (prin butonul +), iar grupurile noi direct în fluxul opțiunii "Organize". Opțiunea a fost redenumită din "Organizează spațiile" în "Organize".
+  - **Alternare Comutator Stoc/Flux**: În `SpacePage.jsx`, opțiunile de meniu "Stoc" și "Flux" au fost comasate într-un singur buton cu rol de comutator (toggle). Astfel, când utilizatorul este în vizualizarea "stoc", i se afișează opțiunea de a comuta pe "Flux", și invers.
+  - **Arhitectură Generic Filter System**: S-a refactorizat complet modulul de filtrare (`FilterSheet`) pentru a fi **context-aware** și decuplat (Inversion of Control).
+  - S-a extras logica de UI generic într-o nouă componentă `BaseFilterSheet.jsx`, care primește configurația prin props (dimensiuni, contoare, selecții) și gestionează afișarea inclusiv căutarea din `BottomBar` (fără să cunoască catalogul).
+  - Vechiul `FilterSheet.jsx` a devenit un **Adaptor Contextual** care citește datele din `useCatalogStore` și instanțiază `BaseFilterSheet`. Acesta primește un nou prop `baseProductIds`.
+  - În `SpacePage.jsx` s-a calculat setul de produse aparținând strict spațiului (`spaceProductIds`) și s-a trimis către adaptorul de filtrare. Acum, la deschiderea filtrului într-un spațiu (ex: "Doi mag"), titlul arată numărul corect de produse (ex: 5 în loc de tot catalogul), iar categoriile care nu au produse în spațiul respectiv sunt dezactivate și mutate la finalul listei (cu contor 0). Această arhitectură permite pe viitor crearea unui `FluxFilterAdapter` pentru filtrarea tranzacțiilor, refolosind complet `BaseFilterSheet`.
+  - **Remediere Loading UI Catalog/Categorie**: S-a adăugat verificarea stării de `loading` (din `useCatalogStore`) în `CatalogPage` și `CategoryPage` pentru a afișa un spinner de încărcare dacă lista de produse/categorii este goală din cauza latenței rețelei, în loc de un mesaj prematur de „Catalog gol”.
+  - **Eliminare fetch inutil la navigare**: S-a șters `useEffect`-ul din `CatalogPage` care apela `cleanupTempFolders()` la montare. Acel apel declanșa și un `fetchCatalog()` complet la fiecare accesare a rutei `/catalog`, încălcând principiul de arhitectură Local-First (navigare fără fetch-uri de rețea). Funcția se execută oricum la pornirea aplicației (App mount).
+
 ### [Commit `4a5c929`] — `build: meteor | commit: labirint - fix diverse microTask despre navigare, cart si context menu`
 - **Ramură**: `noiFeat`
 - **Data**: 2026-08-28

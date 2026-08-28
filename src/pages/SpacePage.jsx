@@ -58,6 +58,11 @@ export default function SpacePage() {
     [alerts, spaceId]
   )
 
+  const spaceProductIds = useMemo(
+    () => new Set(spaceProducts.map(p => p.productId)),
+    [spaceProducts]
+  )
+
   // Breadcrumb: StockHub → [Folder?] → Space
   // Navigăm virtual în store la spaceId ca să obținem breadcrumb-ul corect
   const breadcrumb = useMemo(() => {
@@ -318,19 +323,13 @@ export default function SpacePage() {
         open={spaceMenuOpen}
         onClose={closeSpaceMenu}
         options={[
-          {
+          view === 'flux' ? {
             label: 'Stoc',
             icon: <Warehouse size={18} />,
-            active: view === 'stoc',
-            badge: view === 'stoc' ? 'Activ' : undefined,
             onClick: () => handleSwitchView('stoc')
-          },
-          {
+          } : {
             label: 'Flux',
             icon: <SlidersHorizontal size={18} />,
-            active: view === 'flux',
-            activeColor: 'amber',
-            badge: view === 'flux' ? 'Activ' : undefined,
             onClick: () => handleSwitchView('flux')
           },
           view === 'stoc' ? 'divider' : null,
@@ -343,7 +342,7 @@ export default function SpacePage() {
         ].filter(Boolean)}
       />
 
-      {/* FilterSheet — identic cu cel din CategoryPage, dar fără fixedCategoryId */}
+      {/* FilterSheet — instanțiat ca Adaptor contextual, limitat la produsele din spațiu */}
       <FilterSheet
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
@@ -351,6 +350,7 @@ export default function SpacePage() {
         showCategoryDim={true}
         fixedCategoryId={null}
         initialFilters={appliedFilters}
+        baseProductIds={spaceProductIds}
         onApply={(filters, pids) => {
           setAppliedFilters(filters)
           setFilteredProductIds(pids)

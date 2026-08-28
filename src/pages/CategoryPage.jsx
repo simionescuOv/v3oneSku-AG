@@ -30,6 +30,7 @@ export default function CategoryPage() {
   const categoryFilters = useCatalogStore((s) => s.categoryFilters)
   const setCategoryFilter = useCatalogStore((s) => s.setCategoryFilter)
   const resetCategoryFilter = useCatalogStore((s) => s.resetCategoryFilter)
+  const loading = useCatalogStore((s) => s.loading)
 
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
@@ -271,7 +272,12 @@ export default function CategoryPage() {
       </div>
 
       {/* Listă produse */}
-      {baseCategoryProducts.length === 0 && !searchQuery.trim() ? (
+      {loading && categoryProducts.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-zinc-400 text-sm">Se încarcă produsele...</p>
+        </div>
+      ) : baseCategoryProducts.length === 0 && !searchQuery.trim() ? (
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-zinc-400 text-sm leading-relaxed">
             {filteredProductIds !== null

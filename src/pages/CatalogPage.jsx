@@ -52,7 +52,7 @@ export default function CatalogPage() {
   const createTempFolder = useCatalogStore((s) => s.createTempFolder)
   const dissolveTempFolder = useCatalogStore((s) => s.dissolveTempFolder)
   const promoteTempFolder = useCatalogStore((s) => s.promoteTempFolder)
-  const cleanupTempFolders = useCatalogStore((s) => s.cleanupTempFolders)
+  const loading = useCatalogStore((s) => s.loading)
 
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
@@ -140,10 +140,7 @@ export default function CatalogPage() {
     )
   }, [setSearchPlaceholder, filteredProductIds])
 
-  // ── Cleanup foldere temporare orfane (SPEC_MutareCrossFolder §2.4, §3.6) ──────
-  useEffect(() => {
-    cleanupTempFolders()
-  }, [cleanupTempFolders])
+
 
   // ── Back gesture (Android/browser) → exit selection sau navigate up ──────────
   useEffect(() => {
@@ -563,6 +560,11 @@ export default function CatalogPage() {
               <span className="text-sm">Adaugă „{searchQuery.trim()}"</span>
             </button>
           )}
+        </div>
+      ) : loading && nodes.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-zinc-400 text-sm">Se încarcă catalogul...</p>
         </div>
       ) : currentChildren.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">

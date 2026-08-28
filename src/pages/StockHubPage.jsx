@@ -464,32 +464,10 @@ export default function StockHubPage() {
         onClose={closeStockHubMenu}
         options={[
           {
-            label: 'Organizează spațiile',
+            label: 'Organize',
             icon: <FolderInput size={18} />,
             onClick: organizeDisabled ? undefined : handleOrganize,
             disabled: organizeDisabled
-          },
-          {
-            label: 'Adaugă Spațiu Nou',
-            icon: <Plus size={18} />,
-            onClick: () => {
-              const newName = prompt('Numele noului spațiu de stocare:')
-              if (newName?.trim()) {
-                addSpace(newName.trim(), currentFolderId)
-                closeStockHubMenu()
-              }
-            }
-          },
-          {
-            label: 'Adaugă Grup Nou',
-            icon: <FolderPlus size={18} />,
-            onClick: () => {
-              const newName = prompt('Numele noului grup:')
-              if (newName?.trim()) {
-                addSpaceFolder(newName.trim(), currentFolderId)
-                closeStockHubMenu()
-              }
-            }
           },
           {
             label: treeExpanded ? 'Fold' : 'Unfold',
