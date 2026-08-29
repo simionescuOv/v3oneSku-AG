@@ -81,7 +81,15 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 ### [Commit Pending]
 - **Descriere Detaliată**:
 
-### [Commit 4a5c929] — build: meteor | commit: termometru - Arhitectură Generic Filter System + div mTask
+### [Commit ed9e0f7] — build: meteor | commit: scripete - golire cos
+- **Ramură**: `noiFeat`
+- **Data**: 2026-08-29
+- **Build Word Curent**: `meteor`
+- **Descriere Detaliată**:
+  - **Protecție Anti-Double-Click / Long-Press la Golire Coș**: În `CartPage.jsx`, s-a adăugat o barieră de tip cooldown de 600ms (`isActionCooldown` + `lastActionTimeRef`), `pointer-events-none` pe durata tranziției și atribute `key` unice (`btn-clear-cart` / `btn-restore-cart`) pentru a forța demontarea nodului DOM din React. Aceasta previne cazurile în care un click prelungit sau două click-uri rapide cu mouse-ul ar fi golit și recuperat imediat coșul în aceeași fracțiune de secundă.
+  - **Golire și Recuperare Rapidă Coș (Trash & Undo)**: În `CartPage.jsx`, s-a adăugat o iconiță în dreapta antetului. Când coșul are produse, iconița este `Trash2` și la click golește instantaneu coșul (fără toast, produsele dispar din interfață), salvând un snapshot al stării locale. Imediat după golire, butonul se metamorfozează într-o iconiță de recuperare `RotateCcw` (`text-amber-400`); dacă este apăsat înainte de a părăsi ecranul de coș, restaurează integral produsele și contextul tranzacției prin acțiunea `restoreCart` adăugată în `useCartStore.js`. La părăsirea paginii de coș, snapshot-ul este distrus automat.
+
+### [Commit c2937a5] — build: meteor | commit: termometru - Arhitectură Generic Filter System + div mTask
 - **Ramură**: `noiFeat`
 - **Data**: 2026-08-28
 - **Build Word Curent**: `meteor`

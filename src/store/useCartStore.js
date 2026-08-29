@@ -64,4 +64,10 @@ export const useCartStore = create((set, get) => ({
   },
 
   clearCart: () => set({ items: [], source: 'catalog', sourceLocked: false, destination: null }),
+  restoreCart: (snapshot) => set({
+    items: snapshot.items || [],
+    source: snapshot.source || 'catalog',
+    sourceLocked: snapshot.sourceLocked || false,
+    destination: snapshot.destination || null
+  }),
 }))

@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 
-import { ShoppingCart, Trash2, Package, Loader2, ArrowLeft, FolderTree, List, Folder, Tag } from 'lucide-react'
+import { ShoppingCart, Trash2, RotateCcw, Package, Loader2, ArrowLeft, FolderTree, List, Folder, Tag } from 'lucide-react'
 import { useCartStore } from '../store/useCartStore'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
@@ -11,7 +11,7 @@ import ContextMenu from '../components/shell/ContextMenu'
 import { filterAndSort, buildSearchTree, sortTreeFolders } from '../lib/search'
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, source, sourceLocked, setSource, destination, setDestination, clearCart } = useCartStore()
+  const { items, updateQuantity, removeItem, source, sourceLocked, setSource, destination, setDestination, clearCart, restoreCart } = useCartStore()
   const closeCart = useAppStore(s => s.closeCart)
 
   // Helper pentru a închide curat coșul din UI fără să lase stări în browser
@@ -52,6 +52,35 @@ export default function CartPage() {
   const toggleCartGroupByCategory = useAppStore((s) => s.toggleCartGroupByCategory)
   const [deleteMode, setDeleteMode] = useState(false)
   const [treeSheetOpen, setTreeSheetOpen] = useState(false)
+  const [deletedCartSnapshot, setDeletedCartSnapshot] = useState(null)
+  const [isActionCooldown, setIsActionCooldown] = useState(false)
+  const lastActionTimeRef = useRef(0)
+
+  const handleClearCart = () => {
+    const now = Date.now()
+    if (now - lastActionTimeRef.current < 600 || isActionCooldown) return
+    lastActionTimeRef.current = now
+    if (items.length === 0) return
+
+    setIsActionCooldown(true)
+    setTimeout(() => setIsActionCooldown(false), 600)
+
+    setDeletedCartSnapshot({ items, source, sourceLocked, destination })
+    clearCart()
+  }
+
+  const handleRestoreCart = () => {
+    const now = Date.now()
+    if (now - lastActionTimeRef.current < 600 || isActionCooldown) return
+    lastActionTimeRef.current = now
+    if (!deletedCartSnapshot) return
+
+    setIsActionCooldown(true)
+    setTimeout(() => setIsActionCooldown(false), 600)
+
+    restoreCart(deletedCartSnapshot)
+    setDeletedCartSnapshot(null)
+  }
 
   // Dacă meniul principal este invocat cât timp Arborele e deschis, îl tratăm ca pe o comandă de ieșire
   useEffect(() => {
@@ -290,6 +319,33 @@ export default function CartPage() {
           </h1>
           <p className="text-xs text-zinc-500">{items.length} produse • {totalItems} unități</p>
         </div>
+        {items.length > 0 ? (
+          <button
+            key="btn-clear-cart"
+            onClick={handleClearCart}
+            disabled={isActionCooldown}
+            className={`p-2 -mr-2 text-zinc-400 hover:text-red-400 bg-zinc-900 rounded-xl active:bg-zinc-800 transition-colors ${
+              isActionCooldown ? 'pointer-events-none opacity-50' : ''
+            }`}
+            title="Golește coșul"
+            aria-label="Golește coșul"
+          >
+            <Trash2 size={20} />
+          </button>
+        ) : deletedCartSnapshot ? (
+          <button
+            key="btn-restore-cart"
+            onClick={handleRestoreCart}
+            disabled={isActionCooldown}
+            className={`p-2 -mr-2 text-amber-400 hover:text-amber-300 bg-zinc-900 rounded-xl active:bg-zinc-800 transition-colors ${
+              isActionCooldown ? 'pointer-events-none opacity-50' : ''
+            }`}
+            title="Recuperează coșul"
+            aria-label="Recuperează coșul"
+          >
+            <RotateCcw size={20} />
+          </button>
+        ) : null}
       </div>
 
       {/* Selectors Form */}
