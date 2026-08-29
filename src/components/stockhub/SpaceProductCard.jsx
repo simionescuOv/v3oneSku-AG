@@ -41,6 +41,9 @@ export default function SpaceProductCard({ spaceProduct, catalogProduct, meta, s
         <span className="block text-sm text-zinc-100 truncate">
           {catalogProduct?.nameId ?? '—'}
         </span>
+        {catalogProduct?.barcode && (
+          <span className="block text-[10px] text-zinc-600 font-mono truncate">{catalogProduct.barcode}</span>
+        )}
         {meta && (
           <span className="block text-xs text-zinc-500 truncate">{meta}</span>
         )}

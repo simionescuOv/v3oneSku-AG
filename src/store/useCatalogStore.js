@@ -58,6 +58,7 @@ const mapProduct = (row) => ({
   attributes: row.attributes ?? {},
   tags: row.tags ?? [],
   listPrice: row.list_price,
+  barcode: row.barcode,
   deletedAt: row.deleted_at,
   createdAt: row.created_at,
 })
@@ -360,13 +361,14 @@ export const useCatalogStore = create((set, get) => ({
   },
 
   // name_id poate fi specificat de user (ex: preluat din căutare sau generat aleatoriu).
-  addProduct: async (categoryId, attributes = {}, listPrice = null, tags = [], nameId = null, skipRefetch = false) => {
+  addProduct: async (categoryId, attributes = {}, listPrice = null, tags = [], nameId = null, barcode = null, skipRefetch = false) => {
     const res = await callRpc('create_product', {
       p_category_id: categoryId,
       p_attributes: attributes,
       p_tags: tags,
       p_list_price: listPrice === '' || listPrice == null ? null : Number(listPrice),
       p_name_id: nameId ? nameId.trim() : null,
+      p_barcode: barcode ? barcode.trim() : null,
     })
     if (!res.ok) return res
     if (!skipRefetch) await get().fetchCatalog()
@@ -379,6 +381,7 @@ export const useCatalogStore = create((set, get) => ({
 
     const formattedForRpc = productsList.map((p) => ({
       name_id: p.nameId ? p.nameId.trim() : null,
+      barcode: p.barcode ? p.barcode.trim() : null,
       attributes: p.attributes || {},
       tags: p.tags || [],
       list_price: p.listPrice === '' || p.listPrice == null ? null : Number(p.listPrice),
@@ -408,6 +411,7 @@ export const useCatalogStore = create((set, get) => ({
         tenant_id: tenantId,
         category_id: categoryId,
         name_id: p.nameId,
+        barcode: p.barcode ? p.barcode.trim() : null,
         attributes: p.attributes || {},
         tags: p.tags || [],
         list_price: p.listPrice === '' || p.listPrice == null ? null : Number(p.listPrice),
@@ -435,6 +439,7 @@ export const useCatalogStore = create((set, get) => ({
         p_tags: p.tags || [],
         p_list_price: p.listPrice === '' || p.listPrice == null ? null : Number(p.listPrice),
         p_name_id: p.nameId ? p.nameId.trim() : null,
+        p_barcode: p.barcode ? p.barcode.trim() : null,
       })
     }
 
@@ -442,13 +447,14 @@ export const useCatalogStore = create((set, get) => ({
     return { ok: true, count: productsList.length }
   },
 
-  updateProduct: async (productId, attributes = {}, listPrice = null, tags = []) => {
+  updateProduct: async (productId, attributes = {}, listPrice = null, tags = [], barcode = null) => {
     const { error } = await supabase
       .from('products')
       .update({
         attributes,
         tags,
         list_price: listPrice === '' || listPrice == null ? null : Number(listPrice),
+        barcode: barcode ? barcode.trim() : null,
       })
       .eq('id', productId)
     if (error) return { ok: false, error: error.message }

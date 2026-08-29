@@ -26,6 +26,9 @@ export default function ProductCard({ product, meta, onTap }) {
       <Package size={18} className="text-blue-400 shrink-0" />
       <span className="flex-1 min-w-0">
         <span className="block text-sm text-zinc-100 truncate">{product.nameId}</span>
+        {product.barcode && (
+          <span className="block text-[10px] text-zinc-600 font-mono truncate">{product.barcode}</span>
+        )}
         {meta && <span className="block text-xs text-zinc-500 truncate">{meta}</span>}
       </span>
       <div className="flex items-center gap-3 shrink-0">

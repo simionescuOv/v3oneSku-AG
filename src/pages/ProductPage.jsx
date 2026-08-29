@@ -168,6 +168,14 @@ export default function ProductPage() {
                 {product.nameId}
               </h1>
 
+              {product.barcode && (
+                <div className="mt-1 flex items-center gap-1.5 text-sm text-zinc-400">
+                  <span className="font-mono bg-zinc-800/80 px-1.5 py-0.5 rounded text-xs">
+                    {product.barcode}
+                  </span>
+                </div>
+              )}
+
               <div className="mt-3 flex items-center justify-between text-sm">
                 <div>
                   <span className="text-xs text-zinc-500 block">Preț de listă</span>

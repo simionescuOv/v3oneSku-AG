@@ -6,6 +6,7 @@ import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
 import { generateRandomNameId, isNameIdAvailable } from '../../lib/nameIdGenerator'
+import { generateRandomBarcode, isBarcodeAvailable } from '../../lib/barcodeGenerator'
 
 // Formular unificat de adăugare / editare produs — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
 // Primul câmp este Name ID (preluat din căutare sau generat aleatoriu la cerere pe client, local-first).
@@ -29,6 +30,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   const effectiveCategoryId = categoryId || product?.categoryId
 
   const [nameId, setNameId] = useState('')
+  const [barcode, setBarcode] = useState('')
   const [values, setValues] = useState({})
   const [tags, setTags] = useState([])
   const [listPrice, setListPrice] = useState('')
@@ -53,11 +55,13 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
       // Formularul tocmai s-a deschis
       if (product) {
         setNameId(product.nameId ?? '')
+        setBarcode(product.barcode ?? '')
         setValues(product.attributes ? { ...product.attributes } : {})
         setTags(product.tags ? [...product.tags] : [])
         setListPrice(product.listPrice != null ? String(product.listPrice) : '')
       } else {
         setNameId(initialNameId ? initialNameId : generateRandomNameId(products))
+        setBarcode('')
         setValues({})
         setTags([])
         setListPrice('')
@@ -68,6 +72,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     } else if (!open && prevOpenRef.current) {
       // Formularul tocmai s-a închis
       setNameId('')
+      setBarcode('')
       setValues({})
       setTags([])
       setListPrice('')
@@ -139,8 +144,15 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     setNameId(candidate)
   }
 
+  const handleGenerateRandomBarcode = () => {
+    const candidate = generateRandomBarcode(products)
+    setBarcode(candidate)
+  }
+
   const handleSave = async () => {
     const trimmedNameId = nameId.trim()
+    const trimmedBarcode = barcode.trim()
+
     if (!isEdit && !trimmedNameId) {
       showToast('Introduceți un Name ID sau generați unul aleatoriu')
       return
@@ -151,6 +163,11 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
       return
     }
 
+    if (trimmedBarcode && !isBarcodeAvailable(trimmedBarcode, products.filter(p => !isEdit || p.id !== product?.id))) {
+      showToast(`Codul de bare „${trimmedBarcode}” este deja utilizat de un alt produs`)
+      return
+    }
+
     // Păstrăm doar atributele completate (nu trimitem chei goale).
     const cleaned = Object.fromEntries(
       Object.entries(values).filter(([, v]) => v != null && String(v).trim() !== '')
@@ -158,9 +175,9 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     setSaving(true)
     let res
     if (isEdit) {
-      res = await updateProduct(product.id, cleaned, listPrice, tags)
+      res = await updateProduct(product.id, cleaned, listPrice, tags, trimmedBarcode)
     } else {
-      res = await addProduct(effectiveCategoryId, cleaned, listPrice, tags, trimmedNameId)
+      res = await addProduct(effectiveCategoryId, cleaned, listPrice, tags, trimmedNameId, trimmedBarcode)
     }
     setSaving(false)
     if (!res.ok) {
@@ -274,6 +291,34 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
               className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
             />
           )}
+        </div>
+
+        {/* Barcode (EAN-13) */}
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+              Cod de bare
+            </label>
+            <button
+              type="button"
+              onClick={handleGenerateRandomBarcode}
+              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 active:opacity-70 transition-opacity py-0.5 px-1 rounded-md"
+              title="Generează EAN-13 automat"
+            >
+              <Dices size={14} />
+              <span>EAN-13</span>
+            </button>
+          </div>
+
+          <input
+            type="tel"
+            inputMode="numeric"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            placeholder="Scanează, tastează sau generează..."
+            autoComplete="off"
+            className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
+          />
         </div>
 
         {attrs.map((a) => (

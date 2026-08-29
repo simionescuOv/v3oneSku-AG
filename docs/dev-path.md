@@ -79,9 +79,15 @@
 Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
-- **Descriere Detaliată**:
 
-### [Commit ed9e0f7] — build: meteor | commit: scripete - golire cos
+### [Commit Pending] — build: meteor | commit: vulcan - cod-bare atribut de sistem la add product
+  - **Suport Cod de Bare (Barcode) la nivel de produs**: 
+    - Migrație DB (`20260829191000_add_barcode_to_products.sql`) pentru adăugarea coloanei unice `barcode` în tabela `products` și actualizarea RPC-urilor (`create_product`, `create_products_bulk`).
+    - Actualizare `useCatalogStore.js` pentru suport `barcode`.
+    - UI: Câmp nou de tip numeric pentru cod de bare (EAN-13) în formularul `ProductFormSheet` cu generator integrat (via `src/lib/barcodeGenerator.js`) pentru EAN-13 valabil, inclusiv validarea unicității locale la generare.
+    - Vizualizare cod de bare adăugată pe cardurile de produs (`ProductCard`, `SpaceProductCard`) și pagina de detaliu a produsului (`ProductPage`).
+
+### [Commit faa4bc7] — build: meteor | commit: scripete - golire cos
 - **Ramură**: `noiFeat`
 - **Data**: 2026-08-29
 - **Build Word Curent**: `meteor`
