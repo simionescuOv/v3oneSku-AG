@@ -1,37 +1,22 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { filterAndSort, normalize } from '../lib/search'
+import { useAppStore, useActiveSearchQuery } from '../store/useAppStore'
+import { useAutocompleteGhost } from './useAutocompleteGhost'
 
-/**
- * usePicker — motorul de căutare + selecție al aplicației (SPEC_Picker_v2).
- *
- * Două moduri de operare:
- *
- * 1. `mode: 'inline'` (BottomBar) — filtrează în loc lista paginii curente.
- *    Query-ul e *controlat din afară* (input-ul trăiește în BottomBar / useAppStore),
- *    iar elementele pot fi obiecte arbitrare extrase cu `labelFn`.
- *    Returnează `filteredItems` + `showCreate`; pagina decide ce face la tap/creare.
- *
- * 2. `mode: 'standalone'` (picker dedicat tip chip-input) — query intern, stare de
- *    deschidere, selecție temporară confirmată explicit. Returnează `onChange` la commit.
- *
- * Ambele moduri folosesc `filterAndSort` din `src/lib/search.js` (algoritmul canonic,
- * cu normalizare NFD + substring fallback) — fără duplicare de logică (SPEC §2, §6).
- */
 export function usePicker({
   mode = 'standalone',
-  // Sursa de date: `items` (inline, obiecte) sau `options` (standalone, string-uri)
   items = [],
   options = [],
   labelFn = (x) => x,
   multiSelect = false,
   allowCreate = false,
-  // Inline-specific: query controlat din BottomBar
-  query: controlledQuery = '',
-  // Standalone-specific
+  query: controlledQuery = '', // unused explicitly, but kept for compatibility
+  searchContext = 'global',
   value = [],
   maxSelections = Infinity,
   onChange,
 }) {
+  const activeQuery = useActiveSearchQuery(searchContext)
   const [localOptions, setLocalOptions] = useState([...options])
   const [tempSelected, setTempSelected] = useState([])
   const [internalQuery, setInternalQuery] = useState('')
@@ -39,7 +24,7 @@ export function usePicker({
   const [isOpen, setIsOpen] = useState(false)
 
   const isInline = mode === 'inline'
-  const query = isInline ? controlledQuery : internalQuery
+  const query = isInline ? activeQuery : internalQuery
   const trimmedQuery = query.trim()
 
   // ── Mod inline: filtrare directă pe lista paginii ───────────────────────────
@@ -48,12 +33,13 @@ export function usePicker({
     [items, query, labelFn]
   )
 
-  // „+ Adaugă «query»" apare pe match inexact (normalizat, diacritic-insensitive),
-  // nu pe zero rezultate (IMPL_GrupareMutare §A2).
+  // „+ Adaugă «query»" apare pe match inexact
   const inlineExactExists =
     isInline && items.some((it) => normalize(labelFn(it)) === normalize(trimmedQuery))
   const showCreate =
     isInline && allowCreate && trimmedQuery.length > 0 && !inlineExactExists
+
+  useAutocompleteGhost(isInline, trimmedQuery, filteredItems, labelFn)
 
   // ── Mod standalone: filtrare pe opțiuni locale, excluzând cele deja selectate ─
   const filteredOptions = useMemo(() => {

@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from 'react'
 import { X, Check, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import BottomSheet from './BottomSheet'
-import { useAppStore } from '../../store/useAppStore'
+import { useAppStore, useActiveSearchQuery } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
+import { useAutocompleteGhost } from '../../hooks/useAutocompleteGhost'
 
 export default function BaseFilterSheet({
   open,
@@ -22,9 +23,24 @@ export default function BaseFilterSheet({
   onConfirm,
   submitLabel = 'Arată rezultatele'
 }) {
-  const searchQuery = useAppStore((s) => s.searchQuery)
-  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
+  const pushSearchContext = useAppStore((s) => s.pushSearchContext)
+  const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
+  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
+
+  const activeContext = useAppStore(s => s.searchContextStack[s.searchContextStack.length - 1])
+  const isMySearch = activeContext === 'filter_sheet'
+  const effectiveQuery = useActiveSearchQuery('filter_sheet')
+
+  useEffect(() => {
+    if (open) {
+      pushSearchContext('filter_sheet')
+      return () => {
+        popSearchContext('filter_sheet')
+        clearSearch()
+      }
+    }
+  }, [open, pushSearchContext, popSearchContext, clearSearch])
 
   // Asigură că activeDimKey este valid
   useEffect(() => {
@@ -46,7 +62,7 @@ export default function BaseFilterSheet({
 
   // Filtrare și sortare inteligentă
   const filteredValues = useMemo(() => {
-    const q = normalize(searchQuery.trim())
+    const q = normalize(effectiveQuery.trim())
     let items = activeDimValues || []
     if (q) {
       items = items.filter((v) => normalize(v.label).includes(q))
@@ -76,7 +92,9 @@ export default function BaseFilterSheet({
 
       return normalize(a.label).localeCompare(normalize(b.label))
     })
-  }, [activeDimKey, activeDimValues, draftFilters, searchQuery, facetedCounts, dimensions])
+  }, [activeDimKey, activeDimValues, draftFilters, effectiveQuery, facetedCounts, dimensions])
+
+  useAutocompleteGhost(open && isMySearch, effectiveQuery, filteredValues, (v) => v.label)
 
   if (!open) return null
 

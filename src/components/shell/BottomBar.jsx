@@ -2,6 +2,7 @@ import { Menu, Search, BookOpen, Package, X } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
+import { normalize } from '../../lib/search'
 
 export default function BottomBar({ hidden }) {
   const toggleSideMenu = useAppStore((s) => s.toggleSideMenu)
@@ -64,8 +65,59 @@ export default function BottomBar({ hidden }) {
     }
   }
 
+  const autocompleteSuggestion = useAppStore((s) => s.autocompleteSuggestion)
+  
   // Afișăm butonul doar pe /catalog (rădăcina catalogului), nu și când coșul acoperă ecranul
   const showNameIdToggle = pathname === '/catalog' && !cartOpen
+
+  // Logica pentru Ghost Text Autocomplete
+  const q = searchQuery
+  const hasSuggestion = autocompleteSuggestion && q.length > 0
+  
+  let ghostPrefix = ''
+  let ghostMatch = ''
+  let ghostSuffix = ''
+  let typedPart = ''
+  
+  if (hasSuggestion) {
+    if (autocompleteSuggestion.isPrefix) {
+      typedPart = autocompleteSuggestion.text.slice(0, q.length)
+      ghostSuffix = autocompleteSuggestion.text.slice(q.length)
+    } else {
+      typedPart = q
+      const qNorm = normalize(q)
+      const textNorm = normalize(autocompleteSuggestion.text)
+      const matchIdx = textNorm.indexOf(qNorm)
+      
+      if (matchIdx !== -1) {
+        const ctxStart = Math.max(0, matchIdx - 5)
+        let prefix = autocompleteSuggestion.text.slice(ctxStart, matchIdx)
+        if (ctxStart > 0) prefix = '..' + prefix
+        
+        ghostPrefix = ' ➔ ' + prefix
+        ghostMatch = autocompleteSuggestion.text.slice(matchIdx, matchIdx + q.length)
+        ghostSuffix = autocompleteSuggestion.text.slice(matchIdx + q.length)
+      } else {
+        ghostPrefix = ' ➔ '
+        ghostSuffix = autocompleteSuggestion.text
+      }
+    }
+  }
+
+  const acceptSuggestion = (e) => {
+    if (hasSuggestion) {
+      e.preventDefault()
+      setSearchQuery(autocompleteSuggestion.text)
+      setTimeout(() => {
+        const input = document.getElementById('search')
+        if (input) {
+          input.focus()
+          const len = autocompleteSuggestion.text.length
+          input.setSelectionRange(len, len)
+        }
+      }, 0)
+    }
+  }
 
   return (
     <footer
@@ -76,21 +128,55 @@ export default function BottomBar({ hidden }) {
         hidden || bottomBarHidden ? 'translate-y-full' : 'translate-y-0',
       ].join(' ')}
     >
-      <div className="flex-1 flex items-center gap-2 bg-zinc-800 rounded-xl px-3 h-10 transition-colors focus-within:ring-1 focus-within:ring-zinc-600">
-        <Search size={16} className={globalNameIdSearch ? "text-blue-400 shrink-0" : "text-zinc-500 shrink-0"} />
-        <input
-          type="search"
-          name="search"
-          id="search"
-          placeholder={globalNameIdSearch ? "Caută după Name ID..." : searchPlaceholder}
-          autoComplete="off"
-          enterKeyHint="search"
-          data-lpignore="true"
-          data-1p-ignore="true"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
-        />
+      <div 
+        onClick={hasSuggestion ? acceptSuggestion : undefined}
+        className={[
+          "flex-1 flex items-center gap-2 bg-zinc-800 rounded-xl px-3 h-10 transition-colors focus-within:ring-1 focus-within:ring-zinc-600 relative overflow-hidden",
+          hasSuggestion ? "cursor-pointer" : "cursor-text"
+        ].join(' ')}
+      >
+        <Search size={16} className={[globalNameIdSearch ? "text-blue-400" : "text-zinc-500", "shrink-0 relative z-10"].join(' ')} />
+        
+        <div className="relative flex-1 h-full flex items-center">
+          {hasSuggestion && (
+            <div className="absolute inset-0 pointer-events-none flex items-center whitespace-pre font-sans text-sm z-0 text-zinc-500 overflow-hidden" aria-hidden="true">
+              <span className="invisible">{typedPart}</span>
+              {ghostPrefix && <span>{ghostPrefix}</span>}
+              {ghostMatch && <span className="text-blue-400">{ghostMatch}</span>}
+              <span>{ghostSuffix}</span>
+              <span className="text-blue-500/50"> autocomplete</span>
+            </div>
+          )}
+
+          <input
+            type="search"
+            name="search"
+            id="search"
+            placeholder={globalNameIdSearch ? "Caută după Name ID..." : searchPlaceholder}
+            autoComplete="off"
+            enterKeyHint="search"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none relative z-10 [&::-webkit-search-cancel-button]:hidden"
+          />
+        </div>
+
+        {searchQuery.length > 0 && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setSearchQuery('')
+              setTimeout(() => document.getElementById('search')?.focus(), 0)
+            }}
+            className="shrink-0 p-1 text-zinc-400 active:text-zinc-100 hover:text-zinc-100 relative z-20"
+            aria-label="Șterge căutarea"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {showNameIdToggle && (

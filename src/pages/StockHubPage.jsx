@@ -29,7 +29,12 @@ export default function StockHubPage() {
     selectionMode, selectedNodeIds, enterSelectionMode, toggleNodeSelection, clearSelection
   } = useStockStore()
   
-  const { searchQuery, setSearchQuery, setSearchPlaceholder, clearSearch, stockHubMenuOpen, closeStockHubMenu } = useAppStore()
+  const searchQuery = useAppStore(s => s.searchQuery)
+  const setSearchQuery = useAppStore(s => s.setSearchQuery)
+  const setSearchPlaceholder = useAppStore(s => s.setSearchPlaceholder)
+  const clearSearch = useAppStore(s => s.clearSearch)
+  const stockHubMenuOpen = useAppStore(s => s.stockHubMenuOpen)
+  const closeStockHubMenu = useAppStore(s => s.closeStockHubMenu)
   
   // Stări locale pentru UI
   const [toast, setToast] = useState(null)

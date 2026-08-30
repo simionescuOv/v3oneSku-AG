@@ -80,7 +80,11 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit Pending] — build: meteor | commit: pendul - UX global search & Cart filter fix
+### [Commit Pending] — build: clepsidra | commit: busuioc - amanare finalizare autocomplete feature
+- **Arhitectură Search Context Stack**: S-a implementat stiva de contexte în `useAppStore` pentru a preveni suprapunerea căutărilor (ex: pagina de background să nu mai preia search-ul activ dintr-un BottomSheet). S-a extras logica de predicție în `useAutocompleteGhost.js` și s-a legat de atributele din `BaseFilterSheet.jsx`, curățând instant input-ul la închiderea ferestrei.
+- **Ghost Text Autocomplete în BottomBar**: S-a integrat un sistem vizual inteligent de predicție în bara de căutare principală (`BottomBar.jsx`), complet funcțional pentru listele filtrate prin `useBottomSearch` și `usePicker`. Pe lângă modul clasic de completare, când potrivirea este parțială (în interiorul propoziției), textul fantomă este trunchiat la stânga inteligent (păstrând 5 caractere contextuale) și porțiunea potrivită este evidențiată cu albastru. S-a adăugat `autocompleteSuggestion` în `useAppStore.js` pentru managementul stării.
+
+### [Commit 776817d] — build: meteor | commit: pendul - UX global search & Cart filter fix
   - **Bug Fix**: Resetare `searchQuery` global la deschiderea coșului (`CartPage.jsx`) pentru a preveni filtrarea accidentală a listei de produse adăugate anterior.
   - **UX Improv**: S-a eliminat resetarea automată a stării `globalNameIdSearch` la demontarea paginii de Catalog, permițând persistența modului de căutare atunci când utilizatorul navighează către fișa unui produs și se întoarce.
   - **Căutare Globală Produse (NameID) în Catalog**:
