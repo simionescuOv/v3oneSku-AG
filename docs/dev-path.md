@@ -80,7 +80,15 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit Pending] — build: meteor | commit: vulcan - cod-bare atribut de sistem la add product
+### [Commit Pending] — build: meteor | commit: pendul - UX global search & Cart filter fix
+  - **Bug Fix**: Resetare `searchQuery` global la deschiderea coșului (`CartPage.jsx`) pentru a preveni filtrarea accidentală a listei de produse adăugate anterior.
+  - **UX Improv**: S-a eliminat resetarea automată a stării `globalNameIdSearch` la demontarea paginii de Catalog, permițând persistența modului de căutare atunci când utilizatorul navighează către fișa unui produs și se întoarce.
+  - **Căutare Globală Produse (NameID) în Catalog**:
+    - Extins `useAppStore` cu stare pentru `globalNameIdSearch`.
+    - Adăugat buton de comutare dedicat în `BottomBar.jsx` cu iconiță `Package` (doar pe `pathname === '/catalog'`). La activare forțează deschiderea tastaturii.
+    - Actualizat `CatalogPage.jsx` pentru a schimba afișajul la `ProductCard` (ce include funcționalitatea nativă de coș) la căutarea produselor și restricționat motorul de căutare exclusiv la valorile `nameId`.
+
+### [Commit 3c5fd7b] — build: meteor | commit: vulcan - cod-bare atribut de sistem la add product
   - **Suport Cod de Bare (Barcode) la nivel de produs**: 
     - Migrație DB (`20260829191000_add_barcode_to_products.sql`) pentru adăugarea coloanei unice `barcode` în tabela `products` și actualizarea RPC-urilor (`create_product`, `create_products_bulk`).
     - Actualizare `useCatalogStore.js` pentru suport `barcode`.

@@ -59,6 +59,8 @@ export default function CatalogPage() {
   const clearSearch = useAppStore((s) => s.clearSearch)
   const catalogMenuOpen = useAppStore((s) => s.catalogMenuOpen)
   const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
+  const globalNameIdSearch = useAppStore((s) => s.globalNameIdSearch)
+  const setGlobalNameIdSearch = useAppStore((s) => s.setGlobalNameIdSearch)
 
   const [toast, setToast] = useState(null)
   // Filtrare Catalog (stare persistentă din store)
@@ -189,25 +191,34 @@ export default function CatalogPage() {
     () => nodes.filter((n) => n.type === 'category' || n.type === 'folder'),
     [nodes]
   )
-  // usePicker (mod inline, SPEC_Picker_v2) e motorul canonic de căutare;
-  // A2 e implementat în interiorul hook-ului (exactExists normalizat).
+  
+  // Dacă e modul globalNameIdSearch, usePicker primește array gol (dezactivăm căutarea nodurilor).
   const { filteredItems: searchMatches, showCreate: pickerShowCreate } = usePicker({
     mode: 'inline',
-    items: isSearching ? searchableNodes : [],
+    items: isSearching && !globalNameIdSearch ? searchableNodes : [],
     labelFn: nodeLabel,
     query: searchQuery,
     multiSelect: false,
     allowCreate: true,
   })
+
+  // Căutarea de produse globală
+  const globalProducts = useMemo(() => products.filter((p) => !p.deletedAt), [products])
+  const { results: globalProductMatches } = useBottomSearch(
+    globalProducts,
+    (p) => p.nameId,
+    { enabled: globalNameIdSearch && isSearching }
+  )
+
   const searchTree = useMemo(() => {
-    if (!isSearching) return null
+    if (!isSearching || globalNameIdSearch) return null
     const tree = buildSearchTree(nodes, searchMatches)
     const orderOf = (id) => nodes.findIndex((n) => n.id === id)
     sortTreeFolders(tree, orderOf)
     return tree
-  }, [nodes, searchMatches, isSearching])
+  }, [nodes, searchMatches, isSearching, globalNameIdSearch])
 
-  const showCreate = !selectionMode && pickerShowCreate
+  const showCreate = !selectionMode && pickerShowCreate && !globalNameIdSearch
 
   // Când arborele se actualizează (creare, mutare, grupare), în Unfold rămâne
   // deschis doar drumul către folderul actualizat (el + părinții lui) —
@@ -545,6 +556,22 @@ export default function CatalogPage() {
           {selectionItems.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-zinc-500">
               Niciun element
+            </div>
+          )}
+        </div>
+      ) : globalNameIdSearch && isSearching ? (
+        <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
+          {globalProductMatches.map((p) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              meta={getProductMeta(p)}
+              onTap={(prod) => goHome('/catalog/product/' + encodeURIComponent(prod.nameId))}
+            />
+          ))}
+          {globalProductMatches.length === 0 && (
+            <div className="px-4 py-8 text-center text-sm text-zinc-500">
+              Niciun produs găsit
             </div>
           )}
         </div>

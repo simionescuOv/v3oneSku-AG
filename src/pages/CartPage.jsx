@@ -38,7 +38,11 @@ export default function CartPage() {
     }
   }, [closeCart])
   const { spaces, fetchSpaces, commitCart } = useStockStore()
-  const { searchQuery, setSearchQuery } = useAppStore()
+  const { searchQuery, setSearchQuery, clearSearch } = useAppStore()
+
+  useEffect(() => {
+    clearSearch()
+  }, [clearSearch])
   
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [toast, setToast] = useState(null)

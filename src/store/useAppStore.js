@@ -55,4 +55,7 @@ export const useAppStore = create((set) => ({
   // să o poată reseta la deschidere (bara trebuie să fie vizibilă pentru ele).
   bottomBarScrollHidden: false,
   setBottomBarScrollHidden: (v) => set({ bottomBarScrollHidden: v }),
+
+  globalNameIdSearch: false,
+  setGlobalNameIdSearch: (v) => set({ globalNameIdSearch: v }),
 }))

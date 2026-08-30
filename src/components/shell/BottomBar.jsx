@@ -53,6 +53,20 @@ export default function BottomBar({ hidden }) {
     else toggleSideMenu()
   }
 
+  const globalNameIdSearch = useAppStore((s) => s.globalNameIdSearch)
+  const setGlobalNameIdSearch = useAppStore((s) => s.setGlobalNameIdSearch)
+
+  const handleToggleNameIdSearch = () => {
+    const nextVal = !globalNameIdSearch
+    setGlobalNameIdSearch(nextVal)
+    if (nextVal) {
+      setTimeout(() => document.getElementById('search')?.focus(), 50)
+    }
+  }
+
+  // Afișăm butonul doar pe /catalog (rădăcina catalogului), nu și când coșul acoperă ecranul
+  const showNameIdToggle = pathname === '/catalog' && !cartOpen
+
   return (
     <footer
       className={[
@@ -62,13 +76,13 @@ export default function BottomBar({ hidden }) {
         hidden || bottomBarHidden ? 'translate-y-full' : 'translate-y-0',
       ].join(' ')}
     >
-      <div className="flex-1 flex items-center gap-2 bg-zinc-800 rounded-xl px-3 h-10">
-        <Search size={16} className="text-zinc-500 shrink-0" />
+      <div className="flex-1 flex items-center gap-2 bg-zinc-800 rounded-xl px-3 h-10 transition-colors focus-within:ring-1 focus-within:ring-zinc-600">
+        <Search size={16} className={globalNameIdSearch ? "text-blue-400 shrink-0" : "text-zinc-500 shrink-0"} />
         <input
           type="search"
           name="search"
           id="search"
-          placeholder={searchPlaceholder}
+          placeholder={globalNameIdSearch ? "Caută după Name ID..." : searchPlaceholder}
           autoComplete="off"
           enterKeyHint="search"
           data-lpignore="true"
@@ -78,6 +92,19 @@ export default function BottomBar({ hidden }) {
           className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
         />
       </div>
+
+      {showNameIdToggle && (
+        <button
+          onClick={handleToggleNameIdSearch}
+          className={[
+            "shrink-0 flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200",
+            globalNameIdSearch ? "bg-blue-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-300 active:bg-zinc-700"
+          ].join(' ')}
+          title="Căutare Globală NameID"
+        >
+          <Package size={20} />
+        </button>
+      )}
 
       <button
         onClick={handleMenuPress}

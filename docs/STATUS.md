@@ -4,6 +4,24 @@
 
 ---
 
+## Sesiunea 5 — Arhitectură Filtre, UX Coș, StockHub Navigation & Cod de bare
+
+### Ce s-a schimbat
+
+- **Căutare Globală Produse (NameID)**: Buton nou în `BottomBar` (doar pe `/catalog`) care comută bara de căutare din modul „Categorii/Foldere” într-un modul de căutare global exclusiv după `NameID`. Rezultatele sunt redate cu `ProductCard` (care permite adăugarea directă în coș) înlocuind arborele. Starea persistă la navigarea dus-întors către fișa produsului.
+- **Suport Cod de Bare (Barcode)**: Migrație DB nouă pentru o coloană unică `barcode`. Actualizare `useCatalogStore` și RPC-uri de creare/bulk. `ProductFormSheet` conține acum un câmp cu tastatură numerică și buton de generare automată EAN-13 (algoritm matematic valid integrat local). Codul generat/introdus e afișat vizibil sub `NameID` pe cardurile și pagina produsului.
+- **Arhitectură Generic Filter System**: Filtrarea a fost rescrisă complet folosind principiul Inversion of Control: logica UI pură trăiește în `BaseFilterSheet`, iar vechiul `FilterSheet` a devenit Adaptor Contextual. În vizualizarea unui Spațiu (`SpacePage`), filtrul arată acum strict categoriile prezente acolo, cu numărătoare adaptată la acel stoc local.
+- **Îmbunătățiri Coș (Cart) & Tranzacții**:
+  - **Trash & Undo**: Buton integrat de golire instantanee a coșului, care reține un *snapshot* în memorie și se metamorfozează temporar într-un buton de recuperare (`RotateCcw`). Include protecție anti-double-click / spam de 600ms.
+  - **Identificare & Sursă UX**: Titlul din antetul coșului arată transparent spațiul sursă. S-au rezolvat bug-uri care blocau sursa pe „Catalog” și s-a introdus regula `ARCH_ProductNavigation` în `GEMINI.md`: produsele propagate în `ProductPage` rețin prin state-ul rutei originile, astfel încât adăugarea în coș își va păstra spațiul din care utilizatorul a interacționat.
+  - **Bug Fix**: Coșul curăță intenționat query-ul global de search la montare, prevenind astfel situația în care produsele din coș păreau „dispărute” pentru că erau încă filtrate de ultima tastare a utilizatorului din Catalog.
+- **Navigare Sistem & UI generic**:
+  - Navigare curată la „Înapoi” (Back) pe telefoane: Componenta `BottomSheet` a primit un **Sheet Stack Manager** tip LIFO (`pushState`), interceptând gestul nativ fără a polua URL-ul, inclusiv suport avansat pentru interceptare internă per-vizualizare (ex. `SchemaSheet`).
+  - Toate meniurile contextuale au fost unificate vizual (sub `ContextMenu.jsx`).
+  - Meniul din StockHub și comutatorul Stoc/Flux din `SpacePage` au fost ajustate pentru consistență de UX. Alertele din spațiu (`fetchAlerts`) se încarcă acum asincron deblocând timpii de afișare.
+
+---
+
 ## Sesiunea 4 — Account UI (logout + tenant/rol) și follow-up Tags
 
 ### Ce s-a schimbat
