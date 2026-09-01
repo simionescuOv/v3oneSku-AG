@@ -60,7 +60,11 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
         setTags(product.tags ? [...product.tags] : [])
         setListPrice(product.listPrice != null ? String(product.listPrice) : '')
       } else {
-        setNameId(initialNameId ? initialNameId : generateRandomNameId(products))
+        if (initialNameId) {
+          setNameId(initialNameId)
+        } else {
+          generateRandomNameId(products).then(setNameId)
+        }
         setBarcode('')
         setValues({})
         setTags([])
@@ -139,8 +143,8 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     setPicker(null)
   }
 
-  const handleGenerateRandomName = () => {
-    const candidate = generateRandomNameId(products)
+  const handleGenerateRandomName = async () => {
+    const candidate = await generateRandomNameId(products)
     setNameId(candidate)
   }
 

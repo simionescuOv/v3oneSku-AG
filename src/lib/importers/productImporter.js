@@ -305,7 +305,7 @@ export async function executeProductImport({
         const normCandidate = normalize(rawCandidate)
         if (usedNameIdsSet.has(normCandidate)) {
           if (fallbackRandomNameIdOnCollision) {
-            finalNameId = generateRandomNameId(dynamicProductsPool)
+            finalNameId = await generateRandomNameId(dynamicProductsPool)
           } else {
             skippedCount++
             errors.push({
@@ -320,11 +320,11 @@ export async function executeProductImport({
         }
       } else {
         // Celulă goală în coloana NameID -> generare aleatorie
-        finalNameId = generateRandomNameId(dynamicProductsPool)
+        finalNameId = await generateRandomNameId(dynamicProductsPool)
       }
     } else {
       // Nicio coloană mapată ca NameID -> generare aleatorie
-      finalNameId = generateRandomNameId(dynamicProductsPool)
+      finalNameId = await generateRandomNameId(dynamicProductsPool)
     }
 
     usedNameIdsSet.add(normalize(finalNameId))

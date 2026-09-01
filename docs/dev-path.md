@@ -80,7 +80,11 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit Pending] — build: clepsidra | commit: busuioc - amanare finalizare autocomplete feature
+### [Commit 60849f3] — build: foarfeca | commit: pian - facelift UI filterSheet
+- **UX Refactor (Kinetic Hiding)**: Footer-ul din `BaseFilterSheet` a fost re-arhitecturat. A devenit compact (`h-10`, `text-sm`, padding redus), este poziționat absolut peste liste și se ascunde automat în timpul evenimentelor active de scroll pentru a maximiza spațiul de citire al utilizatorului, reapărând elegant la oprire (debounced scroll timeout).
+- **UI Refactor**: Modificare componentă `FilterSheet` pentru un aspect mai compact (eliminare mâner drag non-funcțional global din `BottomSheet`, reducere padding header, eliminare buton X, afișare contoare produse fără paranteze și setare lățime egală 50/50 pentru coloanele de filtre).
+- **Bug Fix**: S-a rezolvat eroarea `ReferenceError: searchQuery is not defined` în `BaseFilterSheet.jsx` la afișarea stării de empty-state pe căutare, înlocuind variabila inexistentă cu `effectiveQuery`.
+- **Dicționar extins pentru Name ID cu Lazy Loading**: S-a instalat pachetul `an-array-of-english-words` (~275k cuvinte) pentru a garanta generarea de identificatori dintr-un singur cuvânt, unici pentru până la 100.000 de produse. Pentru a păstra 0ms latență pe client și a nu încărca memoria sesiunilor normale, dicționarul se încarcă asincron (Lazy Loading) prin `await import()` în `nameIdGenerator.js`, fiind descărcat doar la accesarea formularului de produs sau import.
 - **Arhitectură Search Context Stack**: S-a implementat stiva de contexte în `useAppStore` pentru a preveni suprapunerea căutărilor (ex: pagina de background să nu mai preia search-ul activ dintr-un BottomSheet). S-a extras logica de predicție în `useAutocompleteGhost.js` și s-a legat de atributele din `BaseFilterSheet.jsx`, curățând instant input-ul la închiderea ferestrei.
 - **Ghost Text Autocomplete în BottomBar**: S-a integrat un sistem vizual inteligent de predicție în bara de căutare principală (`BottomBar.jsx`), complet funcțional pentru listele filtrate prin `useBottomSearch` și `usePicker`. Pe lângă modul clasic de completare, când potrivirea este parțială (în interiorul propoziției), textul fantomă este trunchiat la stânga inteligent (păstrând 5 caractere contextuale) și porțiunea potrivită este evidențiată cu albastru. S-a adăugat `autocompleteSuggestion` în `useAppStore.js` pentru managementul stării.
 

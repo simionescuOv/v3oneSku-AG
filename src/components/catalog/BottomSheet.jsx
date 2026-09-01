@@ -188,10 +188,6 @@ export default function BottomSheet({ open, onClose, children, className = '', a
         ].join(' ')}
         style={aboveBottomBar ? undefined : { paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-zinc-700" />
-        </div>
         {children}
       </div>
     </>

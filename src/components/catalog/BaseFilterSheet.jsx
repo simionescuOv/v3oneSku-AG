@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { X, Check, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { useAppStore, useActiveSearchQuery } from '../../store/useAppStore'
@@ -96,18 +96,29 @@ export default function BaseFilterSheet({
 
   useAutocompleteGhost(open && isMySearch, effectiveQuery, filteredValues, (v) => v.label)
 
+  const [isScrolling, setIsScrolling] = useState(false)
+  const scrollTimeoutRef = useRef(null)
+
+  const handleScroll = () => {
+    setIsScrolling(true)
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false)
+    }, 250)
+  }
+
   if (!open) return null
 
   const activeDim = dimensions.find(d => d.key === activeDimKey)
 
   return (
     <BottomSheet open={open} onClose={onClose} aboveBottomBar={true}>
-      <div className="flex flex-col h-[65dvh] max-h-[560px] text-zinc-100">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 shrink-0">
+      <div className="flex flex-col relative overflow-hidden h-[65dvh] max-h-[560px] text-zinc-100">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 shrink-0">
           <div className="flex items-center gap-2 min-w-0 pr-2">
             <SlidersHorizontal size={18} className="text-blue-400 shrink-0" />
             <h2 className="text-sm font-semibold text-zinc-100 truncate">
-              {dynamicTitle} <span className="text-zinc-500 font-normal ml-1">({totalAccessibleCount})</span>
+              {dynamicTitle} <span className="text-zinc-500 font-normal ml-1">{matchingCount} / {totalAccessibleCount}</span>
             </h2>
             {totalActiveFilterCount > 0 && (
               <span className="text-[11px] font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full shrink-0">
@@ -115,19 +126,13 @@ export default function BaseFilterSheet({
               </span>
             )}
           </div>
-          <button
-            onClick={() => {
-              clearSearch()
-              onClose?.()
-            }}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-200 active:bg-zinc-800 shrink-0"
-          >
-            <X size={18} />
-          </button>
         </div>
 
         <div className="flex flex-1 min-h-0 divide-x divide-zinc-800 overflow-hidden">
-          <div className="w-[38%] overflow-y-auto px-2 py-2 space-y-1 bg-zinc-950/40 shrink-0">
+          <div 
+            className="w-1/2 overflow-y-auto px-2 pt-2 pb-16 space-y-1 bg-zinc-950/40 shrink-0"
+            onScroll={handleScroll}
+          >
             {dimensions.map((dim) => {
               const Icon = dim.icon
               const isSelected = activeDimKey === dim.key
@@ -157,7 +162,10 @@ export default function BaseFilterSheet({
             })}
           </div>
 
-          <div className="flex-1 flex flex-col min-h-0 px-2 py-2 overflow-y-auto space-y-1 bg-zinc-900/30">
+          <div 
+            className="flex-1 flex flex-col min-h-0 px-2 pt-2 pb-16 overflow-y-auto space-y-1 bg-zinc-900/30"
+            onScroll={handleScroll}
+          >
             {filteredValues.map((v) => {
               const isSelected = activeDim?.isSingle
                 ? draftFilters[activeDimKey]?.[0] === v.value
@@ -194,7 +202,7 @@ export default function BaseFilterSheet({
                       isSelected ? 'text-blue-400' : 'text-zinc-500',
                     ].join(' ')}
                   >
-                    ({count})
+                    {count}
                   </span>
                 </button>
               )
@@ -202,18 +210,23 @@ export default function BaseFilterSheet({
 
             {filteredValues.length === 0 && (
               <div className="py-12 text-center text-xs text-zinc-500">
-                {searchQuery.trim() ? `Nicio opțiune pentru „${searchQuery.trim()}”` : 'Nicio valoare disponibilă'}
+                {effectiveQuery.trim() ? `Nicio opțiune pentru „${effectiveQuery.trim()}”` : 'Nicio valoare disponibilă'}
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3 px-4 py-3 border-t border-zinc-800 bg-zinc-950 shrink-0">
+        <div 
+          className={[
+            'absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2.5 px-4 py-1.5 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-md transition-transform duration-300 ease-in-out',
+            isScrolling ? 'translate-y-[120%]' : 'translate-y-0'
+          ].join(' ')}
+        >
           <button
             onClick={onResetAll}
             disabled={totalActiveFilterCount === 0}
             className={[
-              'flex items-center justify-center gap-1.5 h-11 px-4 rounded-xl text-xs font-medium transition-colors shrink-0',
+              'flex items-center justify-center gap-1.5 py-1 px-4 rounded-lg text-sm leading-tight whitespace-nowrap font-medium transition-colors shrink-0',
               totalActiveFilterCount > 0
                 ? 'text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600'
                 : 'text-zinc-600 bg-zinc-900/50 cursor-not-allowed',
@@ -224,7 +237,7 @@ export default function BaseFilterSheet({
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 flex items-center justify-center h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-xs font-semibold text-white shadow-lg transition-colors"
+            className="flex-1 flex items-center justify-center py-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-sm leading-tight whitespace-nowrap font-semibold text-white shadow-lg transition-colors"
           >
             {submitLabel} ({matchingCount})
           </button>
