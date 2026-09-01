@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { X, Check, RotateCcw, SlidersHorizontal } from 'lucide-react'
+import { X, Check, RotateCcw, SlidersHorizontal, ChevronDown } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { useAppStore, useActiveSearchQuery } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
@@ -76,11 +76,6 @@ export default function BaseFilterSheet({
         return normalize(a.label).localeCompare(normalize(b.label))
       }
 
-      const isSelA = (draftFilters[activeDimKey] || []).includes(a.value) ? 1 : 0
-      const isSelB = (draftFilters[activeDimKey] || []).includes(b.value) ? 1 : 0
-      
-      if (isSelA !== isSelB) return isSelB - isSelA
-
       const countA = facetedCounts[a.value] || 0
       const countB = facetedCounts[b.value] || 0
 
@@ -96,8 +91,23 @@ export default function BaseFilterSheet({
 
   useAutocompleteGhost(open && isMySearch, effectiveQuery, filteredValues, (v) => v.label)
 
+  const [isStackCollapsed, setIsStackCollapsed] = useState(false)
   const [isScrolling, setIsScrolling] = useState(false)
   const scrollTimeoutRef = useRef(null)
+
+  const selectedValuesForStack = useMemo(() => {
+    if (!open) return []
+    const dim = dimensions.find(d => d.key === activeDimKey)
+    if (dim?.isSingle) return []
+    
+    const selectedIds = draftFilters[activeDimKey] || []
+    if (selectedIds.length === 0) return []
+    
+    // Extragem obiectele și inversăm pentru efect LIFO (ultimul selectat va fi sus)
+    return [...selectedIds].reverse().map(id => {
+      return (activeDimValues || []).find(v => v.value === id)
+    }).filter(Boolean)
+  }, [open, activeDimKey, dimensions, draftFilters, activeDimValues])
 
   const handleScroll = () => {
     setIsScrolling(true)
@@ -107,9 +117,43 @@ export default function BaseFilterSheet({
     }, 250)
   }
 
-  if (!open) return null
-
   const activeDim = dimensions.find(d => d.key === activeDimKey)
+
+  const renderFilterButton = (v, inStack = false) => {
+    const isSelected = activeDim?.isSingle
+      ? draftFilters[activeDimKey]?.[0] === v.value
+      : (draftFilters[activeDimKey] || []).includes(v.value)
+    const count = facetedCounts[v.value] ?? 0
+    const isDisabled = count === 0 && !isSelected
+
+    return (
+      <button
+        key={inStack ? `stack-${v.value}` : v.value}
+        disabled={isDisabled}
+        onClick={() => onToggleValue(activeDimKey, v.value, activeDim?.isSingle)}
+        className={[
+          'w-full flex items-center gap-2 pl-1 pr-2 py-2.5 text-left rounded-xl transition-colors shrink-0',
+          isSelected ? 'bg-blue-950/40 text-zinc-100' : 'text-zinc-300 active:bg-zinc-800/60',
+          isDisabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-zinc-800/40',
+        ].join(' ')}
+      >
+        <span
+          className={[
+            'text-xs font-bold shrink-0 w-[20px] text-right',
+            isSelected ? 'text-white' : 'text-zinc-100',
+          ].join(' ')}
+        >
+          {count}
+        </span>
+        <span className="flex-1 text-xs truncate">{v.label}</span>
+        <div className="w-4 h-4 flex items-center justify-end shrink-0">
+          {isSelected && <Check size={16} strokeWidth={3.5} className="text-blue-500" />}
+        </div>
+      </button>
+    )
+  }
+
+  if (!open) return null
 
   return (
     <BottomSheet open={open} onClose={onClose} aboveBottomBar={true}>
@@ -164,42 +208,31 @@ export default function BaseFilterSheet({
           </div>
 
           <div 
-            className="flex-1 flex flex-col min-h-0 pl-1 pr-2 pt-2 pb-16 overflow-y-auto space-y-1 bg-zinc-900/30"
+            className="flex-1 flex flex-col min-h-0 pl-1 pr-2 pt-2 pb-16 overflow-y-auto bg-zinc-900/30"
             onScroll={handleScroll}
           >
-            {filteredValues.map((v) => {
-              const isSelected = activeDim?.isSingle
-                ? draftFilters[activeDimKey]?.[0] === v.value
-                : (draftFilters[activeDimKey] || []).includes(v.value)
-              const count = facetedCounts[v.value] ?? 0
-              const isDisabled = count === 0 && !isSelected
-
-              return (
+            {selectedValuesForStack.length > 0 && (
+              <div className="mb-2 shrink-0 bg-zinc-900/40 rounded-xl border border-zinc-800/60 overflow-hidden flex flex-col">
                 <button
-                  key={v.value}
-                  disabled={isDisabled}
-                  onClick={() => onToggleValue(activeDimKey, v.value, activeDim?.isSingle)}
-                  className={[
-                    'w-full flex items-center gap-2 pl-1 pr-2 py-2.5 text-left rounded-xl transition-colors',
-                    isSelected ? 'bg-blue-950/40 text-zinc-100' : 'text-zinc-300 active:bg-zinc-800/60',
-                    isDisabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-zinc-800/40',
-                  ].join(' ')}
+                  onClick={() => setIsStackCollapsed(!isStackCollapsed)}
+                  className="w-full flex items-center justify-between px-3 py-2 transition-colors hover:bg-zinc-800/40"
                 >
-                  <span
-                    className={[
-                      'text-xs font-bold shrink-0 w-[20px] text-right',
-                      isSelected ? 'text-white' : 'text-zinc-100',
-                    ].join(' ')}
-                  >
-                    {count}
+                  <span className="text-xs font-medium text-zinc-400">
+                    {isStackCollapsed ? `${selectedValuesForStack.length} active filters` : ''}
                   </span>
-                  <span className="flex-1 text-xs truncate">{v.label}</span>
-                  <div className="w-4 h-4 flex items-center justify-end shrink-0">
-                    {isSelected && <Check size={16} strokeWidth={3.5} className="text-blue-500" />}
-                  </div>
+                  <ChevronDown size={14} className={['text-zinc-500 transition-transform', !isStackCollapsed ? 'rotate-180' : ''].join(' ')} />
                 </button>
-              )
-            })}
+                {!isStackCollapsed && (
+                  <div className="flex flex-col pb-1 px-1 space-y-1">
+                    {selectedValuesForStack.map(v => renderFilterButton(v, true))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <div className="flex flex-col space-y-1">
+              {filteredValues.map((v) => renderFilterButton(v, false))}
+            </div>
 
             {filteredValues.length === 0 && (
               <div className="py-12 text-center text-xs text-zinc-500">

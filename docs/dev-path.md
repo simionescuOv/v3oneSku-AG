@@ -80,7 +80,10 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit Pending] — build: foarfeca | commit: umbrela - facelift 2 filterSheet
+### [Commit Pending] — build: vulcan | commit: saltea - filterSheet - stiva bifate
+- **Feature (Sticky Selected / Selection Stack)**: În `BaseFilterSheet`, a fost eliminată săritura derutantă a filtrelor bifate în capul listei (înghețare sortare). În schimb, a fost adăugată o Stivă de Selecții LIFO, colapsabilă, în partea superioară a listei, afișată doar pentru filtre cu selecție multiplă (ex. Tags, nu Categorie). Extragerea butonului într-un `renderFilterButton` a asigurat consistență vizuală perfectă (DRY).
+
+### [Commit e0a2437] — build: foarfeca | commit: umbrela - facelift 2 filterSheet
 - **Bug Fix (Mobile Zoom)**: Aplicat tehnica „Smart Truncation” pentru butoanele din footer-ul `BaseFilterSheet` (`min-w-0`, `truncate` pe etichetă, `shrink-0` protejat pe cifre/iconițe) pentru a preveni ieșirea din ecran a butoanelor la niveluri mari de zoom (ex. 133%).
 - **UX Optimizare (Maximizare spațiu)**: S-au redus la minimum padding-urile și gap-urile (ex: `px-3` ➡️ `pl-1.5`) din listele stânga/dreapta din `BaseFilterSheet` pentru a câștiga lățime utilă la zoom.
 - **Smart Truncation pe Titlu**: În `FilterSheet`, titlul (ex: „Filtrare Catalog — Cafele”) a fost schimbat în formatul `Catalog / Cafele`. Pentru lizibilitate maximă la zoom, prefixul (`Catalog`) este trunchiat automat (`Cat...`), în timp ce numele categoriei (`/ Cafele`) este protejat cu `shrink-0`, rezultând UX optim la supraplin: `Cat... / Cafele 114/382 (1)`.
