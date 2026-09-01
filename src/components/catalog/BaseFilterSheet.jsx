@@ -114,14 +114,15 @@ export default function BaseFilterSheet({
   return (
     <BottomSheet open={open} onClose={onClose} aboveBottomBar={true}>
       <div className="flex flex-col relative overflow-hidden h-[65dvh] max-h-[560px] text-zinc-100">
-        <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 shrink-0">
-          <div className="flex items-center gap-2 min-w-0 pr-2">
-            <SlidersHorizontal size={18} className="text-blue-400 shrink-0" />
-            <h2 className="text-sm font-semibold text-zinc-100 truncate">
-              {dynamicTitle} <span className="text-zinc-500 font-normal ml-1">{matchingCount} / {totalAccessibleCount}</span>
+        <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 shrink-0">
+          <div className="flex items-center gap-1.5 min-w-0 pr-1 flex-1">
+            <SlidersHorizontal size={17} className="text-blue-400 shrink-0" />
+            <h2 className="flex items-center flex-1 min-w-0 text-sm font-semibold text-zinc-100">
+              {dynamicTitle}
+              <span className="text-zinc-500 font-normal ml-1.5 shrink-0">{matchingCount} / {totalAccessibleCount}</span>
             </h2>
             {totalActiveFilterCount > 0 && (
-              <span className="text-[11px] font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-[11px] font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full shrink-0 ml-1">
                 {totalActiveFilterCount}
               </span>
             )}
@@ -130,7 +131,7 @@ export default function BaseFilterSheet({
 
         <div className="flex flex-1 min-h-0 divide-x divide-zinc-800 overflow-hidden">
           <div 
-            className="w-1/2 overflow-y-auto px-2 pt-2 pb-16 space-y-1 bg-zinc-950/40 shrink-0"
+            className="w-[45%] overflow-y-auto px-2 pt-2 pb-16 space-y-1 bg-zinc-950/40 shrink-0"
             onScroll={handleScroll}
           >
             {dimensions.map((dim) => {
@@ -144,7 +145,7 @@ export default function BaseFilterSheet({
                     clearSearch()
                   }}
                   className={[
-                    'w-full flex items-center gap-2 px-3 py-2.5 text-left rounded-xl transition-colors',
+                    'w-full flex items-center gap-1.5 pl-1.5 pr-2 py-2.5 text-left rounded-xl transition-colors',
                     isSelected
                       ? 'bg-zinc-800 text-blue-400 font-medium'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 active:bg-zinc-800',
@@ -163,7 +164,7 @@ export default function BaseFilterSheet({
           </div>
 
           <div 
-            className="flex-1 flex flex-col min-h-0 px-2 pt-2 pb-16 overflow-y-auto space-y-1 bg-zinc-900/30"
+            className="flex-1 flex flex-col min-h-0 pl-1 pr-2 pt-2 pb-16 overflow-y-auto space-y-1 bg-zinc-900/30"
             onScroll={handleScroll}
           >
             {filteredValues.map((v) => {
@@ -179,31 +180,23 @@ export default function BaseFilterSheet({
                   disabled={isDisabled}
                   onClick={() => onToggleValue(activeDimKey, v.value, activeDim?.isSingle)}
                   className={[
-                    'w-full flex items-center gap-2.5 px-3 py-2.5 text-left rounded-xl transition-colors',
+                    'w-full flex items-center gap-2 pl-1 pr-2 py-2.5 text-left rounded-xl transition-colors',
                     isSelected ? 'bg-blue-950/40 text-zinc-100' : 'text-zinc-300 active:bg-zinc-800/60',
                     isDisabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-zinc-800/40',
                   ].join(' ')}
                 >
-                  <div
-                    className={[
-                      'w-4 h-4 flex items-center justify-center border shrink-0 transition-colors',
-                      activeDim?.isSingle ? 'rounded-full' : 'rounded-md',
-                      isSelected
-                        ? 'bg-blue-600 border-blue-500 text-white'
-                        : 'border-zinc-700 bg-zinc-800/60',
-                    ].join(' ')}
-                  >
-                    {isSelected && <Check size={11} strokeWidth={3} />}
-                  </div>
-                  <span className="flex-1 text-xs truncate">{v.label}</span>
                   <span
                     className={[
-                      'text-[11px] font-medium shrink-0',
-                      isSelected ? 'text-blue-400' : 'text-zinc-500',
+                      'text-xs font-bold shrink-0 w-[20px] text-right',
+                      isSelected ? 'text-white' : 'text-zinc-100',
                     ].join(' ')}
                   >
                     {count}
                   </span>
+                  <span className="flex-1 text-xs truncate">{v.label}</span>
+                  <div className="w-4 h-4 flex items-center justify-end shrink-0">
+                    {isSelected && <Check size={16} strokeWidth={3.5} className="text-blue-500" />}
+                  </div>
                 </button>
               )
             })}
@@ -226,20 +219,20 @@ export default function BaseFilterSheet({
             onClick={onResetAll}
             disabled={totalActiveFilterCount === 0}
             className={[
-              'flex items-center justify-center gap-1.5 py-1 px-4 rounded-lg text-sm leading-tight whitespace-nowrap font-medium transition-colors shrink-0',
+              'flex items-center justify-center py-1 px-3 rounded-lg transition-colors shrink-0',
               totalActiveFilterCount > 0
                 ? 'text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600'
                 : 'text-zinc-600 bg-zinc-900/50 cursor-not-allowed',
             ].join(' ')}
           >
-            <RotateCcw size={14} />
-            <span>Resetează</span>
+            <RotateCcw size={16} />
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 flex items-center justify-center py-1 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-sm leading-tight whitespace-nowrap font-semibold text-white shadow-lg transition-colors"
+            className="flex-1 flex items-center justify-center gap-1 py-1 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-sm leading-tight font-semibold text-white shadow-lg transition-colors min-w-0"
           >
-            {submitLabel} ({matchingCount})
+            <span className="truncate">{submitLabel}</span>
+            <span className="shrink-0">({matchingCount})</span>
           </button>
         </div>
       </div>

@@ -80,7 +80,16 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit 60849f3] — build: foarfeca | commit: pian - facelift UI filterSheet
+### [Commit Pending] — build: foarfeca | commit: umbrela - facelift 2 filterSheet
+- **Bug Fix (Mobile Zoom)**: Aplicat tehnica „Smart Truncation” pentru butoanele din footer-ul `BaseFilterSheet` (`min-w-0`, `truncate` pe etichetă, `shrink-0` protejat pe cifre/iconițe) pentru a preveni ieșirea din ecran a butoanelor la niveluri mari de zoom (ex. 133%).
+- **UX Optimizare (Maximizare spațiu)**: S-au redus la minimum padding-urile și gap-urile (ex: `px-3` ➡️ `pl-1.5`) din listele stânga/dreapta din `BaseFilterSheet` pentru a câștiga lățime utilă la zoom.
+- **Smart Truncation pe Titlu**: În `FilterSheet`, titlul (ex: „Filtrare Catalog — Cafele”) a fost schimbat în formatul `Catalog / Cafele`. Pentru lizibilitate maximă la zoom, prefixul (`Catalog`) este trunchiat automat (`Cat...`), în timp ce numele categoriei (`/ Cafele`) este protejat cu `shrink-0`, rezultând UX optim la supraplin: `Cat... / Cafele 114/382 (1)`.
+- **UI Swap Liste Valori (Clean UI)**: În `BaseFilterSheet`, s-a schimbat ordinea elementelor din lista de valori (stânga: număr, mijloc: etichetă, dreapta: bifă). Numărul a fost stilizat curat (`text-white font-bold min-w-[26px]`), iar cercurile/pătratele de checkbox au fost eliminate complet în favoarea unei bife simple (`✓`), aliniată elegant pe marginea dreaptă pentru un aspect nativ minimalist.
+- **Micro-ajustări UX (Balans vizual)**: Coloana atribute/categorii a fost redusă la 45% (`w-[45%]`), oferind 55% spațiu pentru valorile din dreapta. Cifrele au fost micșorate la `text-xs` pentru a fi în armonie cu textul și aliniate la dreapta (`text-right`) într-o lățime fixă redusă (`w-[20px]`). S-a redus și padding-ul stâng al containerului la `pl-1` pentru ca numerele să stea mult mai aproape de linia despărțitoare.
+- **UI Tweaks (Footer)**: S-a eliminat textul „Resetează” de pe butonul secundar din `BaseFilterSheet`, păstrând exclusiv iconița (`RotateCcw`). Această minimizare eliberează spațiu masiv pentru butonul principal („Arată produsele”), crescând suprafața de tap pentru acțiunea principală.
+
+
+### [Commit 135e5c0] — build: foarfeca | commit: pian - facelift UI filterSheet
 - **UX Refactor (Kinetic Hiding)**: Footer-ul din `BaseFilterSheet` a fost re-arhitecturat. A devenit compact (`h-10`, `text-sm`, padding redus), este poziționat absolut peste liste și se ascunde automat în timpul evenimentelor active de scroll pentru a maximiza spațiul de citire al utilizatorului, reapărând elegant la oprire (debounced scroll timeout).
 - **UI Refactor**: Modificare componentă `FilterSheet` pentru un aspect mai compact (eliminare mâner drag non-funcțional global din `BottomSheet`, reducere padding header, eliminare buton X, afișare contoare produse fără paranteze și setare lățime egală 50/50 pentru coloanele de filtre).
 - **Bug Fix**: S-a rezolvat eroarea `ReferenceError: searchQuery is not defined` în `BaseFilterSheet.jsx` la afișarea stării de empty-state pe căutare, înlocuind variabila inexistentă cu `effectiveQuery`.

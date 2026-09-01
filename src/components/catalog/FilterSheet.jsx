@@ -91,14 +91,22 @@ export default function FilterSheet({
   }, [showCategoryDim, fixedCategoryId, draftFilters, activeCategoryAttributes])
 
   const dynamicTitle = useMemo(() => {
+    const baseTitle = title.replace(/^Filtrare\s+/i, '').replace(/^Filtrare:\s*/i, '')
     if (currentSelectedCatId) {
       const cat = nodes.find((n) => n.id === currentSelectedCatId)
       if (cat) {
-        if (showCategoryDim) return `${title} — ${cat.name}`
-        return `Filtrare: ${cat.name}`
+        if (showCategoryDim) {
+          return (
+            <span className="flex items-center min-w-0 flex-1">
+              <span className="truncate shrink">{baseTitle}</span>
+              <span className="shrink-0 whitespace-nowrap">&nbsp;/ {cat.name}</span>
+            </span>
+          )
+        }
+        return <span className="truncate shrink-0">{cat.name}</span>
       }
     }
-    return title
+    return <span className="truncate shrink-0">{baseTitle}</span>
   }, [currentSelectedCatId, nodes, title, showCategoryDim])
 
   const indicesForEngine = useMemo(() => {
