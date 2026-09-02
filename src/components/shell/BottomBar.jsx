@@ -1,4 +1,4 @@
-import { Menu, Search, BookOpen, Package, X } from 'lucide-react'
+import { Menu, BookOpen, Package, X } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
@@ -135,7 +135,6 @@ export default function BottomBar({ hidden }) {
           hasSuggestion ? "cursor-pointer" : "cursor-text"
         ].join(' ')}
       >
-        <Search size={16} className={[globalNameIdSearch ? "text-blue-400" : "text-zinc-500", "shrink-0 relative z-10"].join(' ')} />
         
         <div className="relative flex-1 h-full flex items-center">
           {hasSuggestion && (
