@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { X, ChevronRight, Tag, Dices } from 'lucide-react'
+import { X, ChevronRight, Tag, Dices, ScanBarcode as ScanBarcodeIcon } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import PickerSheet from './PickerSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
@@ -301,17 +301,28 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
         <div className="mt-4">
           <div className="flex items-center justify-between mb-1">
             <label className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
-              Cod de bare
+              Barcode
             </label>
-            <button
-              type="button"
-              onClick={handleGenerateRandomBarcode}
-              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 active:opacity-70 transition-opacity py-0.5 px-1 rounded-md"
-              title="Generează EAN-13 automat"
-            >
-              <Dices size={14} />
-              <span>EAN-13</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => useAppStore.getState().openScanner()}
+                className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 active:opacity-70 transition-opacity py-0.5 px-1 rounded-md"
+                title="Scanează cod de bare"
+              >
+                <ScanBarcodeIcon size={14} />
+                <span>Scan</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleGenerateRandomBarcode}
+                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 active:opacity-70 transition-opacity py-0.5 px-1 rounded-md"
+                title="Generează EAN-13 automat"
+              >
+                <Dices size={14} />
+                <span>EAN-13</span>
+              </button>
+            </div>
           </div>
 
           <input
@@ -319,7 +330,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
             inputMode="numeric"
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
-            placeholder="Scanează, tastează sau generează..."
+            placeholder="Barcode scan"
             autoComplete="off"
             className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
           />

@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
 
 export const useAppStore = create((set) => ({
   sideMenuOpen: false,
@@ -32,17 +32,17 @@ export const useAppStore = create((set) => ({
   pushBottomBarOverride: (override) => set((s) => ({ bottomBarOverrides: [...s.bottomBarOverrides, override] })),
   popBottomBarOverride: (id) => set((s) => ({ bottomBarOverrides: s.bottomBarOverrides.filter(o => o.id !== id) })),
 
-  // Catalog context menu trigger (BottomBar → CatalogPage)
+  // Catalog context menu trigger (BottomBar -> CatalogPage)
   catalogMenuOpen: false,
   openCatalogMenu: () => set({ catalogMenuOpen: true }),
   closeCatalogMenu: () => set({ catalogMenuOpen: false }),
 
-  // StockHub context menu trigger (BottomBar → StockHubPage)
+  // StockHub context menu trigger (BottomBar -> StockHubPage)
   stockHubMenuOpen: false,
   openStockHubMenu: () => set({ stockHubMenuOpen: true }),
   closeStockHubMenu: () => set({ stockHubMenuOpen: false }),
 
-  // Space context menu trigger (BottomBar → SpacePage)
+  // Space context menu trigger (BottomBar -> SpacePage)
   spaceMenuOpen: false,
   openSpaceMenu: () => set({ spaceMenuOpen: true }),
   closeSpaceMenu: () => set({ spaceMenuOpen: false }),
@@ -52,26 +52,36 @@ export const useAppStore = create((set) => ({
   openCartMenu: () => set({ cartMenuOpen: true }),
   closeCartMenu: () => set({ cartMenuOpen: false }),
 
-  // Setare vizualizare coș (simplu sau grupat pe categorii)
+  // Setare vizualizare cos (simplu sau grupat pe categorii)
   cartGroupByCategory: false,
   toggleCartGroupByCategory: () => set((s) => ({ cartGroupByCategory: !s.cartGroupByCategory })),
 
-  // Stare Pagină Virtuală pentru Coș
+  // Stare Pagina Virtuala pentru Cos
   cartOpen: false,
   openCart: () => set({ cartOpen: true }),
   closeCart: () => set({ cartOpen: false }),
 
-  // Forțează ascunderea BottomBar-ului (sheet fără căutare — ex: GroupNameSheet)
+  // Forteaza ascunderea BottomBar-ului (sheet fara cautare - ex: GroupNameSheet)
   bottomBarHidden: false,
   setBottomBarHidden: (v) => set({ bottomBarHidden: v }),
 
-  // Ascundere la scroll-down (AppShell) — în store ca sheet-urile „cu căutare"
-  // să o poată reseta la deschidere (bara trebuie să fie vizibilă pentru ele).
+  // Ascundere la scroll-down (AppShell)
   bottomBarScrollHidden: false,
   setBottomBarScrollHidden: (v) => set({ bottomBarScrollHidden: v }),
 
   globalNameIdSearch: false,
   setGlobalNameIdSearch: (v) => set({ globalNameIdSearch: v }),
+
+  // Barcode scan mode - activat de ScannerOverlay (scanare camera sau input manual)
+  // Motor de cautare: exact match (===) pe products[].barcode - NU fuzzy/picker.
+  barcodeScanMode: false,
+  activateBarcodeScan: (code) => set({ barcodeScanMode: true, searchQuery: code }),
+  clearBarcodeScan: () => set({ barcodeScanMode: false, searchQuery: '' }),
+
+  // Scanner overlay state
+  scannerOpen: false,
+  openScanner: () => set({ scannerOpen: true }),
+  closeScanner: () => set({ scannerOpen: false }),
 }))
 
 export const useActiveSearchQuery = (contextId = 'global') => {

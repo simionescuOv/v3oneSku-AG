@@ -140,6 +140,15 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
                   </p>
                 </div>
               </div>
+              <div className="flex items-start gap-3 py-2.5">
+                <Cog size={16} className="text-zinc-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-zinc-400">Barcode</p>
+                  <p className="text-xs text-zinc-600">
+                    EAN-13 unic per tenant — opțional, completat manual sau prin scanare
+                  </p>
+                </div>
+              </div>
             </div>
 
             <p className="pb-1 text-[11px] font-medium tracking-wider text-zinc-600">ATRIBUTELE CATEGORIEI</p>

@@ -5,6 +5,7 @@ import TopBar from './TopBar'
 import MainContent from './MainContent'
 import BottomBar from './BottomBar'
 import SideMenu from '../nav/SideMenu'
+import ScannerOverlay from './ScannerOverlay'
 import { useAppStore } from '../../store/useAppStore'
 import { useCartStore } from '../../store/useCartStore'
 import { useViewportHeight } from '../../hooks/useViewportHeight'
@@ -24,6 +25,7 @@ export default function AppShell() {
 
   const openCart = useAppStore((s) => s.openCart)
   const cartOpen = useAppStore((s) => s.cartOpen)
+  const scannerOpen = useAppStore((s) => s.scannerOpen)
 
   return (
     <div
@@ -52,6 +54,9 @@ export default function AppShell() {
           </div>
         </button>
       )}
+
+      {/* Scanner Overlay — fullscreen, montat deasupra totul */}
+      {scannerOpen && <ScannerOverlay />}
     </div>
   )
 }

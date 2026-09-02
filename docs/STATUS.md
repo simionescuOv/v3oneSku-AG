@@ -4,6 +4,24 @@
 
 ---
 
+## Sesiunea 6 — Rafinări UX Filtre & Stivă Selecții (Sticky Stack)
+
+### Ce s-a schimbat
+
+- **Rafinări UI/UX pe `BaseFilterSheet` (Mobile & Zoom Optimization)**:
+  - **Kinetic Hiding Footer**: Footer-ul cu acțiuni („Arată produsele”) a fost mutat în `absolute bottom-0` și se ascunde automat (prin `translate-y`) în timpul evenimentelor active de scroll pentru a elibera spațiul de vizualizare pe mobile.
+  - **Smart Truncation pe Header**: Titlul s-a modificat (ex: `Catalog / Categorie`). Pentru niveluri mari de zoom în browser, am adăugat logica de a trunchia prefixul (`Cat...`), protejând vizibilitatea denumirii categoriei și a numărătorii.
+  - **Balans Vizual și Maximizare Spațiu**: S-au modificat proporțiile (stânga 45% - dreapta 55%), s-au redus la minimum padding-urile (`pl-1`) și s-au micșorat fonturile la contoare (`text-xs`, `w-[20px]`), obținând o interfață perfect aliniată tabelar, fără „spațiu mort”.
+  - **Clean UI**: Cercurile de bifare (checkbox) au fost eliminate. Un filtru activ afișează doar o bifă albastră simplă (`✓`) pe marginea dreaptă. Textul butonului de „Resetează” a fost scos, păstrând doar iconița (`RotateCcw`) pentru a lăsa mai mult spațiu butonului principal.
+
+- **Feature Funcțional: Sticky Selected / Selection Stack**:
+  - Am renunțat la comportamentul clasic în care elementele bifate săreau automat în capul listei (fapt ce strica memoria spațială a utilizatorului).
+  - Acum, lista principală de opțiuni are o **sortare înghețată** (stabilă).
+  - Pentru dimensiunile cu selecție multiplă (ex. Tags, nu și la Categorii unde e radio), s-a adăugat o **Stivă de Filtre Active** la începutul containerului scrollabil. Când bifezi ceva, bifa apare la locul ei în listă, dar un buton duplicat vizual apare și în stivă, în format LIFO (ultimul bifat stă primul).
+  - Stiva este colapsabilă. Când e închisă, afișează un rezumat scurt (`X active filters`). Totul a fost scris curat, extrăgând `renderFilterButton` (DRY).
+
+---
+
 ## Sesiunea 5 — Arhitectură Filtre, UX Coș, StockHub Navigation & Cod de bare
 
 ### Ce s-a schimbat

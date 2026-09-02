@@ -61,6 +61,8 @@ export default function CatalogPage() {
   const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
   const globalNameIdSearch = useAppStore((s) => s.globalNameIdSearch)
   const setGlobalNameIdSearch = useAppStore((s) => s.setGlobalNameIdSearch)
+  const barcodeScanMode = useAppStore((s) => s.barcodeScanMode)
+  const clearBarcodeScan = useAppStore((s) => s.clearBarcodeScan)
 
   const [toast, setToast] = useState(null)
   // Filtrare Catalog (stare persistentă din store)
@@ -113,7 +115,7 @@ export default function CatalogPage() {
   //  extins în CategoryPage, nu aici — contextele sunt diferite.)
   const { results: visibleFilteredProducts } = useBottomSearch(
     filteredProducts,
-    (p) => [p.nameId, categoryMap.get(p.categoryId) || '', (p.tags || []).join(' ')].join(' '),
+    (p) => [p.nameId, p.barcode ?? '', categoryMap.get(p.categoryId) || '', (p.tags || []).join(' ')].join(' '),
     { enabled: filteredProductIds !== null }
   )
 
@@ -192,17 +194,17 @@ export default function CatalogPage() {
     [nodes]
   )
   
-  // Dacă e modul globalNameIdSearch, usePicker primește array gol (dezactivăm căutarea nodurilor).
+  // Dacă e modul globalNameIdSearch sau barcodeScanMode, usePicker primește array gol (dezactivăm căutarea nodurilor).
   const { filteredItems: searchMatches, showCreate: pickerShowCreate } = usePicker({
     mode: 'inline',
-    items: isSearching && !globalNameIdSearch ? searchableNodes : [],
+    items: isSearching && !globalNameIdSearch && !barcodeScanMode ? searchableNodes : [],
     labelFn: nodeLabel,
     query: searchQuery,
     multiSelect: false,
     allowCreate: true,
   })
 
-  // Căutarea de produse globală
+  // Căutarea de produse globală (NameID)
   const globalProducts = useMemo(() => products.filter((p) => !p.deletedAt), [products])
   const { results: globalProductMatches } = useBottomSearch(
     globalProducts,
@@ -210,15 +212,29 @@ export default function CatalogPage() {
     { enabled: globalNameIdSearch && isSearching }
   )
 
+  // Căutare barcode — exact match strict (===), NU fuzzy, NU useBottomSearch/usePicker.
+  // Un EAN-13 este un identificator precis; potrivirea parțială nu are sens semantic.
+  const barcodeResults = useMemo(() => {
+    if (!barcodeScanMode || !searchQuery.trim()) return []
+    const q = searchQuery.trim().toLowerCase()
+    return products
+      .filter((p) => !p.deletedAt && p.barcode?.toLowerCase() === q)
+      .map((p) => ({
+        product: p,
+        categoryName: categoryMap.get(p.categoryId) || '—',
+        categoryId: p.categoryId,
+      }))
+  }, [barcodeScanMode, searchQuery, products, categoryMap])
+
   const searchTree = useMemo(() => {
-    if (!isSearching || globalNameIdSearch) return null
+    if (!isSearching || globalNameIdSearch || barcodeScanMode) return null
     const tree = buildSearchTree(nodes, searchMatches)
     const orderOf = (id) => nodes.findIndex((n) => n.id === id)
     sortTreeFolders(tree, orderOf)
     return tree
-  }, [nodes, searchMatches, isSearching, globalNameIdSearch])
+  }, [nodes, searchMatches, isSearching, globalNameIdSearch, barcodeScanMode])
 
-  const showCreate = !selectionMode && pickerShowCreate && !globalNameIdSearch
+  const showCreate = !selectionMode && pickerShowCreate && !globalNameIdSearch && !barcodeScanMode
 
   // Când arborele se actualizează (creare, mutare, grupare), în Unfold rămâne
   // deschis doar drumul către folderul actualizat (el + părinții lui) —
@@ -558,6 +574,51 @@ export default function CatalogPage() {
               Niciun element
             </div>
           )}
+        </div>
+      ) : barcodeScanMode ? (
+        // ── Pagina rezultate Barcode Scan — exact match, NU fuzzy ───────────
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Header barcode activ */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-amber-950/30 border-b border-amber-900/40 text-xs shrink-0">
+            <span className="text-amber-300 font-medium font-mono truncate">
+              Barcode: {searchQuery}
+            </span>
+            <button
+              onClick={clearBarcodeScan}
+              className="shrink-0 ml-2 text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium bg-zinc-800 px-2.5 py-1 rounded-lg"
+            >
+              <RotateCcw size={13} />
+              <span>Șterge</span>
+            </button>
+          </div>
+          {/* Rezultate */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {barcodeResults.length > 0 ? (
+              barcodeResults.map(({ product, categoryName, categoryId: catId }) => (
+                <div key={product.id} className="border-b border-zinc-800">
+                  {/* Label categorie — tap → CategoryPage */}
+                  <button
+                    onClick={() => goHome(`/catalog/category/${catId}`)}
+                    className="w-full flex items-center gap-2 px-4 pt-3 pb-1.5 text-left active:bg-zinc-900"
+                  >
+                    <span className="text-xs font-medium text-blue-400 bg-blue-950/50 px-2 py-0.5 rounded-full">{categoryName}</span>
+                    <ChevronRight size={12} className="text-zinc-600" />
+                  </button>
+                  {/* Card produs — tap → ProductPage */}
+                  <ProductCard
+                    product={product}
+                    meta={getProductMeta(product)}
+                    onTap={(prod) => goHome('/catalog/product/' + encodeURIComponent(prod.nameId))}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-16 text-center">
+                <p className="text-zinc-400 text-sm mb-1">Niciun produs găsit</p>
+                <p className="text-zinc-600 text-xs font-mono">{searchQuery}</p>
+              </div>
+            )}
+          </div>
         </div>
       ) : globalNameIdSearch && isSearching ? (
         <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">

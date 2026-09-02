@@ -12,3 +12,11 @@ html, body, #root {
   padding: 0;
   overflow: hidden;
 }
+
+@keyframes scan-line {
+  0%, 100% { transform: translateY(-40px); opacity: 0.6; }
+  50%       { transform: translateY(40px);  opacity: 1;   }
+}
+.animate-scan-line {
+  animation: scan-line 1.8s ease-in-out infinite;
+}

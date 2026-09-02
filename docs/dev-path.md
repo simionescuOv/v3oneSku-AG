@@ -80,6 +80,17 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
+### [Commit 66635d4] — build: tramvai | commit: stilou - scanare - 1 - implementare
+- **UI Tweaks**: S-a eliminat iconița de lupă (`<Search>`) de la începutul câmpului de căutare din `BottomBar`, păstrând un aspect curat și minimizat.
+- **Feature (Barcode ca Atribut de Sistem Global)**: Câmpul `barcode` promovat la statut de atribut de sistem global (alături de `NameID` și `Tags`): adăugat în secțiunea „DE SISTEM" din `SchemaSheet.jsx`; inclus în `getSearchableLabel` din `CategoryPage.jsx`; inclus în `labelFn` din `CatalogPage.jsx` (lista filtrată).
+- **Feature (Barcode Scanner — CatalogPage)**: Implementat motor de căutare exact match (`===`) pe `products[].barcode` în `CatalogPage` prin starea dedicată `barcodeScanMode` (separată de `globalNameIdSearch`) în `useAppStore.js`. Pagina de rezultate afișează ierarhia `categorie (chip) → ProductCard` cu navigare directă spre `CategoryPage` sau `ProductPage`.
+- **Feature (ScannerOverlay)**: Componentă fullscreen nouă (`src/components/shell/ScannerOverlay.jsx`) cu două moduri: scanare prin cameră (BarcodeDetector nativ + fallback `@zxing/browser` lazy-loaded) și introducere manuală numerică (input `inputMode="numeric"`, submit explicit fără căutare live). Animație CSS `scan-line` adăugată în `index.css`.
+- **Feature (useBarcodeScanner hook)**: Hook nou (`src/hooks/useBarcodeScanner.js`) care abstractizează accesul la cameră cu strategia hibridă nativ→ZXing, haptic feedback la detecție (`navigator.vibrate(200)`) și curățare completă a resurselor la unmount.
+- **Feature (Buton Scanner în BottomBar)**: Iconița `ScanBarcode` (Lucide) adăugată la stânga inputului din `BottomBar`, vizibilă pe `CatalogPage`, `StockHubPage` și `SpacePage`. Tap deschide `ScannerOverlay`.
+- **Feature (Buton Scanner în ProductFormSheet)**: Buton „Scan" (amber) adăugat lângă generatorul EAN-13; label câmp schimbat din „Cod de bare" în „Barcode"; placeholder actualizat în „Barcode scan".
+- **Dependință nouă**: `@zxing/browser` + `@zxing/library` instalate ca fallback pentru browsere fără `BarcodeDetector` nativ. Importate dinamic (lazy) — 0 impact la bundle pentru utilizatorii Chrome/Android.
+- **Spec viitoare**: Creat `docs/specs/SPEC_BarcodeSearch_StockHub.md` — arhitectura planificată pentru căutarea barcode cu ierarhie SpacePage (neimplementat).
+
 ### [Commit Pending] — build: vulcan | commit: saltea - filterSheet - stiva bifate
 - **Feature (Sticky Selected / Selection Stack)**: În `BaseFilterSheet`, a fost eliminată săritura derutantă a filtrelor bifate în capul listei (înghețare sortare). În schimb, a fost adăugată o Stivă de Selecții LIFO, colapsabilă, în partea superioară a listei, afișată doar pentru filtre cu selecție multiplă (ex. Tags, nu Categorie). Extragerea butonului într-un `renderFilterButton` a asigurat consistență vizuală perfectă (DRY).
 

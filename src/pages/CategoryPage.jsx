@@ -94,7 +94,7 @@ export default function CategoryPage() {
     (product) => {
       const meta = productMeta(product)
       const tagsStr = (product.tags || []).join(' ')
-      return `${product.nameId} ${meta} ${tagsStr}`
+      return `${product.nameId} ${product.barcode ?? ''} ${meta} ${tagsStr}`
     },
     [productMeta]
   )

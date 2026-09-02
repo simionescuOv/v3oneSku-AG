@@ -1,4 +1,4 @@
-import { Menu, Search, BookOpen, Package, X } from 'lucide-react'
+import { Menu, Search, BookOpen, Package, X, ScanBarcode } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
@@ -56,6 +56,7 @@ export default function BottomBar({ hidden }) {
 
   const globalNameIdSearch = useAppStore((s) => s.globalNameIdSearch)
   const setGlobalNameIdSearch = useAppStore((s) => s.setGlobalNameIdSearch)
+  const openScanner = useAppStore((s) => s.openScanner)
 
   const handleToggleNameIdSearch = () => {
     const nextVal = !globalNameIdSearch
@@ -67,8 +68,11 @@ export default function BottomBar({ hidden }) {
 
   const autocompleteSuggestion = useAppStore((s) => s.autocompleteSuggestion)
   
-  // Afișăm butonul doar pe /catalog (rădăcina catalogului), nu și când coșul acoperă ecranul
+  // Afișăm butonul NameID doar pe /catalog (rădăcina catalogului), nu și când coșul acoperă ecranul
   const showNameIdToggle = pathname === '/catalog' && !cartOpen
+
+  // Butonul scanner: Catalog, StockHub, SpacePage — nu și CartPage/ProductPage
+  const showScanButton = !cartOpen && (isCatalogFamily || isStockHub || isSpacePage)
 
   // Logica pentru Ghost Text Autocomplete
   const q = searchQuery
@@ -135,8 +139,17 @@ export default function BottomBar({ hidden }) {
           hasSuggestion ? "cursor-pointer" : "cursor-text"
         ].join(' ')}
       >
-        <Search size={16} className={[globalNameIdSearch ? "text-blue-400" : "text-zinc-500", "shrink-0 relative z-10"].join(' ')} />
-        
+        {/* Buton scanner barcode — la stânga inputului, vizibil pe Catalog/StockHub/Space */}
+        {showScanButton && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); openScanner() }}
+            className="shrink-0 p-0.5 text-zinc-400 active:text-amber-400 hover:text-zinc-200 relative z-20 transition-colors"
+            aria-label="Scanează cod de bare"
+          >
+            <ScanBarcode size={18} />
+          </button>
+        )}
         <div className="relative flex-1 h-full flex items-center">
           {hasSuggestion && (
             <div className="absolute inset-0 pointer-events-none flex items-center whitespace-pre font-sans text-sm z-0 text-zinc-500 overflow-hidden" aria-hidden="true">
