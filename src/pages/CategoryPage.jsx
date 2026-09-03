@@ -45,6 +45,16 @@ export default function CategoryPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
 
+  const productFormDraft = useAppStore((s) => s.productFormDraft)
+  const clearProductFormDraft = useAppStore((s) => s.clearProductFormDraft)
+
+  // Redeschide automat formularul dacă există un draft activ pentru această categorie
+  useEffect(() => {
+    if (productFormDraft && productFormDraft.categoryId === categoryId && !productFormDraft.isEdit) {
+      setFormOpen(true)
+    }
+  }, [productFormDraft, categoryId])
+
   // Stare filtrare persistentă pentru categoria curentă
   const currentCategoryFilter = categoryFilters[categoryId] || EMPTY_CATEGORY_FILTER
   const appliedFilters = currentCategoryFilter.appliedFilters
@@ -402,11 +412,17 @@ export default function CategoryPage() {
       />
       <ProductFormSheet
         open={formOpen}
-        onClose={() => setFormOpen(false)}
+        onClose={() => {
+          setFormOpen(false)
+          clearProductFormDraft()
+        }}
         categoryId={categoryId}
         initialNameId={searchQuery.trim()}
         showToast={showToast}
-        onCreated={() => { clearSearch() }}
+        onCreated={() => {
+          clearSearch()
+          clearProductFormDraft()
+        }}
       />
       <ImportProductsSheet
         open={importOpen}

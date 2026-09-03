@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 
 /**
  * useBarcodeScanner — abstractizare cameră + detecție barcode.
@@ -17,6 +17,11 @@ export function useBarcodeScanner({ onDetected, active }) {
   const animFrameRef = useRef(null)
   const detectorRef = useRef(null)
   const detectedRef = useRef(false)
+  const onDetectedRef = useRef(onDetected)
+
+  useEffect(() => {
+    onDetectedRef.current = onDetected
+  })
 
   const [isReady, setIsReady] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
@@ -90,7 +95,7 @@ export function useBarcodeScanner({ onDetected, active }) {
       detectedRef.current = true
       // Haptic feedback
       if (navigator.vibrate) navigator.vibrate(200)
-      onDetected(code)
+      onDetectedRef.current?.(code)
     }
 
     async function startDetection() {
@@ -144,7 +149,7 @@ export function useBarcodeScanner({ onDetected, active }) {
       cancelled = true
       stopScanner()
     }
-  }, [active, onDetected, stopScanner])
+  }, [active, stopScanner])
 
   return { videoRef, isReady, permissionDenied, error, stopScanner }
 }

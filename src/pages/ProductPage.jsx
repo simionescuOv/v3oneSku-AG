@@ -24,6 +24,8 @@ export default function ProductPage() {
 
   const catalogMenuOpen = useAppStore((s) => s.catalogMenuOpen)
   const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
+  const productFormDraft = useAppStore((s) => s.productFormDraft)
+  const clearProductFormDraft = useAppStore((s) => s.clearProductFormDraft)
 
   const [editOpen, setEditOpen] = useState(false)
   const [toast, setToast] = useState(null)
@@ -57,6 +59,13 @@ export default function ProductPage() {
       fetchProductDetails(product.id)
     }
   }, [product?.id, fetchProductDetails])
+
+  // Redeschide automat formularul de editare dacă există un draft activ pentru acest produs
+  useEffect(() => {
+    if (productFormDraft && productFormDraft.productId === product?.id && productFormDraft.isEdit) {
+      setEditOpen(true)
+    }
+  }, [productFormDraft, product?.id])
 
   const category = useMemo(() => {
     if (!product || !nodes.length) return null
@@ -298,10 +307,16 @@ export default function ProductPage() {
       {/* Formular de editare produs — aceeași componentă unificată ca la adăugare */}
       <ProductFormSheet
         open={editOpen}
-        onClose={() => setEditOpen(false)}
+        onClose={() => {
+          setEditOpen(false)
+          clearProductFormDraft()
+        }}
         categoryId={product.categoryId}
         product={product}
         showToast={showToast}
+        onSaved={() => {
+          clearProductFormDraft()
+        }}
       />
     </div>
   )

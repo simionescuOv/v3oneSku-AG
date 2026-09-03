@@ -29,6 +29,8 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   const fetchTagVocabulary = useCatalogStore((s) => s.fetchTagVocabulary)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
   const openScanner = useAppStore((s) => s.openScanner)
+  const setProductFormDraft = useAppStore((s) => s.setProductFormDraft)
+  const clearProductFormDraft = useAppStore((s) => s.clearProductFormDraft)
   const navigate = useNavigate()
 
   const isEdit = Boolean(product)
@@ -59,7 +61,19 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   useEffect(() => {
     if (open && !prevOpenRef.current) {
       // Formularul tocmai s-a deschis
-      if (product) {
+      const draft = useAppStore.getState().productFormDraft
+      const isMatchingDraft = draft && (
+        (isEdit && draft.isEdit && draft.productId === product?.id) ||
+        (!isEdit && !draft.isEdit && draft.categoryId === effectiveCategoryId)
+      )
+
+      if (isMatchingDraft) {
+        setNameId(draft.nameId ?? '')
+        setBarcode(draft.barcode ?? '')
+        setValues(draft.values ? { ...draft.values } : {})
+        setTags(draft.tags ? [...draft.tags] : [])
+        setListPrice(draft.listPrice ?? '')
+      } else if (product) {
         setNameId(product.nameId ?? '')
         setBarcode(product.barcode ?? '')
         setValues(product.attributes ? { ...product.attributes } : {})
@@ -91,7 +105,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
       setTagVocab(null)
     }
     prevOpenRef.current = open
-  }, [open, product, initialNameId, products])
+  }, [open, product, isEdit, effectiveCategoryId, initialNameId, products])
 
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
 
@@ -225,6 +239,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     } else {
       onCreated?.()
     }
+    clearProductFormDraft()
     onClose()
   }
 
@@ -293,6 +308,20 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     const dupProd = picker.duplicateProduct
     const catName = nodes.find((n) => n.id === dupProd.categoryId)?.name || '—'
 
+    const handleInspectDuplicate = (targetUrl) => {
+      setProductFormDraft({
+        categoryId: effectiveCategoryId,
+        productId: product?.id || null,
+        isEdit,
+        nameId,
+        barcode,
+        values,
+        tags,
+        listPrice,
+      })
+      navigate(targetUrl)
+    }
+
     return (
       <BottomSheet open onClose={() => setPicker(null)}>
         <div className="flex flex-col pb-6">
@@ -312,12 +341,9 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
 
           {/* Rezultat duplicat */}
           <div className="border-b border-zinc-800">
-            {/* Label categorie — tap → CategoryPage */}
+            {/* Label categorie — tap → CategoryPage cu păstrare draft */}
             <button
-              onClick={() => {
-                onClose?.()
-                navigate(`/catalog/category/${dupProd.categoryId}`)
-              }}
+              onClick={() => handleInspectDuplicate(`/catalog/category/${dupProd.categoryId}`)}
               className="w-full flex items-center gap-2 px-4 pt-3 pb-1.5 text-left active:bg-zinc-900"
             >
               <span className="text-xs font-medium text-blue-400 bg-blue-950/50 px-2 py-0.5 rounded-full">
@@ -326,14 +352,11 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
               <ChevronRight size={12} className="text-zinc-600" />
             </button>
 
-            {/* Card produs — tap → ProductPage */}
+            {/* Card produs — tap → ProductPage cu păstrare draft */}
             <ProductCard
               product={dupProd}
               meta={catName}
-              onTap={(prod) => {
-                onClose?.()
-                navigate('/catalog/product/' + encodeURIComponent(prod.nameId))
-              }}
+              onTap={(prod) => handleInspectDuplicate('/catalog/product/' + encodeURIComponent(prod.nameId))}
             />
           </div>
         </div>

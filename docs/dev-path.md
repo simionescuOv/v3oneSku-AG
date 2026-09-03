@@ -80,6 +80,12 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
+### [Commit 0e40104] — build: labirint | commit: ghiozdan - fix no2 barcode product form
+- **Feature (Form Draft Persistence & Scanner Stabilization)**: 
+  - Stabilizat hook-ul `useBarcodeScanner` prin `useRef` pentru callback-ul `onDetected`, eliminând reinițializarea camerei la re-randarea părinților.
+  - Înrolat `ScannerOverlay` în stiva singleton `window.__sheetStack` pentru a rezolva conflictul de `popstate` cu ferestrele modale din fundal, permițând camerei să citească instantaneu și fără blocaje din interiorul formularului de produs.
+  - Implementat persistența draft-ului formularului (`productFormDraft`) în Zustand (`useAppStore`): la inspectarea unui produs/categorii duplicate găsite prin scanare, datele formularului (Name ID, atribute, tag-uri, preț etc.) sunt salvate în memorie; la întoarcerea cu tasta/gestul de Back din telefon, formularul se redeschide automat cu toate câmpurile restaurate intact. Draft-ul se curăță automat la salvare sau la închiderea explicită a formularului.
+
 ### [Commit cef7ea6] — build: castor | commit: felinar - fix barcode scan ui & product form-butonul de scanare
 - **UI & UX Tweaks (ScannerOverlay)**: Eliminat header-ul superior din ecranul de scanare; integrat o bară unificată în partea de jos (footer) cu buton circular `[X]` (fără text), titlu indicator centrat și toggle compact `[Manual]` / `[Cameră]`. Adăugat suport complet pentru gestul nativ de Back / Return de pe telefon (`popstate` + virtual history page `scanner`).
 - **UX (Barcode Results Dismissal)**: Butonul `[X]` din inputul `BottomBar` a fost conectat la `clearBarcodeScan()` atunci când modul de scanare este activ, permițând închiderea rezultatelor și revenirea la catalog din bara de jos. Butonul din header-ul rezultatelor a fost redenumit din „Șterge” în „Anulează”.

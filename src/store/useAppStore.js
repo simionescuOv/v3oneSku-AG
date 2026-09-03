@@ -83,6 +83,11 @@ export const useAppStore = create((set) => ({
   scannerOnScan: null,
   openScanner: (onScan = null) => set({ scannerOpen: true, scannerOnScan: onScan }),
   closeScanner: () => set({ scannerOpen: false, scannerOnScan: null }),
+
+  // Draft formular produs (Local-First — persistă starea când utilizatorul navighează să inspecteze un duplicat)
+  productFormDraft: null,
+  setProductFormDraft: (draft) => set({ productFormDraft: draft }),
+  clearProductFormDraft: () => set({ productFormDraft: null }),
 }))
 
 export const useActiveSearchQuery = (contextId = 'global') => {

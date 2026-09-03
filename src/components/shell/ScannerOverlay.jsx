@@ -21,27 +21,21 @@ export default function ScannerOverlay() {
   const [manualMode, setManualMode] = useState(false)
   const [manualCode, setManualCode] = useState('')
 
-  // Sincronizare cu istoricul browserului pentru gestul de Back pe mobil
+  // Integrare cu stiva globală de ferestre (BottomSheet stack) pentru gestul de Back
   useEffect(() => {
-    if (window.history.state?.virtualPage !== 'scanner') {
-      window.history.pushState({ virtualPage: 'scanner' }, '')
-    }
-
-    const handlePopState = () => {
-      closeScanner()
-    }
-
-    window.addEventListener('popstate', handlePopState)
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [closeScanner])
-
-  const doClose = useCallback(() => {
-    if (window.history.state?.virtualPage === 'scanner') {
-      window.history.back()
+    const sheetMgr = window.__sheetStack
+    if (sheetMgr) {
+      sheetMgr.push('scanner_overlay', () => {
+        closeScanner()
+      })
+      return () => {
+        sheetMgr.pop('scanner_overlay')
+      }
     } else {
-      closeScanner()
+      window.history.pushState({ virtualPage: 'scanner' }, '')
+      const handlePopState = () => closeScanner()
+      window.addEventListener('popstate', handlePopState)
+      return () => window.removeEventListener('popstate', handlePopState)
     }
   }, [closeScanner])
 
@@ -51,8 +45,8 @@ export default function ScannerOverlay() {
     } else {
       activateBarcodeScan(code)
     }
-    doClose()
-  }, [scannerOnScan, activateBarcodeScan, doClose])
+    closeScanner()
+  }, [scannerOnScan, activateBarcodeScan, closeScanner])
 
   const { videoRef, isReady, permissionDenied, error } = useBarcodeScanner({
     onDetected: handleDetected,
@@ -67,7 +61,11 @@ export default function ScannerOverlay() {
     } else {
       activateBarcodeScan(code)
     }
-    doClose()
+    closeScanner()
+  }
+
+  const handleClose = () => {
+    closeScanner()
   }
 
   return (
@@ -159,7 +157,7 @@ export default function ScannerOverlay() {
       <div className="flex-none flex items-center justify-between px-4 h-16 bg-black/80 backdrop-blur-sm border-t border-zinc-800/60 pb-safe">
         {/* Buton X (fără text) */}
         <button
-          onClick={doClose}
+          onClick={handleClose}
           className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-800/80 text-zinc-300 active:text-white active:bg-zinc-700 transition-colors"
           aria-label="Închide"
         >
