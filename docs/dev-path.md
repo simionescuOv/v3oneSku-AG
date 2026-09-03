@@ -80,6 +80,11 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
+### [Commit cef7ea6] — build: castor | commit: felinar - fix barcode scan ui & product form-butonul de scanare
+- **UI & UX Tweaks (ScannerOverlay)**: Eliminat header-ul superior din ecranul de scanare; integrat o bară unificată în partea de jos (footer) cu buton circular `[X]` (fără text), titlu indicator centrat și toggle compact `[Manual]` / `[Cameră]`. Adăugat suport complet pentru gestul nativ de Back / Return de pe telefon (`popstate` + virtual history page `scanner`).
+- **UX (Barcode Results Dismissal)**: Butonul `[X]` din inputul `BottomBar` a fost conectat la `clearBarcodeScan()` atunci când modul de scanare este activ, permițând închiderea rezultatelor și revenirea la catalog din bara de jos. Butonul din header-ul rezultatelor a fost redenumit din „Șterge” în „Anulează”.
+- **Feature (ProductFormSheet Barcode Scan & Collision)**: Butonul de scan din `ProductFormSheet` primește codul scanat și verifică unicitatea locală în catalog. Dacă codul este disponibil, se inserează direct în inputul `Barcode`. Dacă aparține deja altui produs activ, se deschide ecranul SWAP de duplicat (cu header amber `Barcode: ...`, buton `Anulează`, chip categorie și `ProductCard`), iar la apăsarea pe `Anulează` se revine înapoi în formular fără pierderea datelor introduse.
+
 ### [Commit 66635d4] — build: tramvai | commit: stilou - scanare - 1 - implementare
 - **UI Tweaks**: S-a eliminat iconița de lupă (`<Search>`) de la începutul câmpului de căutare din `BottomBar`, păstrând un aspect curat și minimizat.
 - **Feature (Barcode ca Atribut de Sistem Global)**: Câmpul `barcode` promovat la statut de atribut de sistem global (alături de `NameID` și `Tags`): adăugat în secțiunea „DE SISTEM" din `SchemaSheet.jsx`; inclus în `getSearchableLabel` din `CategoryPage.jsx`; inclus în `labelFn` din `CatalogPage.jsx` (lista filtrată).

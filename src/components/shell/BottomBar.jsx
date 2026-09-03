@@ -57,6 +57,8 @@ export default function BottomBar({ hidden }) {
   const globalNameIdSearch = useAppStore((s) => s.globalNameIdSearch)
   const setGlobalNameIdSearch = useAppStore((s) => s.setGlobalNameIdSearch)
   const openScanner = useAppStore((s) => s.openScanner)
+  const barcodeScanMode = useAppStore((s) => s.barcodeScanMode)
+  const clearBarcodeScan = useAppStore((s) => s.clearBarcodeScan)
 
   const handleToggleNameIdSearch = () => {
     const nextVal = !globalNameIdSearch
@@ -171,7 +173,12 @@ export default function BottomBar({ hidden }) {
             data-lpignore="true"
             data-1p-ignore="true"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              if (barcodeScanMode && e.target.value === '') {
+                clearBarcodeScan()
+              }
+            }}
             className="w-full h-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none relative z-10 [&::-webkit-search-cancel-button]:hidden"
           />
         </div>
@@ -181,7 +188,11 @@ export default function BottomBar({ hidden }) {
             type="button"
             onClick={(e) => {
               e.stopPropagation()
-              setSearchQuery('')
+              if (barcodeScanMode) {
+                clearBarcodeScan()
+              } else {
+                setSearchQuery('')
+              }
               setTimeout(() => document.getElementById('search')?.focus(), 0)
             }}
             className="shrink-0 p-1 text-zinc-400 active:text-zinc-100 hover:text-zinc-100 relative z-20"

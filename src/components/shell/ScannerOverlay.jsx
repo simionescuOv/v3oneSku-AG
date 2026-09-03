@@ -1,5 +1,5 @@
-﻿import { useState, useCallback } from 'react'
-import { X, Keyboard, Search } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { X, Keyboard, Search, Camera } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import { useBarcodeScanner } from '../../hooks/useBarcodeScanner'
 
@@ -10,20 +10,49 @@ import { useBarcodeScanner } from '../../hooks/useBarcodeScanner'
  *   1. Scanare prin cameră (BarcodeDetector nativ sau ZXing fallback)
  *   2. Introducere manuală — input numeric, submit explicit (NU caracter-cu-caracter)
  *
- * La detecție/submit: apelează activateBarcodeScan(code) → CatalogPage
- * afișează pagina de rezultate cu exact match pe products[].barcode.
+ * Interceptare gest nativ Back / Return de pe telefon (popstate).
+ * Controale unificate în bara inferioară (ergonomie one-handed).
  */
 export default function ScannerOverlay() {
   const closeScanner = useAppStore((s) => s.closeScanner)
   const activateBarcodeScan = useAppStore((s) => s.activateBarcodeScan)
+  const scannerOnScan = useAppStore((s) => s.scannerOnScan)
 
   const [manualMode, setManualMode] = useState(false)
   const [manualCode, setManualCode] = useState('')
 
+  // Sincronizare cu istoricul browserului pentru gestul de Back pe mobil
+  useEffect(() => {
+    if (window.history.state?.virtualPage !== 'scanner') {
+      window.history.pushState({ virtualPage: 'scanner' }, '')
+    }
+
+    const handlePopState = () => {
+      closeScanner()
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [closeScanner])
+
+  const doClose = useCallback(() => {
+    if (window.history.state?.virtualPage === 'scanner') {
+      window.history.back()
+    } else {
+      closeScanner()
+    }
+  }, [closeScanner])
+
   const handleDetected = useCallback((code) => {
-    activateBarcodeScan(code)
-    closeScanner()
-  }, [activateBarcodeScan, closeScanner])
+    if (scannerOnScan) {
+      scannerOnScan(code)
+    } else {
+      activateBarcodeScan(code)
+    }
+    doClose()
+  }, [scannerOnScan, activateBarcodeScan, doClose])
 
   const { videoRef, isReady, permissionDenied, error } = useBarcodeScanner({
     onDetected: handleDetected,
@@ -33,29 +62,16 @@ export default function ScannerOverlay() {
   const handleManualSubmit = () => {
     const code = manualCode.trim()
     if (!code) return
-    activateBarcodeScan(code)
-    closeScanner()
-  }
-
-  const handleClose = () => {
-    closeScanner()
+    if (scannerOnScan) {
+      scannerOnScan(code)
+    } else {
+      activateBarcodeScan(code)
+    }
+    doClose()
   }
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      {/* TopBar minimal */}
-      <div className="flex-none flex items-center justify-between px-4 h-14 bg-black/80 backdrop-blur-sm border-b border-zinc-800/60">
-        <button
-          onClick={handleClose}
-          className="flex items-center gap-2 text-zinc-300 active:text-white py-2 pr-2"
-        >
-          <X size={20} />
-          <span className="text-sm">Anulează</span>
-        </button>
-        <span className="text-sm font-medium text-zinc-400">Barcode scan</span>
-        <div className="w-20" /> {/* spacer echilibru */}
-      </div>
-
       {/* Corp principal */}
       <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
 
@@ -139,24 +155,37 @@ export default function ScannerOverlay() {
         )}
       </div>
 
-      {/* Footer — toggle mod */}
-      <div className="flex-none flex items-center justify-center pb-8 pt-4 bg-black/80 border-t border-zinc-800/60">
+      {/* Footer — Bară de control unificată jos */}
+      <div className="flex-none flex items-center justify-between px-4 h-16 bg-black/80 backdrop-blur-sm border-t border-zinc-800/60 pb-safe">
+        {/* Buton X (fără text) */}
+        <button
+          onClick={doClose}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-800/80 text-zinc-300 active:text-white active:bg-zinc-700 transition-colors"
+          aria-label="Închide"
+        >
+          <X size={20} />
+        </button>
+
+        {/* Titlu indicator */}
+        <span className="text-sm font-medium text-zinc-400">Barcode scan</span>
+
+        {/* Toggle Manual / Cameră */}
         <button
           onClick={() => {
             setManualMode((v) => !v)
             setManualCode('')
           }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 active:bg-zinc-700 text-sm"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 active:bg-zinc-700 text-xs font-medium transition-colors"
         >
           {manualMode ? (
             <>
-              <X size={16} />
-              <span>Folosește camera</span>
+              <Camera size={15} />
+              <span>Cameră</span>
             </>
           ) : (
             <>
-              <Keyboard size={16} />
-              <span>Introdu manual</span>
+              <Keyboard size={15} />
+              <span>Manual</span>
             </>
           )}
         </button>

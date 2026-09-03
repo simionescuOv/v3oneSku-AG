@@ -588,7 +588,7 @@ export default function CatalogPage() {
               className="shrink-0 ml-2 text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium bg-zinc-800 px-2.5 py-1 rounded-lg"
             >
               <RotateCcw size={13} />
-              <span>Șterge</span>
+              <span>Anulează</span>
             </button>
           </div>
           {/* Rezultate */}

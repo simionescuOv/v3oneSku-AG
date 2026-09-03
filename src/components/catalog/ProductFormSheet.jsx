@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
-import { X, ChevronRight, Tag, Dices, ScanBarcode as ScanBarcodeIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { X, ChevronRight, Tag, Dices, ScanBarcode as ScanBarcodeIcon, RotateCcw } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import PickerSheet from './PickerSheet'
+import ProductCard from './ProductCard'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
@@ -18,6 +20,7 @@ import { generateRandomBarcode, isBarcodeAvailable } from '../../lib/barcodeGene
 // revine cu starea intactă (state-ul trăiește aici, componenta rămâne montată).
 export default function ProductFormSheet({ open, onClose, categoryId, product = null, initialNameId = '', showToast, onCreated, onSaved }) {
   const products = useCatalogStore((s) => s.products)
+  const nodes = useCatalogStore((s) => s.nodes)
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const attributeOptions = useCatalogStore((s) => s.attributeOptions)
   const addAttributeOption = useCatalogStore((s) => s.addAttributeOption)
@@ -25,6 +28,8 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   const updateProduct = useCatalogStore((s) => s.updateProduct)
   const fetchTagVocabulary = useCatalogStore((s) => s.fetchTagVocabulary)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
+  const openScanner = useAppStore((s) => s.openScanner)
+  const navigate = useNavigate()
 
   const isEdit = Boolean(product)
   const effectiveCategoryId = categoryId || product?.categoryId
@@ -43,10 +48,11 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
 
   const prevOpenRef = useRef(false)
 
-  // BottomBar: ascuns cât e vizibil formularul, vizibil (cu căutare) cât e
-  // deschis un picker — comutarea modurilor e per-sheet (SPEC_Tags §5).
+  // BottomBar: ascuns cât e vizibil formularul sau duplicate sheet,
+  // vizibil (cu căutare) doar cât e deschis un picker de căutare (tags / attr).
   useEffect(() => {
-    setBottomBarHidden(open && !picker)
+    const isSearchPicker = picker?.type === 'tags' || picker?.type === 'attr'
+    setBottomBarHidden(open && !isSearchPicker)
   }, [open, picker, setBottomBarHidden])
 
   // Resetare / inițializare stare DOAR când se deschide / închide formularul (tranziție de open)
@@ -151,6 +157,31 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   const handleGenerateRandomBarcode = () => {
     const candidate = generateRandomBarcode(products)
     setBarcode(candidate)
+  }
+
+  const handleScanBarcode = () => {
+    openScanner((scannedCode) => {
+      const code = scannedCode.trim()
+      if (!code) return
+
+      // Căutăm dacă există deja un produs activ cu același cod de bare (exclusiv produsul curent la editare)
+      const duplicate = products.find(
+        (p) =>
+          !p.deletedAt &&
+          p.barcode?.toLowerCase() === code.toLowerCase() &&
+          (!isEdit || p.id !== product?.id)
+      )
+
+      if (duplicate) {
+        setPicker({
+          type: 'duplicate',
+          duplicateProduct: duplicate,
+          barcode: code,
+        })
+      } else {
+        setBarcode(code)
+      }
+    })
   }
 
   const handleSave = async () => {
@@ -258,6 +289,58 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     )
   }
 
+  if (picker?.type === 'duplicate') {
+    const dupProd = picker.duplicateProduct
+    const catName = nodes.find((n) => n.id === dupProd.categoryId)?.name || '—'
+
+    return (
+      <BottomSheet open onClose={() => setPicker(null)}>
+        <div className="flex flex-col pb-6">
+          {/* Header barcode activ — identic cu CatalogPage */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-amber-950/30 border-b border-amber-900/40 text-xs shrink-0">
+            <span className="text-amber-300 font-medium font-mono truncate">
+              Barcode: {picker.barcode}
+            </span>
+            <button
+              onClick={() => setPicker(null)}
+              className="shrink-0 ml-2 text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium bg-zinc-800 px-2.5 py-1 rounded-lg"
+            >
+              <RotateCcw size={13} />
+              <span>Anulează</span>
+            </button>
+          </div>
+
+          {/* Rezultat duplicat */}
+          <div className="border-b border-zinc-800">
+            {/* Label categorie — tap → CategoryPage */}
+            <button
+              onClick={() => {
+                onClose?.()
+                navigate(`/catalog/category/${dupProd.categoryId}`)
+              }}
+              className="w-full flex items-center gap-2 px-4 pt-3 pb-1.5 text-left active:bg-zinc-900"
+            >
+              <span className="text-xs font-medium text-blue-400 bg-blue-950/50 px-2 py-0.5 rounded-full">
+                {catName}
+              </span>
+              <ChevronRight size={12} className="text-zinc-600" />
+            </button>
+
+            {/* Card produs — tap → ProductPage */}
+            <ProductCard
+              product={dupProd}
+              meta={catName}
+              onTap={(prod) => {
+                onClose?.()
+                navigate('/catalog/product/' + encodeURIComponent(prod.nameId))
+              }}
+            />
+          </div>
+        </div>
+      </BottomSheet>
+    )
+  }
+
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="px-4 pb-6 overflow-y-auto max-h-[80dvh]">
@@ -306,7 +389,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => useAppStore.getState().openScanner()}
+                onClick={handleScanBarcode}
                 className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 active:opacity-70 transition-opacity py-0.5 px-1 rounded-md"
                 title="Scanează cod de bare"
               >

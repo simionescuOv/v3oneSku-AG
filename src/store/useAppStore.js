@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+import { create } from 'zustand'
 
 export const useAppStore = create((set) => ({
   sideMenuOpen: false,
@@ -80,8 +80,9 @@ export const useAppStore = create((set) => ({
 
   // Scanner overlay state
   scannerOpen: false,
-  openScanner: () => set({ scannerOpen: true }),
-  closeScanner: () => set({ scannerOpen: false }),
+  scannerOnScan: null,
+  openScanner: (onScan = null) => set({ scannerOpen: true, scannerOnScan: onScan }),
+  closeScanner: () => set({ scannerOpen: false, scannerOnScan: null }),
 }))
 
 export const useActiveSearchQuery = (contextId = 'global') => {
