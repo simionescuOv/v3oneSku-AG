@@ -4,6 +4,22 @@
 
 ---
 
+## Sesiunea 7 — Scanner Barcode Integrat & Persistența Formularului (Draft)
+
+### Ce s-a schimbat
+
+- **Integrare Completă a Scanner-ului de Coduri de Bare (`ScannerOverlay`)**:
+  - **Arhitectură Hibridă**: S-a introdus `useBarcodeScanner`, un hook inteligent ce comută între API-ul nativ ultra-rapid (`BarcodeDetector`) și fallback-ul `@zxing/browser` pentru compatibilitate totală (iOS/Firefox/Desktop).
+  - **Performanță și Stabilitate**: S-a rezolvat problema leak-ului de memorie (bucla infinită ZXing) oprind proactiv decodarea asincronă la închiderea camerei (`controls.stop()`). Mai mult, s-au filtrat formatele scanate la minimul necesar (EAN, UPC, CODE-128, QR), eliminând latența, consumul inutil de procesor și warning-urile parazite din consolă (`NotFoundException`).
+  - **UX/UI Imersiv**: Overlay-ul de scanare e integrat pe tot ecranul, are o animație CSS fluidă de scanare și include în partea de jos o bară de navigare curată pentru comutarea rapidă între *Cameră* și modul *Manual*. Iconița dedicată de deschidere a apărut organic în `BottomBar`, fiind afișată strict în mediile corecte (`Catalog root`, `StockHub`, `SpacePage`).
+
+- **Experiența Completării Formularului (Form Draft & Persistență)**:
+  - **Hibernarea Formularului**: Completarea unui produs e protejată acum împotriva închiderilor accidentale. Datele (`productFormDraft`) sunt păstrate în siguranță în memoria Zustand. Acestea se curăță automat doar la salvare sau anulare explicită („Anulează”, tap pe backdrop, `Escape`).
+  - **Gestiunea Inteligentă a Coliziunilor (Duplicate Barcode)**: Dacă utilizatorul scanează în formular un cod de bare deja existent, aplicația deschide un ecran *SWAP* de inspecție (dezactivând preventiv butonul de coș, `disableCart`, pentru a evita acțiuni nedorite). Utilizatorul poate naviga mai departe pentru a inspecta produsul sau categoria duplicatului (`?inspect=1`), iar la gestul nativ de „Înapoi” (Back) de pe telefon, se întoarce direct în formularul de creare, cu toate valorile restaurate impecabil.
+  - **Micro-interacțiuni (Clear Buttons)**: Câmpul de `Barcode` și toate inputurile atributelor de tip text din `ProductFormSheet` dispun acum de un buton rapid de ștergere `[X]` poziționat la dreapta (aliniere 1:1 cu experiența inputului de căutare din BottomBar).
+
+---
+
 ## Sesiunea 6 — Rafinări UX Filtre & Stivă Selecții (Sticky Stack)
 
 ### Ce s-a schimbat

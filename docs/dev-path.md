@@ -80,6 +80,12 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
+### [Commit d5432b2] — build: pendul | commit: vultur - docs: update STATUS and specs for stockhub barcode & configurable cards
+- **Docs (Specs)**: 
+  - Actualizat `docs/specs/SPEC_BarcodeSearch_StockHub.md` conform arhitecturii redefinite (refolosirea `<ProductCard />` pentru UI ierarhic și introducerea regulii de persistență la Back-navigation).
+  - Adăugat `docs/specs/SPEC_ConfigurableProductCards.md` care detaliază viziunea viitoare de Dynamic UI Rendering a cardurilor pe bază de șabloane și modul în care arhitectura Zustand+React suportă acest lucru nativ.
+- **Docs (STATUS.md)**: Actualizat fișierul `STATUS.md` cu Sesiunea 7, sumarizând implementarea scannerului de coduri de bare hibrid, UX-ul persistenței formularului (draft) și optimizările de performanță ZXing.
+
 ### [Commit 5190680] — build: pescarus | commit: busola - mTasks in scan-feat & prod-form
 - **Fix (Category Inspection & Form Draft Preservation)**: 
   - Decuplat curățarea draftului de `onClose` din `CategoryPage` și `ProductPage`. Închiderea temporară a formularului la navigarea spre categoria/produsul inspectat păstrează acum draftul intact în Zustand.
@@ -118,6 +124,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 - **Spec viitoare**: Creat `docs/specs/SPEC_BarcodeSearch_StockHub.md` — arhitectura planificată pentru căutarea barcode cu ierarhie SpacePage (neimplementat).
 
 ### [Commit Pending] — build: vulcan | commit: saltea - filterSheet - stiva bifate
+- **Spec (SPEC_BarcodeSearch_StockHub)**: Actualizat specificația pentru căutarea Barcode în StockHub, clarificând modelul de navigare dublă: tap pe titlul/linkul spațiului deschide `SpacePage`, iar tap pe cardul produsului deschide `ProductPage` contextualizată.
 - **Feature (Sticky Selected / Selection Stack)**: În `BaseFilterSheet`, a fost eliminată săritura derutantă a filtrelor bifate în capul listei (înghețare sortare). În schimb, a fost adăugată o Stivă de Selecții LIFO, colapsabilă, în partea superioară a listei, afișată doar pentru filtre cu selecție multiplă (ex. Tags, nu Categorie). Extragerea butonului într-un `renderFilterButton` a asigurat consistență vizuală perfectă (DRY).
 
 ### [Commit e0a2437] — build: foarfeca | commit: umbrela - facelift 2 filterSheet
