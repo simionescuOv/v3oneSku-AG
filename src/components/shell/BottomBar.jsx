@@ -73,8 +73,9 @@ export default function BottomBar({ hidden }) {
   // Afișăm butonul NameID doar pe /catalog (rădăcina catalogului), nu și când coșul acoperă ecranul
   const showNameIdToggle = pathname === '/catalog' && !cartOpen
 
-  // Butonul scanner: Catalog, StockHub, SpacePage — nu și CartPage/ProductPage
-  const showScanButton = !cartOpen && (isCatalogFamily || isStockHub || isSpacePage)
+  // Butonul scanner: vizibil pe Catalog (/catalog), StockHub și SpacePage — exclus pe CategoryPage, ProductPage sau CartPage
+  const isCatalogRoot = pathname === '/catalog'
+  const showScanButton = !cartOpen && (isCatalogRoot || isStockHub || isSpacePage)
 
   // Logica pentru Ghost Text Autocomplete
   const q = searchQuery

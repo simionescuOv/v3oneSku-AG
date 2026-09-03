@@ -164,25 +164,22 @@ export default function ScannerOverlay() {
           <X size={20} />
         </button>
 
-        {/* Titlu indicator */}
-        <span className="text-sm font-medium text-zinc-400">Barcode scan</span>
-
         {/* Toggle Manual / Cameră */}
         <button
           onClick={() => {
             setManualMode((v) => !v)
             setManualCode('')
           }}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 active:bg-zinc-700 text-xs font-medium transition-colors"
+          className="h-11 px-5 rounded-xl bg-zinc-800 text-zinc-200 active:bg-zinc-700 text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
         >
           {manualMode ? (
             <>
-              <Camera size={15} />
+              <Camera size={18} />
               <span>Cameră</span>
             </>
           ) : (
             <>
-              <Keyboard size={15} />
+              <Keyboard size={18} />
               <span>Manual</span>
             </>
           )}

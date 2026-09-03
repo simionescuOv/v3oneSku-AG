@@ -14,6 +14,7 @@ export function useBarcodeScanner({ onDetected, active }) {
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const readerRef = useRef(null)
+  const controlsRef = useRef(null)
   const animFrameRef = useRef(null)
   const detectorRef = useRef(null)
   const detectedRef = useRef(false)
@@ -22,6 +23,20 @@ export function useBarcodeScanner({ onDetected, active }) {
   useEffect(() => {
     onDetectedRef.current = onDetected
   })
+
+  // Suprimare avertisment fals intern @zxing cauzat de verificarea instanceof defectuoasă
+  useEffect(() => {
+    const origWarn = console.warn
+    console.warn = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('MultiFormatReader: non-ReaderException')) {
+        return
+      }
+      origWarn.apply(console, args)
+    }
+    return () => {
+      console.warn = origWarn
+    }
+  }, [])
 
   const [isReady, setIsReady] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
@@ -33,7 +48,12 @@ export function useBarcodeScanner({ onDetected, active }) {
       cancelAnimationFrame(animFrameRef.current)
       animFrameRef.current = null
     }
-    // Oprire ZXing reader (fallback path)
+    // Oprire buclă asincronă ZXing (fallback path)
+    if (controlsRef.current) {
+      try { controlsRef.current.stop() } catch (_) {}
+      controlsRef.current = null
+    }
+    // Resetare ZXing reader
     if (readerRef.current) {
       try { readerRef.current.reset() } catch (_) {}
       readerRef.current = null
@@ -127,19 +147,42 @@ export function useBarcodeScanner({ onDetected, active }) {
         }
       }
 
-      // ── Fallback ZXing (Safari, Firefox) ──
+      // ── Fallback ZXing (Safari, Firefox, Windows Desktop) ──
       try {
-        const { BrowserMultiFormatReader } = await import('@zxing/browser')
+        const [{ BrowserMultiFormatReader }, { DecodeHintType, BarcodeFormat }] = await Promise.all([
+          import('@zxing/browser'),
+          import('@zxing/library'),
+        ])
         if (cancelled || !videoRef.current) return
-        const reader = new BrowserMultiFormatReader()
+
+        const hints = new Map()
+        hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+          BarcodeFormat.EAN_13,
+          BarcodeFormat.EAN_8,
+          BarcodeFormat.CODE_128,
+          BarcodeFormat.UPC_A,
+          BarcodeFormat.UPC_E,
+          BarcodeFormat.QR_CODE,
+        ])
+
+        const reader = new BrowserMultiFormatReader(hints)
         readerRef.current = reader
-        reader.decodeFromVideoElement(videoRef.current, (result, err) => {
+
+        const controls = await reader.decodeFromVideoElement(videoRef.current, (result, err) => {
           if (result && !detectedRef.current) {
             handleDetected(result.getText())
           }
         })
+
+        if (cancelled) {
+          try { controls?.stop() } catch (_) {}
+        } else {
+          controlsRef.current = controls
+        }
       } catch (importErr) {
-        setError('Scanarea nu este suportată pe acest dispozitiv')
+        if (!cancelled) {
+          setError('Scanarea nu este suportată pe acest dispozitiv')
+        }
       }
     }
 

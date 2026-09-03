@@ -80,6 +80,21 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
+### [Commit 5190680] — build: pescarus | commit: busola - mTasks in scan-feat & prod-form
+- **Fix (Category Inspection & Form Draft Preservation)**: 
+  - Decuplat curățarea draftului de `onClose` din `CategoryPage` și `ProductPage`. Închiderea temporară a formularului la navigarea spre categoria/produsul inspectat păstrează acum draftul intact în Zustand.
+  - Implementat `handleCancel` în `ProductFormSheet` pentru ca `clearProductFormDraft()` să fie apelat doar la acțiuni definitive de anulare (butonul „Anulează” din formular, tap pe backdrop sau Escape) și la salvare cu succes.
+  - La inspectarea unei categorii duplicate (`[Categorie >]`), se curăță căutarea (`clearSearch()`), se închide foaia și se navighează cu `?inspect=1`. La apăsarea tastei de Back pe telefon (sau a săgeții `<`), utilizatorul este readus automat direct în formularul de adăugare/editare cu toate valorile completate anterior (Name ID, atribute, tag-uri, preț) restaurate intact.
+- **UI/UX (Disable Cart in Duplicate Collision Card)**: Pe cardul produsului duplicat din `ProductFormSheet` s-a dezactivat butonul de adăugare în coș (`disableCart={true}`). Iconița rămâne vizibilă pentru păstrarea aspectului vizual al cardului, dar este dezactivată (`disabled`), prevenind adăugarea accidentală în coș și apariția butonului plutitor.
+- **UI/UX (ScannerOverlay Footer & BottomBar Scan Scope)**: 
+  - S-a eliminat eticheta text „Barcode scan” din footer-ul `ScannerOverlay`, iar butonul toggle `[Manual] / [Cameră]` a fost mărit (`h-11 px-5 text-sm`, iconiță `18px`) pentru o accesibilitate și ergonomie tactilă sporite.
+  - În `BottomBar`, butonul de scanare a fost restrâns în ramura de catalog strict la pagina rădăcină (`/catalog`), fiind ascuns pe `CategoryPage` și `ProductPage` pentru a nu induce utilizatorul în eroare cu o falsă scanare contextuală; butonul rămâne activ pe `StockHubPage` (`/stockhub`) și `SpacePage` (`/stockhub/space/:spaceId`) conform specificațiilor.
+- **Fix (ZXing Loop Stop & Console Warning Noise)**:
+  - Salvat instanța `controls` returnată de `decodeFromVideoElement` și apelat `controls.stop()` la închiderea scanerului (`stopScanner`), oprind definitiv procesul asincron de decodare care rula în fundal pe alte pagini.
+  - Configurat `DecodeHintType.POSSIBLE_FORMATS` strict pentru formatele relevante de produse (`EAN_13`, `EAN_8`, `CODE_128`, `UPC_A`, `UPC_E`, `QR_CODE`), eliminând scanerele parazite (Micro QR, Aztec etc.) și scăzând consumul de CPU.
+  - Suprimat warning-ul repetitiv din consolă (`MultiFormatReader: non-ReaderException`) cauzat de un bug intern de transpilare al `@zxing/library` pe cadre goale.
+- **UI/UX (Clear Button in Product Form Inputs)**: În `ProductFormSheet`, câmpul de `Barcode` și toate inputurile pentru atributele de tip `text` au fost echipate în partea dreaptă cu buton `[X]` de ștergere rapidă (identic cu bara de căutare din `BottomBar`), vizibil condiționat doar când câmpul are conținut.
+
 ### [Commit 0e40104] — build: labirint | commit: ghiozdan - fix no2 barcode product form
 - **Feature (Form Draft Persistence & Scanner Stabilization)**: 
   - Stabilizat hook-ul `useBarcodeScanner` prin `useRef` pentru callback-ul `onDetected`, eliminând reinițializarea camerei la re-randarea părinților.

@@ -307,10 +307,7 @@ export default function ProductPage() {
       {/* Formular de editare produs — aceeași componentă unificată ca la adăugare */}
       <ProductFormSheet
         open={editOpen}
-        onClose={() => {
-          setEditOpen(false)
-          clearProductFormDraft()
-        }}
+        onClose={() => setEditOpen(false)}
         categoryId={product.categoryId}
         product={product}
         showToast={showToast}

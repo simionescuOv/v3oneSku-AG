@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, Plus, Settings, Trash2, Upload, SlidersHorizontal, RotateCcw } from 'lucide-react'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
@@ -18,6 +18,8 @@ const EMPTY_CATEGORY_FILTER = { appliedFilters: {}, filteredProductIds: null }
 export default function CategoryPage() {
   const { categoryId } = useParams()
   const routerNavigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isInspecting = searchParams.get('inspect') === '1'
 
   const hasCart = useCartStore((s) => s.items.length > 0)
   
@@ -48,12 +50,17 @@ export default function CategoryPage() {
   const productFormDraft = useAppStore((s) => s.productFormDraft)
   const clearProductFormDraft = useAppStore((s) => s.clearProductFormDraft)
 
-  // Redeschide automat formularul dacă există un draft activ pentru această categorie
+  // Redeschide automat formularul dacă există un draft activ pentru această categorie (și nu suntem în modul de inspectare)
   useEffect(() => {
-    if (productFormDraft && productFormDraft.categoryId === categoryId && !productFormDraft.isEdit) {
+    if (
+      !isInspecting &&
+      productFormDraft &&
+      productFormDraft.categoryId === categoryId &&
+      !productFormDraft.isEdit
+    ) {
       setFormOpen(true)
     }
-  }, [productFormDraft, categoryId])
+  }, [productFormDraft, categoryId, isInspecting])
 
   // Stare filtrare persistentă pentru categoria curentă
   const currentCategoryFilter = categoryFilters[categoryId] || EMPTY_CATEGORY_FILTER
@@ -192,8 +199,15 @@ export default function CategoryPage() {
     <div className="flex flex-col h-full">
       <div className="flex-none flex items-start gap-1 px-2 py-2 border-b border-zinc-800">
         <button
-          onClick={() => routerNavigate('/')}
+          onClick={() => {
+            if (isInspecting) {
+              window.history.back()
+            } else {
+              routerNavigate('/')
+            }
+          }}
           className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 active:text-zinc-100 active:bg-zinc-800"
+          aria-label={isInspecting ? 'Înapoi la formular' : 'Înapoi la catalog'}
         >
           <ChevronLeft size={20} />
         </button>
@@ -412,10 +426,7 @@ export default function CategoryPage() {
       />
       <ProductFormSheet
         open={formOpen}
-        onClose={() => {
-          setFormOpen(false)
-          clearProductFormDraft()
-        }}
+        onClose={() => setFormOpen(false)}
         categoryId={categoryId}
         initialNameId={searchQuery.trim()}
         showToast={showToast}

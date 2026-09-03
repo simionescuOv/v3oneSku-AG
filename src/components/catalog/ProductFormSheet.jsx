@@ -31,6 +31,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   const openScanner = useAppStore((s) => s.openScanner)
   const setProductFormDraft = useAppStore((s) => s.setProductFormDraft)
   const clearProductFormDraft = useAppStore((s) => s.clearProductFormDraft)
+  const clearSearch = useAppStore((s) => s.clearSearch)
   const navigate = useNavigate()
 
   const isEdit = Boolean(product)
@@ -243,6 +244,11 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
     onClose()
   }
 
+  const handleCancel = () => {
+    clearProductFormDraft()
+    onClose?.()
+  }
+
   // ── SWAP: cât e deschis un picker, formularul nu se randează ─────────────
   if (picker?.type === 'tags') {
     // Tag-urile create în sesiunea curentă a formularului (încă în afara
@@ -319,6 +325,9 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
         tags,
         listPrice,
       })
+      clearSearch()
+      setPicker(null)
+      onClose?.()
       navigate(targetUrl)
     }
 
@@ -341,9 +350,9 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
 
           {/* Rezultat duplicat */}
           <div className="border-b border-zinc-800">
-            {/* Label categorie — tap → CategoryPage cu păstrare draft */}
+            {/* Label categorie — tap → CategoryPage cu păstrare draft și mod de inspectare */}
             <button
-              onClick={() => handleInspectDuplicate(`/catalog/category/${dupProd.categoryId}`)}
+              onClick={() => handleInspectDuplicate(`/catalog/category/${dupProd.categoryId}?inspect=1`)}
               className="w-full flex items-center gap-2 px-4 pt-3 pb-1.5 text-left active:bg-zinc-900"
             >
               <span className="text-xs font-medium text-blue-400 bg-blue-950/50 px-2 py-0.5 rounded-full">
@@ -356,6 +365,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
             <ProductCard
               product={dupProd}
               meta={catName}
+              disableCart
               onTap={(prod) => handleInspectDuplicate('/catalog/product/' + encodeURIComponent(prod.nameId))}
             />
           </div>
@@ -365,7 +375,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={handleCancel}>
       <div className="px-4 pb-6 overflow-y-auto max-h-[80dvh]">
         {/* Name ID — Primul câmp din formular (fără titlu de dialog) */}
         <div>
@@ -431,28 +441,52 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
             </div>
           </div>
 
-          <input
-            type="tel"
-            inputMode="numeric"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            placeholder="Barcode scan"
-            autoComplete="off"
-            className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
-          />
+          <div className="relative flex items-center bg-zinc-800 rounded-xl px-3 h-11 focus-within:ring-1 focus-within:ring-blue-500">
+            <input
+              type="tel"
+              inputMode="numeric"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              placeholder="Barcode scan"
+              autoComplete="off"
+              className="w-full h-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
+            />
+            {barcode.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setBarcode('')}
+                className="shrink-0 p-1 -mr-1 text-zinc-400 active:text-zinc-100 hover:text-zinc-100"
+                aria-label="Șterge codul de bare"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
         </div>
 
         {attrs.map((a) => (
           <div key={a.id} className="mt-4">
             <label className="block text-xs text-zinc-500 mb-1">{a.name}</label>
             {a.type === 'text' ? (
-              <input
-                type="text"
-                value={values[a.id] ?? ''}
-                onChange={(e) => setValue(a.id, e.target.value)}
-                autoComplete="off"
-                className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
-              />
+              <div className="relative flex items-center bg-zinc-800 rounded-xl px-3 h-11 focus-within:ring-1 focus-within:ring-blue-500">
+                <input
+                  type="text"
+                  value={values[a.id] ?? ''}
+                  onChange={(e) => setValue(a.id, e.target.value)}
+                  autoComplete="off"
+                  className="w-full h-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
+                />
+                {Boolean(values[a.id]) && (
+                  <button
+                    type="button"
+                    onClick={() => setValue(a.id, '')}
+                    className="shrink-0 p-1 -mr-1 text-zinc-400 active:text-zinc-100 hover:text-zinc-100"
+                    aria-label={`Șterge ${a.name}`}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
             ) : (
               // Valoare unică, afișată ca text simplu (nu chip/pill): un chip
               // colorat cu „×" sugerează multi-select, dar single_choice
@@ -525,7 +559,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
 
         <div className="flex gap-3 mt-5">
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             className="flex-1 h-11 rounded-xl bg-zinc-800 text-sm text-zinc-300 active:bg-zinc-700"
           >
             Anulează
