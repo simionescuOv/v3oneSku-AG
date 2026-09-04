@@ -80,7 +80,24 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit d5432b2] — build: pendul | commit: vultur - docs: update STATUS and specs for stockhub barcode & configurable cards
+### [Commit <hash>] — build: tractor | commit: ceainic - fix: stockhub rez.scanare - inexistent nu inseamna stoc zero
+- **Fix (StockHub Barcode Search — Exclude Spaces Without Product Record)**:
+  - Modificat `fetchProductStockAcrossSpaces` în `useStockStore.js` pentru a nu mai itera peste toate spațiile fizice din sistem cu fallback la 0. Funcția iterează acum strict peste rândurile returnate din `space_products` pentru produsul respectiv.
+  - Spațiile în care produsul nu a fost niciodată adăugat nu mai sunt afișate; sunt afișate strict spațiile în care produsul există efectiv (inclusiv cele cu stoc 0 dacă rândul există și stocul a ajuns la zero).
+  - În `StockHubBarcodeResults.jsx`, la `spaceStocks.length === 0`, mesajul a fost actualizat la „Produsul nu se află în niciun spațiu de depozitare.”.
+- **Fix (StockHub Barcode Navigation & SpacePage Restoration)**:
+  - Rezolvat problema afișării produselor în `SpacePage` la navigarea din rezultatele scanării codului de bare (`StockHubBarcodeResults`): eliminat randarea redundantă a rezultatelor globale de scanare din interiorul `SpacePage` (care bloca vizualizarea spațiului) și decuplat lista locală de produse din `usePicker` de `barcodeScanMode`.
+  - Introdus `scannedBarcode` în `useAppStore`, permițând folosirea căutării locale în `SpacePage` fără distrugerea codului de bare scanat.
+  - La părăsirea spațiului prin Back (`routerNavigate(-1)` sau gest nativ), `scannedBarcode` este restaurat în `searchQuery`, readucând utilizatorul direct în ecranul cu rezultatele scanării din `StockHubPage`.
+  - Dacă se scanează un alt cod de bare din BottomBar în timp ce utilizatorul se află în `SpacePage`, se face automat redirecționare către `StockHubPage` pentru afișarea noilor rezultate globale per spații.
+- **Feature (Barcode Search in StockHub — Ierarhie Spații)**:
+  - Implementat în `useStockStore` metoda `fetchProductStockAcrossSpaces(productId)` care extrage în timp real stocul unui produs din toate spațiile fizice via Supabase `space_products` și le sortează cu prioritate celor cu stoc pozitiv.
+  - Creat componenta reutilizabilă `StockHubBarcodeResults` (`src/components/stockhub/StockHubBarcodeResults.jsx`) care randează ierarhia de spații: tap pe numele spațiului navighează în `SpacePage`, iar tap pe `<ProductCard />` navighează în `ProductPage` trimițând `{ state: { sourceSpaceId: space.id } }` conform convenției `ARCH_ProductNavigation`.
+  - Spațiile cu stoc 0 sunt afișate cu opacitate atenuată (`opacity-50`).
+  - Integrat `StockHubBarcodeResults` în `StockHubPage` la activarea `barcodeScanMode`, decuplând căutarea obișnuită a nodurilor și protejând starea de căutare la navigarea dus-întors (gestul Back menține vizualizarea rezultatelor scanate).
+  - Actualizat statusul specificației în `docs/specs/SPEC_BarcodeSearch_StockHub.md` în `IMPLEMENTAT`.
+
+### [Commit 807b3e8] — build: pendul | commit: vultur - docs: update STATUS and specs for stockhub barcode & configurable cards
 - **Docs (Specs)**: 
   - Actualizat `docs/specs/SPEC_BarcodeSearch_StockHub.md` conform arhitecturii redefinite (refolosirea `<ProductCard />` pentru UI ierarhic și introducerea regulii de persistență la Back-navigation).
   - Adăugat `docs/specs/SPEC_ConfigurableProductCards.md` care detaliază viziunea viitoare de Dynamic UI Rendering a cardurilor pe bază de șabloane și modul în care arhitectura Zustand+React suportă acest lucru nativ.

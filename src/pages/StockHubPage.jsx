@@ -15,6 +15,7 @@ import ActionBar from '../components/catalog/ActionBar'
 import DestinationPicker from '../components/catalog/DestinationPicker'
 import SubgroupSheet from '../components/catalog/SubgroupSheet'
 import ContextMenu from '../components/shell/ContextMenu'
+import StockHubBarcodeResults from '../components/stockhub/StockHubBarcodeResults'
 import { buildSearchTree } from '../lib/search'
 
 const ELLIPSIS_CRUMB = { id: '__ellipsis__', name: '…' }
@@ -33,6 +34,9 @@ export default function StockHubPage() {
   const setSearchQuery = useAppStore(s => s.setSearchQuery)
   const setSearchPlaceholder = useAppStore(s => s.setSearchPlaceholder)
   const clearSearch = useAppStore(s => s.clearSearch)
+  const barcodeScanMode = useAppStore(s => s.barcodeScanMode)
+  const scannedBarcode = useAppStore(s => s.scannedBarcode)
+  const clearBarcodeScan = useAppStore(s => s.clearBarcodeScan)
   const stockHubMenuOpen = useAppStore(s => s.stockHubMenuOpen)
   const closeStockHubMenu = useAppStore(s => s.closeStockHubMenu)
   
@@ -75,6 +79,13 @@ export default function StockHubPage() {
     setSearchPlaceholder('Caută sau creează spații...')
   }, [setSearchPlaceholder])
 
+  // Sincronizează searchQuery la revenirea în StockHubPage când barcodeScanMode este activ
+  useEffect(() => {
+    if (barcodeScanMode && scannedBarcode && searchQuery !== scannedBarcode) {
+      setSearchQuery(scannedBarcode)
+    }
+  }, [barcodeScanMode, scannedBarcode, searchQuery, setSearchQuery])
+
   // ── Back gesture (Android/browser) → exit selection sau navigate up ──────────
   useEffect(() => {
     const onPopState = () => {
@@ -115,21 +126,21 @@ export default function StockHubPage() {
   // ── Căutare ──────────────────────────────────────────────────────────
   const { filteredItems: searchNodes } = usePicker({
     mode: 'inline',
-    items: spaces,
+    items: isSearching && !barcodeScanMode ? spaces : [],
     labelFn: (n) => n.name,
     query: searchQuery,
   })
   const searchVisibleIds = useMemo(() => new Set(searchNodes.map(n => n.id)), [searchNodes])
   
   const searchTree = useMemo(() => {
-    if (!isSearching) return null
+    if (!isSearching || barcodeScanMode) return null
     return buildSearchTree(spaces, searchNodes)
-  }, [spaces, searchNodes, isSearching])
+  }, [spaces, searchNodes, isSearching, barcodeScanMode])
 
   const exactMatch = searchNodes.some(
     (n) => n.name.trim().toLowerCase() === searchQuery.trim().toLowerCase()
   )
-  const showCreate = isSearching && !exactMatch && !selectionMode
+  const showCreate = isSearching && !exactMatch && !selectionMode && !barcodeScanMode
 
   // ── Helpers pentru info spații ───────────────────────────────────────
   const getAlertsForSpace = (spaceId) => alerts.filter(a => a.space_id === spaceId)
@@ -382,6 +393,8 @@ export default function StockHubPage() {
             </div>
           )}
         </div>
+      ) : barcodeScanMode ? (
+        <StockHubBarcodeResults barcode={scannedBarcode || searchQuery} onClear={clearBarcodeScan} />
       ) : selectionMode ? (
         <div
           className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800"

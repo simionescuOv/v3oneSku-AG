@@ -263,6 +263,51 @@ export const useStockStore = create((set, get) => ({
     return { ok: true, data: mapped }
   },
 
+  // ── Barcode Search in StockHub ───────────────────────────────────────
+  // Returnează lista tuturor spațiilor fizice asociate cu stocul produsului specificat
+  fetchProductStockAcrossSpaces: async (productId) => {
+    // 1. Asigurăm că spațiile sunt încărcate
+    let currentSpaces = get().spaces
+    if (!currentSpaces || currentSpaces.length === 0) {
+      const res = await get().fetchSpaces()
+      if (res.ok) currentSpaces = res.data
+      else currentSpaces = []
+    }
+
+    const physicalSpaces = currentSpaces.filter((s) => s.type === 'space')
+    const spaceMap = new Map(physicalSpaces.map((s) => [s.id, s]))
+
+    // 2. Aducem înregistrările din space_products pentru acest produs
+    const { data: stocksData, error } = await supabase
+      .from('space_products')
+      .select('space_id, stock')
+      .eq('product_id', productId)
+
+    if (error) return { ok: false, error: error.message }
+
+    // 3. Compunem lista strict cu spațiile în care produsul există efectiv (are rând în space_products)
+    const results = []
+    for (const row of (stocksData || [])) {
+      const space = spaceMap.get(row.space_id)
+      if (space) {
+        results.push({
+          space,
+          quantity: Number(row.stock || 0),
+        })
+      }
+    }
+
+    // Sortăm: spațiile cu stoc pozitiv primele (descrescător după stoc), urmate de cele cu stoc <= 0 ordonate alfabetic
+    results.sort((a, b) => {
+      if (a.quantity > 0 && b.quantity <= 0) return -1
+      if (a.quantity <= 0 && b.quantity > 0) return 1
+      if (a.quantity > 0 && b.quantity > 0) return b.quantity - a.quantity
+      return a.space.name.localeCompare(b.space.name)
+    })
+
+    return { ok: true, data: results }
+  },
+
   // Tranzacțiile unui Space: toate în care Space-ul e sursă SAU destinație,
   // cu item-urile aferente și NameID-ul produselor.
   fetchSpaceTransactions: async (spaceId) => {

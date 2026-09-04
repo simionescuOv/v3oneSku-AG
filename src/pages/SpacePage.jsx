@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft, SlidersHorizontal, RotateCcw, Warehouse } from 'lucide-react'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
@@ -18,6 +18,9 @@ import ContextMenu from '../components/shell/ContextMenu'
 export default function SpacePage() {
   const { spaceId } = useParams()
   const routerNavigate = useNavigate()
+  const location = useLocation()
+  const fromBarcodeScan = location.state?.fromBarcodeScan
+  const scannedBarcode = useAppStore((s) => s.scannedBarcode)
 
   // ── Store-uri ────────────────────────────────────────────────────────
   const spaces = useStockStore((s) => s.spaces)
@@ -33,6 +36,7 @@ export default function SpacePage() {
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
   const clearSearch = useAppStore((s) => s.clearSearch)
+  const barcodeScanMode = useAppStore((s) => s.barcodeScanMode)
   const spaceMenuOpen = useAppStore((s) => s.spaceMenuOpen)
   const closeSpaceMenu = useAppStore((s) => s.closeSpaceMenu)
 
@@ -105,10 +109,24 @@ export default function SpacePage() {
     fetchAlerts()
 
     return () => {
-      clearSearch()
+      const state = useAppStore.getState()
+      // Dacă este activ barcodeScanMode, restaurăm codul de bare pentru StockHubPage la Back
+      if (state.barcodeScanMode && state.scannedBarcode) {
+        state.setSearchQuery(state.scannedBarcode)
+      } else {
+        clearSearch()
+      }
       setSearchPlaceholder('Caută sau creează spații...')
     }
   }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, fetchAlerts, clearSearch, setSearchPlaceholder])
+
+  // Dacă utilizatorul declanșează o nouă scanare barcode din BottomBar în timp ce se află în SpacePage,
+  // navigăm la StockHubPage pentru a afișa rezultatele globale per spații
+  useEffect(() => {
+    if (barcodeScanMode && scannedBarcode && scannedBarcode !== fromBarcodeScan) {
+      routerNavigate('/stockhub')
+    }
+  }, [barcodeScanMode, scannedBarcode, fromBarcodeScan, routerNavigate])
 
   // Închide meniul la unmount
   useEffect(() => () => closeSpaceMenu(), [closeSpaceMenu])
@@ -172,8 +190,15 @@ export default function SpacePage() {
       {/* Header — breadcrumb */}
       <div className="flex-none flex items-start gap-1 px-2 py-2 border-b border-zinc-800">
         <button
-          onClick={() => routerNavigate('/stockhub')}
+          onClick={() => {
+            if (fromBarcodeScan) {
+              routerNavigate(-1)
+            } else {
+              routerNavigate('/stockhub')
+            }
+          }}
           className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 active:text-zinc-100 active:bg-zinc-800"
+          aria-label={fromBarcodeScan ? 'Înapoi la rezultate scanare' : 'Înapoi la spații'}
         >
           <ChevronLeft size={20} />
         </button>
@@ -191,7 +216,13 @@ export default function SpacePage() {
                   </span>
                 ) : crumb.id === null ? (
                   <button
-                    onClick={() => routerNavigate('/stockhub')}
+                    onClick={() => {
+                      if (fromBarcodeScan) {
+                        routerNavigate(-1)
+                      } else {
+                        routerNavigate('/stockhub')
+                      }
+                    }}
                     className="text-sm shrink-0 px-2.5 py-1 rounded-lg border border-zinc-700 text-zinc-300 hover:border-zinc-500"
                   >
                     {crumb.name}
@@ -217,9 +248,9 @@ export default function SpacePage() {
 
       {/* ── Vizualizarea STOC ────────────────────────────────────────── */}
       {view === 'stoc' && (
-        <>
-          {/* Rezumat + filtre active */}
-          <div className="flex-none flex items-center justify-between px-4 py-2 text-xs border-b border-zinc-900">
+            <>
+              {/* Rezumat + filtre active */}
+              <div className="flex-none flex items-center justify-between px-4 py-2 text-xs border-b border-zinc-900">
             <span className="text-zinc-500">
               {productCount} {productCount === 1 ? 'produs' : 'produse'}
               {' · '}
@@ -291,25 +322,25 @@ export default function SpacePage() {
         </>
       )}
 
-      {/* ── Vizualizarea FLUX ────────────────────────────────────────── */}
-      {view === 'flux' && (
-        <>
-          {/* Rezumat flux */}
-          <div className="flex-none px-4 py-2 text-xs border-b border-zinc-900">
-            <span className="text-zinc-500">
-              {fluxBlocks.length} {fluxBlocks.length === 1 ? 'tranzacție' : 'tranzacții'}
-            </span>
-          </div>
+          {/* ── Vizualizarea FLUX ────────────────────────────────────────── */}
+          {view === 'flux' && (
+            <>
+              {/* Rezumat flux */}
+              <div className="flex-none px-4 py-2 text-xs border-b border-zinc-900">
+                <span className="text-zinc-500">
+                  {fluxBlocks.length} {fluxBlocks.length === 1 ? 'tranzacție' : 'tranzacții'}
+                </span>
+              </div>
 
-          {isLoading ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-6 h-6 rounded-full border-2 border-zinc-700 border-t-amber-400 animate-spin" />
-            </div>
-          ) : (
-            <FluxFeed blocks={fluxBlocks} alerts={spaceAlerts} />
+              {isLoading ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full border-2 border-zinc-700 border-t-amber-400 animate-spin" />
+                </div>
+              ) : (
+                <FluxFeed blocks={fluxBlocks} alerts={spaceAlerts} />
+              )}
+            </>
           )}
-        </>
-      )}
 
       {/* Toast */}
       {toast && (

@@ -75,8 +75,9 @@ export const useAppStore = create((set) => ({
   // Barcode scan mode - activat de ScannerOverlay (scanare camera sau input manual)
   // Motor de cautare: exact match (===) pe products[].barcode - NU fuzzy/picker.
   barcodeScanMode: false,
-  activateBarcodeScan: (code) => set({ barcodeScanMode: true, searchQuery: code }),
-  clearBarcodeScan: () => set({ barcodeScanMode: false, searchQuery: '' }),
+  scannedBarcode: null,
+  activateBarcodeScan: (code) => set({ barcodeScanMode: true, scannedBarcode: code, searchQuery: code }),
+  clearBarcodeScan: () => set({ barcodeScanMode: false, scannedBarcode: null, searchQuery: '' }),
 
   // Scanner overlay state
   scannerOpen: false,

@@ -1,6 +1,6 @@
 # SPEC: Barcode Search in StockHub — Ierarhie Spații
 
-**Status:** PLANIFICAT — neimplementat  
+**Status:** IMPLEMENTAT  
 **Prioritate:** Medie  
 **Dependință:** `SPEC_BarcodeSearch_Catalog.md` (implementat)
 
