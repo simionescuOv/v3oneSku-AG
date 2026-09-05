@@ -41,6 +41,7 @@ export function useBarcodeScanner({ onDetected, active }) {
   const [isReady, setIsReady] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [error, setError] = useState(null)
+  const [engineType, setEngineType] = useState('Se inițializează...')
 
   const stopScanner = useCallback(() => {
     // Oprire rAF loop (native path)
@@ -126,6 +127,7 @@ export function useBarcodeScanner({ onDetected, active }) {
         try {
           const detector = new window.BarcodeDetector({ formats: FORMATS })
           detectorRef.current = detector
+          setEngineType('NATIV')
 
           const detect = async () => {
             if (!videoRef.current || detectedRef.current || !streamRef.current) return
@@ -154,6 +156,7 @@ export function useBarcodeScanner({ onDetected, active }) {
           import('@zxing/library'),
         ])
         if (cancelled || !videoRef.current) return
+        setEngineType('ZXING (Fallback)')
 
         const hints = new Map()
         hints.set(DecodeHintType.POSSIBLE_FORMATS, [
@@ -194,5 +197,5 @@ export function useBarcodeScanner({ onDetected, active }) {
     }
   }, [active, stopScanner])
 
-  return { videoRef, isReady, permissionDenied, error, stopScanner }
+  return { videoRef, isReady, permissionDenied, error, stopScanner, engineType }
 }

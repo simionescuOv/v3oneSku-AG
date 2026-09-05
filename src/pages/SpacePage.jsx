@@ -235,15 +235,7 @@ export default function SpacePage() {
           })}
         </div>
 
-        {/* Indicator vizualizare curentă */}
-        <span className={[
-          'shrink-0 self-center text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide',
-          view === 'flux'
-            ? 'bg-amber-900/40 text-amber-400 border border-amber-800/60'
-            : 'bg-blue-950/40 text-blue-400 border border-blue-900/60',
-        ].join(' ')}>
-          {view === 'flux' ? 'Flux' : 'Stoc'}
-        </span>
+
       </div>
 
       {/* ── Vizualizarea STOC ────────────────────────────────────────── */}

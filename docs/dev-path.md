@@ -80,7 +80,12 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit <hash>] — build: tractor | commit: ceainic - fix: stockhub rez.scanare - inexistent nu inseamna stoc zero
+### [Commit <hash>] — build: tractor | commit: ciocan - dev: test scanner engine branch & indicator
+- **Developer Tooling (Scanner Engine Test Branch)**: S-a creat ramura `test-scanner-engine` și s-a expus vizual (în `ScannerOverlay`) motorul utilizat în spate de scanner (Nativ vs ZXing) pentru o testare transparentă pe dispozitive mobile reale.
+- **UI (SpacePage Header)**:
+  - Eliminat indicatorul vizual `Stoc` / `Flux` (badge-ul din dreapta sus a antetului din `SpacePage`).
+
+### [Commit df90e0f] — build: tractor | commit: ceainic - fix: stockhub rez.scanare - inexistent nu inseamna stoc zero
 - **Fix (StockHub Barcode Search — Exclude Spaces Without Product Record)**:
   - Modificat `fetchProductStockAcrossSpaces` în `useStockStore.js` pentru a nu mai itera peste toate spațiile fizice din sistem cu fallback la 0. Funcția iterează acum strict peste rândurile returnate din `space_products` pentru produsul respectiv.
   - Spațiile în care produsul nu a fost niciodată adăugat nu mai sunt afișate; sunt afișate strict spațiile în care produsul există efectiv (inclusiv cele cu stoc 0 dacă rândul există și stocul a ajuns la zero).

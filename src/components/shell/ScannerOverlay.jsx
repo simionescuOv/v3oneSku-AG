@@ -48,7 +48,7 @@ export default function ScannerOverlay() {
     closeScanner()
   }, [scannerOnScan, activateBarcodeScan, closeScanner])
 
-  const { videoRef, isReady, permissionDenied, error } = useBarcodeScanner({
+  const { videoRef, isReady, permissionDenied, error, engineType } = useBarcodeScanner({
     onDetected: handleDetected,
     active: !manualMode,
   })
@@ -82,6 +82,10 @@ export default function ScannerOverlay() {
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
             />
+            {/* Engine Type Indicator */}
+            <div className="absolute top-4 right-4 mt-safe z-50 bg-black/60 text-amber-400 text-[10px] tracking-wider uppercase font-bold px-2 py-1 rounded">
+              {engineType}
+            </div>
 
             {/* Overlay semi-transparent cu vizor */}
             <div className="absolute inset-0 pointer-events-none">
