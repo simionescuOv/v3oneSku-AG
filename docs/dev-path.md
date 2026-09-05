@@ -80,7 +80,10 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit <hash>] — build: tractor | commit: ciocan - dev: test scanner engine branch & indicator
+### [Commit <hash>] — build: diamant | commit: ciocolata - actualizare build word pentru push
+- **Actualizare BUILD_WORD**: S-a generat cuvântul „diamant” conform protocolului de push, pentru marcarea și validarea noii versiuni pe Vercel (pe ramura de test).
+
+### [Commit 2e2d9de] — build: tractor | commit: ciocan - dev: test scanner engine branch & indicator
 - **Developer Tooling (Scanner Engine Test Branch)**: S-a creat ramura `test-scanner-engine` și s-a expus vizual (în `ScannerOverlay`) motorul utilizat în spate de scanner (Nativ vs ZXing) pentru o testare transparentă pe dispozitive mobile reale.
 - **UI (SpacePage Header)**:
   - Eliminat indicatorul vizual `Stoc` / `Flux` (badge-ul din dreapta sus a antetului din `SpacePage`).

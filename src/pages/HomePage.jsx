@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 
 // Cuvinte de validare generare build (se actualizează la fiecare push / commit major)
-const BUILD_WORD = 'tractor'
-const COMMIT_WORD = 'ciocan'
+const BUILD_WORD = 'diamant'
+const COMMIT_WORD = 'ciocolata'
 
 export default function HomePage() {
   const openSideMenu = useAppStore((s) => s.openSideMenu)
