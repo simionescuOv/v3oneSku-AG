@@ -25,13 +25,13 @@ export default function SideMenu() {
       />
 
       {/* Panel */}
-      <div className="fixed inset-y-0 left-0 z-50 w-72 bg-zinc-900 flex flex-col shadow-2xl">
+      <div className="fixed inset-y-0 left-0 z-50 min-w-48 w-max max-w-[85vw] bg-zinc-900 flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-800 gap-4">
           <span className="text-base font-semibold text-zinc-100">oneSku</span>
           <button
             onClick={close}
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 flex-shrink-0"
           >
             <X size={18} />
           </button>
@@ -51,8 +51,10 @@ export default function SideMenu() {
                   active ? 'bg-zinc-800' : 'hover:bg-zinc-800/60',
                 ].join(' ')}
               >
-                <Icon size={20} />
-                {label}
+                <div className="flex-shrink-0">
+                  <Icon size={20} />
+                </div>
+                <span className="truncate">{label}</span>
               </button>
             )
           })}
