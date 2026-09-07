@@ -80,7 +80,13 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit <hash>] — build: diamant | commit: ciocolata - actualizare build word pentru push
+### [Commit <hash>] — build: diamant | commit: lanterna - microTasks la filterSheet/modul agregare elem. selectate
+- **Agent Instructions (GEMINI.md Rule 6 — Critique & Trade-offs Protocol)**: S-a adăugat regula obligatorie ca la fiecare propunere din modul de planificare, agentul să prezinte transparent o secțiune de dezavantaje, riscuri și cazuri limită (trade-offs), indiferent cât de minore ar fi.
+- **UI/UX (FilterSheet Dimension Checkmark)**: În `BaseFilterSheet.jsx`, s-a înlocuit insigna numerică cu semnul de bifare (`Check` cu `strokeWidth={3.5}`, identic cu elementele selectate din coloana din dreapta) pentru dimensiunile cu selecție unică (`dim.isSingle`), permițând Categoriei (sau oricărei dimensiuni similare redenumite) să afișeze o bifă curată în loc de cifra 1.
+- **UI/UX (FilterSheet Submit Button Minimalist)**: În `FilterSheet.jsx` și `BaseFilterSheet.jsx`, s-a înlocuit textul „Arată produsele” cu pictograma dedicată de produs (`Package`) și numărul de produse afișate, eliminând redundanța vizuală și păstrând atributul accesibil `aria-label`.
+- **UI/UX (FilterSheet Active Filters Stack Reset Button & Divider)**: În `BaseFilterSheet.jsx` și `FilterSheet.jsx`, elementele din stiva superioară de filtre active (`inStack`) au primit un stil contrastant elevat (`bg-zinc-800/70`) fără chenare individuale, containerul este închis implicit (păstrând chenarul exterior doar în această stare), iar când este deschis chenarul exterior este eliminat și înlocuit cu o dungă separatoare orizontală clară (`border-b border-zinc-700/80`) între stivă și restul listei, oferind în stânga butonul de Reset (`RotateCcw`, fără text) pentru debifare instantanee.
+
+### [Commit 1f1a28c] — build: diamant | commit: ciocolata - actualizare build word pentru push
 - **Actualizare BUILD_WORD**: S-a generat cuvântul „diamant” conform protocolului de push, pentru marcarea și validarea noii versiuni pe Vercel (pe ramura de test).
 
 ### [Commit 2e2d9de] — build: tractor | commit: ciocan - dev: test scanner engine branch & indicator

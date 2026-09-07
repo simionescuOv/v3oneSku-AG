@@ -20,8 +20,10 @@ export default function BaseFilterSheet({
   draftFilters,
   onToggleValue,
   onResetAll,
+  onResetDimension,
   onConfirm,
-  submitLabel = 'Arată rezultatele'
+  submitLabel,
+  submitIcon: SubmitIcon,
 }) {
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
@@ -34,6 +36,7 @@ export default function BaseFilterSheet({
 
   useEffect(() => {
     if (open) {
+      setIsStackCollapsed(true)
       pushSearchContext('filter_sheet')
       return () => {
         popSearchContext('filter_sheet')
@@ -91,7 +94,7 @@ export default function BaseFilterSheet({
 
   useAutocompleteGhost(open && isMySearch, effectiveQuery, filteredValues, (v) => v.label)
 
-  const [isStackCollapsed, setIsStackCollapsed] = useState(false)
+  const [isStackCollapsed, setIsStackCollapsed] = useState(true)
   const [isScrolling, setIsScrolling] = useState(false)
   const scrollTimeoutRef = useRef(null)
 
@@ -126,6 +129,12 @@ export default function BaseFilterSheet({
     const count = facetedCounts[v.value] ?? 0
     const isDisabled = count === 0 && !isSelected
 
+    const bgClass = inStack
+      ? 'bg-zinc-800/70 text-zinc-100 hover:bg-zinc-800/90 active:bg-zinc-700/60'
+      : isSelected
+        ? 'bg-blue-950/40 text-zinc-100 hover:bg-blue-950/60'
+        : 'text-zinc-300 hover:bg-zinc-800/40 active:bg-zinc-800/60'
+
     return (
       <button
         key={inStack ? `stack-${v.value}` : v.value}
@@ -133,8 +142,8 @@ export default function BaseFilterSheet({
         onClick={() => onToggleValue(activeDimKey, v.value, activeDim?.isSingle)}
         className={[
           'w-full flex items-center gap-2 pl-1 pr-2 py-2.5 text-left rounded-xl transition-colors shrink-0',
-          isSelected ? 'bg-blue-950/40 text-zinc-100' : 'text-zinc-300 active:bg-zinc-800/60',
-          isDisabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-zinc-800/40',
+          bgClass,
+          isDisabled ? 'opacity-35 cursor-not-allowed' : '',
         ].join(' ')}
       >
         <span
@@ -198,9 +207,13 @@ export default function BaseFilterSheet({
                   <Icon size={15} className={isSelected ? 'text-blue-400 shrink-0' : 'text-zinc-500 shrink-0'} />
                   <span className="flex-1 text-xs truncate">{dim.name}</span>
                   {dim.badgeCount > 0 && (
-                    <span className="shrink-0 text-[10px] font-semibold bg-blue-600 text-white px-1.5 py-0.2 rounded-full min-w-4 text-center">
-                      {dim.badgeCount}
-                    </span>
+                    dim.isSingle ? (
+                      <Check size={16} strokeWidth={3.5} className="text-blue-500 shrink-0" />
+                    ) : (
+                      <span className="shrink-0 text-[10px] font-semibold bg-blue-600 text-white px-1.5 py-0.2 rounded-full min-w-4 text-center">
+                        {dim.badgeCount}
+                      </span>
+                    )
                   )}
                 </button>
               )
@@ -212,18 +225,52 @@ export default function BaseFilterSheet({
             onScroll={handleScroll}
           >
             {selectedValuesForStack.length > 0 && (
-              <div className="mb-2 shrink-0 bg-zinc-900/40 rounded-xl border border-zinc-800/60 overflow-hidden flex flex-col">
-                <button
-                  onClick={() => setIsStackCollapsed(!isStackCollapsed)}
-                  className="w-full flex items-center justify-between px-3 py-2 transition-colors hover:bg-zinc-800/40"
-                >
-                  <span className="text-xs font-medium text-zinc-400">
-                    {isStackCollapsed ? `${selectedValuesForStack.length} active filters` : ''}
-                  </span>
-                  <ChevronDown size={14} className={['text-zinc-500 transition-transform', !isStackCollapsed ? 'rotate-180' : ''].join(' ')} />
-                </button>
+              <div
+                className={[
+                  'shrink-0 flex flex-col transition-all',
+                  isStackCollapsed
+                    ? 'mb-2 bg-zinc-900/40 rounded-xl border border-zinc-800/60 overflow-hidden'
+                    : 'pb-2.5 mb-2.5 border-b border-zinc-700/80',
+                ].join(' ')}
+              >
+                <div className="w-full flex items-center justify-between px-1.5 py-1 transition-colors">
+                  {isStackCollapsed ? (
+                    <button
+                      onClick={() => setIsStackCollapsed(false)}
+                      className="w-full flex items-center justify-between px-1 py-0.5 text-left rounded-lg hover:bg-zinc-800/40 transition-colors"
+                    >
+                      <span className="text-xs font-medium text-zinc-400">
+                        {selectedValuesForStack.length} active filters
+                      </span>
+                      <ChevronDown size={14} className="text-zinc-500" />
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onResetDimension?.(activeDimKey)
+                          setIsStackCollapsed(true)
+                        }}
+                        aria-label="Debifează toate filtrele din această listă"
+                        className="flex items-center justify-center py-1 px-2.5 rounded-lg text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 transition-colors shrink-0"
+                      >
+                        <RotateCcw size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsStackCollapsed(true)}
+                        aria-label="Restrânge lista"
+                        className="flex-1 flex items-center justify-end py-1 px-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                      >
+                        <ChevronDown size={14} className="rotate-180" />
+                      </button>
+                    </>
+                  )}
+                </div>
                 {!isStackCollapsed && (
-                  <div className="flex flex-col pb-1 px-1 space-y-1">
+                  <div className="flex flex-col pb-1 space-y-1">
                     {selectedValuesForStack.map(v => renderFilterButton(v, true))}
                   </div>
                 )}
@@ -262,10 +309,14 @@ export default function BaseFilterSheet({
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 flex items-center justify-center gap-1 py-1 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-sm leading-tight font-semibold text-white shadow-lg transition-colors min-w-0"
+            aria-label={submitLabel ? `${submitLabel} (${matchingCount})` : `Arată produsele (${matchingCount})`}
+            className="flex-1 flex items-center justify-center gap-1.5 py-1 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-sm leading-tight font-semibold text-white shadow-lg transition-colors min-w-0"
           >
-            <span className="truncate">{submitLabel}</span>
-            <span className="shrink-0">({matchingCount})</span>
+            {SubmitIcon && <SubmitIcon size={17} className="shrink-0" />}
+            {submitLabel && <span className="truncate">{submitLabel}</span>}
+            <span className="shrink-0 font-semibold">
+              {submitLabel && !SubmitIcon ? `(${matchingCount})` : matchingCount}
+            </span>
           </button>
         </div>
       </div>

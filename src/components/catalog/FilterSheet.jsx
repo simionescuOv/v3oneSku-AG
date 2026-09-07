@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { Folder, Tag, List } from 'lucide-react'
+import { Folder, Tag, List, Package } from 'lucide-react'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 import {
@@ -172,6 +172,15 @@ export default function FilterSheet({
     clearSearch()
   }, [clearSearch])
 
+  const handleResetDimension = useCallback((dimKey) => {
+    setDraftFilters((prev) => {
+      if (!prev[dimKey] || prev[dimKey].length === 0) return prev
+      const next = { ...prev }
+      delete next[dimKey]
+      return next
+    })
+  }, [])
+
   const handleConfirm = useCallback(() => {
     clearSearch()
     onApply?.(draftFilters, matchingProductIds)
@@ -198,8 +207,9 @@ export default function FilterSheet({
       draftFilters={draftFilters}
       onToggleValue={handleToggleValue}
       onResetAll={handleResetAll}
+      onResetDimension={handleResetDimension}
       onConfirm={handleConfirm}
-      submitLabel="Arată produsele"
+      submitIcon={Package}
     />
   )
 }

@@ -12,6 +12,11 @@
      4. Se deschide o nouă secțiune curată `### [Commit Pending]` pentru următoarele sarcini.
 4. BUILD WORD & PUSH PROTOCOL: `git push` se execută EXCLUSIV la cererea expresă a utilizatorului(ex:"push"," git-push") (nu se face push automat după commit). La fiecare push solicitat, generează un cuvânt complet aleator din limba română care să NU aibă nicio similitudine tematică sau categorie comună cu cuvintele anterioare (este INTERZISĂ repetarea aceleiași tematici, ex: pietre prețioase, culori; cuvintele consecutive trebuie să provină din domenii complet necorelate — ex: *busola*, *castor*, *pendul*, *vulcan*). Actualizează `BUILD_WORD` în `src/pages/HomePage.jsx` și comunică cuvântul în răspuns pentru validarea versiunii live pe Vercel. Toate commit-urile ulterioare vor folosi acest nou cuvânt în titlul commit-ului până la următorul push.
 5. UI SELECTION PROTOCOL (PICKER v2): Whenever the user needs to select an item from a list (e.g. source, destination, category), NEVER use native HTML `<select>` dropdowns. Instead, ALWAYS use the standard Picker mechanism as described in `docs/specs/SPEC_Picker_v2.md`. The form UI should look like an input displaying the selected item; tapping it opens a dedicated bottom-sheet/dialog picker (integrating with `usePicker` and `BottomBar` search). After selection, the picker closes and the chosen item appears in the UI.
+6. CRITIQUE & TRADE-OFFS PROTOCOL (Dezavantaje & Riscuri Obligatorii):
+   La orice modificare, funcționalitate sau refactorizare propusă în modul de planificare, agentul este **OBLIGAT** să includă o secțiune dedicată:
+   - **„Dezavantaje, Riscuri și Compromisuri (Trade-offs)”**: unde va analiza critic și transparent chiar și cele mai mici riscuri posibile (degradare UX, asimetrii vizuale, cazuri limită / edge cases, complexitate inutilă în cod, impact asupra altor pagini sau regresii viitoare).
+   - Dacă o propunere are chiar și cel mai mic dezavantaj, agentul trebuie să îl menționeze explicit înainte de a cere confirmarea pentru execuție.
+
 
 
 ## ARCH_BottomSearch — Convenție: BottomBar search → lista vizibilă
