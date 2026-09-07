@@ -32,7 +32,7 @@ export default function StockHubPage() {
   
   const searchQuery = useAppStore(s => s.searchQuery)
   const setSearchQuery = useAppStore(s => s.setSearchQuery)
-  const setSearchPlaceholder = useAppStore(s => s.setSearchPlaceholder)
+  const updateSearchContext = useAppStore(s => s.updateSearchContext)
   const clearSearch = useAppStore(s => s.clearSearch)
   const barcodeScanMode = useAppStore(s => s.barcodeScanMode)
   const scannedBarcode = useAppStore(s => s.scannedBarcode)
@@ -76,8 +76,8 @@ export default function StockHubPage() {
 
   // ── Placeholder ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    setSearchPlaceholder('Caută sau creează spații...')
-  }, [setSearchPlaceholder])
+    updateSearchContext('global', 'Caută sau creează spații...')
+  }, [updateSearchContext])
 
   // Sincronizează searchQuery la revenirea în StockHubPage când barcodeScanMode este activ
   useEffect(() => {

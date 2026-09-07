@@ -80,7 +80,11 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit <hash>] — build: diamant | commit: lanterna - microTasks la filterSheet/modul agregare elem. selectate
+### [Commit <hash>] — build: diamant | commit: busuioc - refactorizare PickerSheet și unificare sistem placeholder căutare în BottomBar
+- **Bug Fix (Search Context Stack)**: Eliminat definițiile duplicate ale funcțiilor `pushSearchContext` și `popSearchContext` din `useAppStore.js` care suprascriau configurația obiectelor cu un simplu string, cauzând pierderea textului dinamic de placeholder în `BottomBar` (ex: "Caută Categorie...") și afișarea exclusivă a variantei de fallback ("Caută...").
+- **Arch Refactor (Declarative Search Context)**: S-a refactorizat complet mecanismul de gestionare a placeholder-ului pentru bara de căutare din `BottomBar`. A fost eliminată funcția imperativă (și fragilă) `setSearchPlaceholder` din `useAppStore`. S-a introdus un mecanism robust, bazat pe stivă (`searchContextStack`), gestionat prin `pushSearchContext`, `popSearchContext` și `updateSearchContext`. Acum `BottomBar` citește declarativ `placeholder`-ul din vârful stivei. Au fost migrate toate componentele dependente (`CatalogPage`, `CategoryPage`, `SpacePage`, `StockHubPage`, `BaseFilterSheet`, `PickerSheet`, `DestinationPicker`).
+
+### [Commit 97b30fc] — build: diamant | commit: lanterna - microTasks la filterSheet/modul agregare elem. selectate
 - **Agent Instructions (GEMINI.md Rule 6 — Critique & Trade-offs Protocol)**: S-a adăugat regula obligatorie ca la fiecare propunere din modul de planificare, agentul să prezinte transparent o secțiune de dezavantaje, riscuri și cazuri limită (trade-offs), indiferent cât de minore ar fi.
 - **UI/UX (FilterSheet Dimension Checkmark)**: În `BaseFilterSheet.jsx`, s-a înlocuit insigna numerică cu semnul de bifare (`Check` cu `strokeWidth={3.5}`, identic cu elementele selectate din coloana din dreapta) pentru dimensiunile cu selecție unică (`dim.isSingle`), permițând Categoriei (sau oricărei dimensiuni similare redenumite) să afișeze o bifă curată în loc de cifra 1.
 - **UI/UX (FilterSheet Submit Button Minimalist)**: În `FilterSheet.jsx` și `BaseFilterSheet.jsx`, s-a înlocuit textul „Arată produsele” cu pictograma dedicată de produs (`Package`) și numărul de produse afișate, eliminând redundanța vizuală și păstrând atributul accesibil `aria-label`.

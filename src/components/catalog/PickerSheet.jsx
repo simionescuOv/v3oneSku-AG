@@ -29,7 +29,8 @@ export default function PickerSheet({
   onClose,
 }) {
   const searchQuery = useAppStore((s) => s.searchQuery)
-  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
+  const pushSearchContext = useAppStore((s) => s.pushSearchContext)
+  const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
 
   const [tempSelected, setTempSelected] = useState([])
@@ -40,10 +41,13 @@ export default function PickerSheet({
     setTempSelected([...selected])
     setCreated([])
     clearSearch()
-    setSearchPlaceholder(searchPlaceholder)
+    
+    // Înregistrăm contextul curent de căutare
+    pushSearchContext('picker_sheet', searchPlaceholder)
+    
     return () => {
       clearSearch()
-      setSearchPlaceholder(restorePlaceholder)
+      popSearchContext('picker_sheet')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])

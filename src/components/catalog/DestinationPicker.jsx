@@ -7,18 +7,19 @@ import { filterAndSort } from '../../lib/search'
 export default function DestinationPicker({ open, onClose, tempFolderId, onPicked, allRootSelection = false, getValidDestinations }) {
 
   const searchQuery = useAppStore((s) => s.searchQuery)
-  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
+  const pushSearchContext = useAppStore((s) => s.pushSearchContext)
+  const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
 
   useEffect(() => {
     if (!open) return
     clearSearch()
-    setSearchPlaceholder('Caută folder destinație...')
+    pushSearchContext('destination_picker', 'Caută folder destinație...')
     return () => {
       clearSearch()
-      setSearchPlaceholder('Caută categorie sau folder...')
+      popSearchContext('destination_picker')
     }
-  }, [open, clearSearch, setSearchPlaceholder])
+  }, [open, clearSearch, pushSearchContext, popSearchContext])
 
   const validFolders = useMemo(() => {
     if (!open || !tempFolderId) return []

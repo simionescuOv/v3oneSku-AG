@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore'
 
 // Cuvinte de validare generare build (se actualizează la fiecare push / commit major)
 const BUILD_WORD = 'diamant'
-const COMMIT_WORD = 'lanterna'
+const COMMIT_WORD = 'busuioc'
 
 export default function HomePage() {
   const openSideMenu = useAppStore((s) => s.openSideMenu)

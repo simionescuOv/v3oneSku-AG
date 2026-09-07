@@ -55,7 +55,6 @@ export default function CatalogPage() {
   const loading = useCatalogStore((s) => s.loading)
 
   const searchQuery = useAppStore((s) => s.searchQuery)
-  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
   const clearSearch = useAppStore((s) => s.clearSearch)
   const catalogMenuOpen = useAppStore((s) => s.catalogMenuOpen)
   const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
@@ -136,13 +135,14 @@ export default function CatalogPage() {
   }
 
   // ── Placeholder — contextual în funcție de modul activ ──────────────────────
+  const updateSearchContext = useAppStore((s) => s.updateSearchContext)
   useEffect(() => {
-    setSearchPlaceholder(
+    updateSearchContext('global',
       filteredProductIds !== null
         ? 'Caută în rezultate...'
         : 'Caută categorie sau folder...'
     )
-  }, [setSearchPlaceholder, filteredProductIds])
+  }, [updateSearchContext, filteredProductIds])
 
 
 

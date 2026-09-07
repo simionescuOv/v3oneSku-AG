@@ -28,22 +28,23 @@ export default function BaseFilterSheet({
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
-  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
 
-  const activeContext = useAppStore(s => s.searchContextStack[s.searchContextStack.length - 1])
-  const isMySearch = activeContext === 'filter_sheet'
+  const activeContextObj = useAppStore(s => s.searchContextStack[s.searchContextStack.length - 1])
+  const isMySearch = activeContextObj?.id === 'filter_sheet'
   const effectiveQuery = useActiveSearchQuery('filter_sheet')
 
   useEffect(() => {
     if (open) {
       setIsStackCollapsed(true)
-      pushSearchContext('filter_sheet')
+      const activeDim = dimensions.find((d) => d.key === activeDimKey)
+      const placeholder = activeDim ? `Caută în ${activeDim.name}...` : 'Caută opțiuni...'
+      pushSearchContext('filter_sheet', placeholder)
       return () => {
         popSearchContext('filter_sheet')
         clearSearch()
       }
     }
-  }, [open, pushSearchContext, popSearchContext, clearSearch])
+  }, [open, activeDimKey, dimensions, pushSearchContext, popSearchContext, clearSearch])
 
   // Asigură că activeDimKey este valid
   useEffect(() => {
@@ -51,17 +52,6 @@ export default function BaseFilterSheet({
       setActiveDimKey(dimensions[0].key)
     }
   }, [dimensions, activeDimKey, setActiveDimKey])
-
-  // Setare placeholder
-  useEffect(() => {
-    if (!open) return
-    const activeDim = dimensions.find((d) => d.key === activeDimKey)
-    if (activeDim) {
-      setSearchPlaceholder(`Caută în ${activeDim.name}...`)
-    } else {
-      setSearchPlaceholder('Caută opțiuni...')
-    }
-  }, [open, activeDimKey, dimensions, setSearchPlaceholder])
 
   // Filtrare și sortare inteligentă
   const filteredValues = useMemo(() => {

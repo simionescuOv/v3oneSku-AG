@@ -35,7 +35,7 @@ export default function CategoryPage() {
   const loading = useCatalogStore((s) => s.loading)
 
   const searchQuery = useAppStore((s) => s.searchQuery)
-  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
+  const updateSearchContext = useAppStore((s) => s.updateSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
   const catalogMenuOpen = useAppStore((s) => s.catalogMenuOpen)
   const closeCatalogMenu = useAppStore((s) => s.closeCatalogMenu)
@@ -89,12 +89,12 @@ export default function CategoryPage() {
   // ── Placeholder + curățare search la intrare/ieșire ──────────────────────────
   useEffect(() => {
     clearSearch()
-    setSearchPlaceholder('Caută produs în categorie...')
+    updateSearchContext('global', 'Caută produs în categorie...')
     return () => {
       clearSearch()
-      setSearchPlaceholder('Caută categorie sau folder...')
+      updateSearchContext('global', 'Caută categorie sau folder...')
     }
-  }, [clearSearch, setSearchPlaceholder])
+  }, [clearSearch, updateSearchContext])
 
   const showToast = useCallback((message) => {
     if (toastTimer.current) clearTimeout(toastTimer.current)

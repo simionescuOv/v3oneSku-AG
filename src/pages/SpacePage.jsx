@@ -34,7 +34,7 @@ export default function SpacePage() {
   const hasCart = useCartStore((s) => s.items.length > 0)
 
   const searchQuery = useAppStore((s) => s.searchQuery)
-  const setSearchPlaceholder = useAppStore((s) => s.setSearchPlaceholder)
+  const updateSearchContext = useAppStore((s) => s.updateSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
   const barcodeScanMode = useAppStore((s) => s.barcodeScanMode)
   const spaceMenuOpen = useAppStore((s) => s.spaceMenuOpen)
@@ -93,7 +93,7 @@ export default function SpacePage() {
     if (!spaceId) return
     setIsLoading(true)
     clearSearch()
-    setSearchPlaceholder('Caută produs în spațiu...')
+    updateSearchContext('global', 'Caută produs în spațiu...')
 
     // Așteptăm doar datele critice pentru afișarea interfeței
     Promise.all([
@@ -116,9 +116,9 @@ export default function SpacePage() {
       } else {
         clearSearch()
       }
-      setSearchPlaceholder('Caută sau creează spații...')
+      updateSearchContext('global', 'Caută sau creează spații...')
     }
-  }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, fetchAlerts, clearSearch, setSearchPlaceholder])
+  }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, fetchAlerts, clearSearch, updateSearchContext])
 
   // Dacă utilizatorul declanșează o nouă scanare barcode din BottomBar în timp ce se află în SpacePage,
   // navigăm la StockHubPage pentru a afișa rezultatele globale per spații

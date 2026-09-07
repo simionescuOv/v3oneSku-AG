@@ -8,11 +8,26 @@ export const useAppStore = create((set) => ({
 
   // BottomBar search shared between bar and active sheets
   searchQuery: '',
-  searchPlaceholder: 'Caută...',
+  searchContextStack: [{ id: 'global', placeholder: 'Caută...' }],
   autocompleteSuggestion: null,
-  searchContextStack: ['global'],
   setSearchQuery: (q) => set({ searchQuery: q }),
-  setSearchPlaceholder: (p) => set({ searchPlaceholder: p }),
+  
+  // Adăugăm/actualizăm contextul de căutare
+  pushSearchContext: (id, placeholder) => set((s) => ({ 
+    searchContextStack: [
+      ...s.searchContextStack.filter(c => c.id !== id), 
+      { id, placeholder: placeholder || 'Caută...' }
+    ] 
+  })),
+  updateSearchContext: (id, placeholder) => set((s) => ({
+    searchContextStack: s.searchContextStack.map(c => c.id === id ? { ...c, placeholder } : c)
+  })),
+  popSearchContext: (id) => set((s) => {
+    const newStack = s.searchContextStack.filter(c => c.id !== id);
+    if (newStack.length === 0) newStack.push({ id: 'global', placeholder: 'Caută...' });
+    return { searchContextStack: newStack };
+  }),
+
   setAutocompleteSuggestion: (val) => set((s) => {
     const prev = s.autocompleteSuggestion;
     if (prev === val) return s;
@@ -20,12 +35,6 @@ export const useAppStore = create((set) => ({
     return { autocompleteSuggestion: val };
   }),
   clearSearch: () => set({ searchQuery: '', autocompleteSuggestion: null }),
-  pushSearchContext: (ctx) => set((s) => ({ searchContextStack: [...s.searchContextStack, ctx] })),
-  popSearchContext: (ctx) => set((s) => {
-    const newStack = s.searchContextStack.filter(c => c !== ctx);
-    if (newStack.length === 0) newStack.push('global');
-    return { searchContextStack: newStack };
-  }),
 
   // BottomBar override (pentru BottomSheet-uri de tip aboveBottomBar)
   bottomBarOverrides: [],
@@ -94,6 +103,7 @@ export const useAppStore = create((set) => ({
 export const useActiveSearchQuery = (contextId = 'global') => {
   return useAppStore((s) => {
     const activeContext = s.searchContextStack[s.searchContextStack.length - 1]
-    return activeContext === contextId ? s.searchQuery : ''
+    const currentId = activeContext?.id || 'global'
+    return currentId === contextId ? s.searchQuery : ''
   })
 }

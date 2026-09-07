@@ -8,7 +8,10 @@ export default function BottomBar({ hidden }) {
   const toggleSideMenu = useAppStore((s) => s.toggleSideMenu)
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchQuery = useAppStore((s) => s.setSearchQuery)
-  const searchPlaceholder = useAppStore((s) => s.searchPlaceholder)
+  const searchContextStack = useAppStore((s) => s.searchContextStack)
+  const activeContext = searchContextStack[searchContextStack.length - 1]
+  const searchPlaceholder = activeContext?.placeholder || 'Caută...'
+  
   const openCatalogMenu = useAppStore((s) => s.openCatalogMenu)
   const openStockHubMenu = useAppStore((s) => s.openStockHubMenu)
   const openSpaceMenu = useAppStore((s) => s.openSpaceMenu)
