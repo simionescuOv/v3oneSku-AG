@@ -25,7 +25,7 @@ export default function SideMenu() {
       />
 
       {/* Panel */}
-      <div className="fixed inset-y-0 left-0 z-50 w-72 bg-zinc-900 flex flex-col shadow-2xl">
+      <div className="fixed inset-y-0 left-0 z-50 w-max min-w-[200px] max-w-[85vw] pr-6 bg-zinc-900 flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-800">
           <span className="text-base font-semibold text-zinc-100">oneSku</span>

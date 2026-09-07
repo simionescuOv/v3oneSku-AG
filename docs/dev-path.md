@@ -80,7 +80,10 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit <hash>] — build: diamant | commit: busuioc - refactorizare PickerSheet și unificare sistem placeholder căutare în BottomBar
+### [Commit Pending] — build: diamant | commit: clepsidra - feat: SideMenu latime dinamica dupa continut
+- **UI/UX (Dynamic SideMenu Width)**: S-a transformat lățimea fixă a meniului lateral (`SideMenu`) într-una dinamică. În loc de o lățime absolută (`w-72`), meniul folosește acum `w-max` protejat de `min-w-[200px]` și `max-w-[85vw]`, având un padding asimetric la dreapta (`pr-6`). Astfel, meniul se „mulează” perfect pe textul opțiunilor de navigare, ocupând mai puțin spațiu ecran (fără a lăsa spațiu gol inutil).
+
+### [Commit ca205bd] — build: diamant | commit: busuioc - refactorizare PickerSheet și unificare sistem placeholder căutare în BottomBar
 - **Bug Fix (Search Context Stack)**: Eliminat definițiile duplicate ale funcțiilor `pushSearchContext` și `popSearchContext` din `useAppStore.js` care suprascriau configurația obiectelor cu un simplu string, cauzând pierderea textului dinamic de placeholder în `BottomBar` (ex: "Caută Categorie...") și afișarea exclusivă a variantei de fallback ("Caută...").
 - **Arch Refactor (Declarative Search Context)**: S-a refactorizat complet mecanismul de gestionare a placeholder-ului pentru bara de căutare din `BottomBar`. A fost eliminată funcția imperativă (și fragilă) `setSearchPlaceholder` din `useAppStore`. S-a introdus un mecanism robust, bazat pe stivă (`searchContextStack`), gestionat prin `pushSearchContext`, `popSearchContext` și `updateSearchContext`. Acum `BottomBar` citește declarativ `placeholder`-ul din vârful stivei. Au fost migrate toate componentele dependente (`CatalogPage`, `CategoryPage`, `SpacePage`, `StockHubPage`, `BaseFilterSheet`, `PickerSheet`, `DestinationPicker`).
 
