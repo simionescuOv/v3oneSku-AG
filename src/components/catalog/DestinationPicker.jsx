@@ -1,11 +1,12 @@
 import { useEffect, useMemo } from 'react'
 import { Folder, Home } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import BottomSheet from './BottomSheet'
 import { useAppStore } from '../../store/useAppStore'
 import { filterAndSort } from '../../lib/search'
 
 export default function DestinationPicker({ open, onClose, tempFolderId, onPicked, allRootSelection = false, getValidDestinations }) {
-
+  const { t } = useTranslation()
   const searchQuery = useAppStore((s) => s.searchQuery)
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
@@ -14,12 +15,12 @@ export default function DestinationPicker({ open, onClose, tempFolderId, onPicke
   useEffect(() => {
     if (!open) return
     clearSearch()
-    pushSearchContext('destination_picker', 'Caută folder destinație...')
+    pushSearchContext('destination_picker', t('search.destination_picker'))
     return () => {
       clearSearch()
       popSearchContext('destination_picker')
     }
-  }, [open, clearSearch, pushSearchContext, popSearchContext])
+  }, [open, clearSearch, pushSearchContext, popSearchContext, t])
 
   const validFolders = useMemo(() => {
     if (!open || !tempFolderId) return []

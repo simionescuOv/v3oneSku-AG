@@ -1,16 +1,21 @@
 import { Menu, Search, BookOpen, Package, X, ScanBarcode } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
 import { normalize } from '../../lib/search'
 
 export default function BottomBar({ hidden }) {
+  const { t } = useTranslation()
   const toggleSideMenu = useAppStore((s) => s.toggleSideMenu)
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchQuery = useAppStore((s) => s.setSearchQuery)
   const searchContextStack = useAppStore((s) => s.searchContextStack)
   const activeContext = searchContextStack[searchContextStack.length - 1]
-  const searchPlaceholder = activeContext?.placeholder || 'Caută...'
+  const rawPlaceholder = activeContext?.placeholder
+  const searchPlaceholder = (rawPlaceholder === 'Caută...' || !rawPlaceholder) 
+    ? t('search.placeholder_fallback') 
+    : rawPlaceholder
   
   const openCatalogMenu = useAppStore((s) => s.openCatalogMenu)
   const openStockHubMenu = useAppStore((s) => s.openStockHubMenu)
@@ -171,7 +176,7 @@ export default function BottomBar({ hidden }) {
             type="search"
             name="search"
             id="search"
-            placeholder={globalNameIdSearch ? "Caută după Name ID..." : searchPlaceholder}
+            placeholder={globalNameIdSearch ? t('search.name_id') : searchPlaceholder}
             autoComplete="off"
             enterKeyHint="search"
             data-lpignore="true"

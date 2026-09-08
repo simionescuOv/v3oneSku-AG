@@ -4,6 +4,7 @@ import {
   Plus, FolderInput, ChevronLeft,
   UnfoldVertical, FoldVertical, FolderPlus
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
 import { useCartStore } from '../store/useCartStore'
@@ -75,9 +76,10 @@ export default function StockHubPage() {
   }, [spaces.length, fetchSpaces, fetchAlerts])
 
   // ── Placeholder ──────────────────────────────────────────────────────────────
+  const { t } = useTranslation()
   useEffect(() => {
-    updateSearchContext('global', 'Caută sau creează spații...')
-  }, [updateSearchContext])
+    updateSearchContext('global', t('search.space_default'))
+  }, [updateSearchContext, t])
 
   // Sincronizează searchQuery la revenirea în StockHubPage când barcodeScanMode este activ
   useEffect(() => {

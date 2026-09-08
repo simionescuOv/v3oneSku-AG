@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft, SlidersHorizontal, RotateCcw, Warehouse } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useStockStore } from '../store/useStockStore'
 import { useAppStore } from '../store/useAppStore'
 import { useCatalogStore } from '../store/useCatalogStore'
@@ -89,11 +90,12 @@ export default function SpacePage() {
   )
 
   // ── Fetch la montare ─────────────────────────────────────────────────
+  const { t } = useTranslation()
   useEffect(() => {
     if (!spaceId) return
     setIsLoading(true)
     clearSearch()
-    updateSearchContext('global', 'Caută produs în spațiu...')
+    updateSearchContext('global', t('search.space'))
 
     // Așteptăm doar datele critice pentru afișarea interfeței
     Promise.all([
@@ -116,9 +118,9 @@ export default function SpacePage() {
       } else {
         clearSearch()
       }
-      updateSearchContext('global', 'Caută sau creează spații...')
+      updateSearchContext('global', t('search.space_default'))
     }
-  }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, fetchAlerts, clearSearch, updateSearchContext])
+  }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, fetchAlerts, clearSearch, updateSearchContext, t])
 
   // Dacă utilizatorul declanșează o nouă scanare barcode din BottomBar în timp ce se află în SpacePage,
   // navigăm la StockHubPage pentru a afișa rezultatele globale per spații

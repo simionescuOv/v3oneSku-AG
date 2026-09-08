@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, Plus, Settings, Trash2, Upload, SlidersHorizontal, RotateCcw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
 import { useCartStore } from '../store/useCartStore'
@@ -87,14 +88,15 @@ export default function CategoryPage() {
   }, [categoryProducts, filteredProductIds])
 
   // ── Placeholder + curățare search la intrare/ieșire ──────────────────────────
+  const { t } = useTranslation()
   useEffect(() => {
     clearSearch()
-    updateSearchContext('global', 'Caută produs în categorie...')
+    updateSearchContext('global', t('search.category'))
     return () => {
       clearSearch()
-      updateSearchContext('global', 'Caută categorie sau folder...')
+      updateSearchContext('global', t('search.catalog_default'))
     }
-  }, [clearSearch, updateSearchContext])
+  }, [clearSearch, updateSearchContext, t])
 
   const showToast = useCallback((message) => {
     if (toastTimer.current) clearTimeout(toastTimer.current)

@@ -1,10 +1,10 @@
 import { User, BookOpen, Warehouse, Store, LayoutDashboard, Settings } from 'lucide-react'
 
 export const NAV_ITEMS = [
-  { path: '/account',    label: 'Account',    Icon: User },
-  { path: '/catalog',    label: 'Catalog',    Icon: BookOpen },
-  { path: '/stockhub',   label: 'StockHub',   Icon: Warehouse },
-  { path: '/storefront', label: 'Storefront', Icon: Store },
-  { path: '/dashboard',  label: 'Dashboard',  Icon: LayoutDashboard },
-  { path: '/settings',   label: 'Settings',   Icon: Settings },
+  { path: '/account',    labelKey: 'nav.account',    Icon: User },
+  { path: '/catalog',    labelKey: 'nav.catalog',    Icon: BookOpen },
+  { path: '/stockhub',   labelKey: 'nav.stockhub',   Icon: Warehouse },
+  { path: '/storefront', labelKey: 'nav.storefront', Icon: Store },
+  { path: '/dashboard',  labelKey: 'nav.dashboard',  Icon: LayoutDashboard },
+  { path: '/settings',   labelKey: 'nav.settings',   Icon: Settings },
 ]

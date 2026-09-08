@@ -4,6 +4,7 @@ import BottomSheet from './BottomSheet'
 import { useAppStore, useActiveSearchQuery } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
 import { useAutocompleteGhost } from '../../hooks/useAutocompleteGhost'
+import { useTranslation } from 'react-i18next'
 
 export default function BaseFilterSheet({
   open,
@@ -25,6 +26,7 @@ export default function BaseFilterSheet({
   submitLabel,
   submitIcon: SubmitIcon,
 }) {
+  const { t } = useTranslation()
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
@@ -37,14 +39,16 @@ export default function BaseFilterSheet({
     if (open) {
       setIsStackCollapsed(true)
       const activeDim = dimensions.find((d) => d.key === activeDimKey)
-      const placeholder = activeDim ? `Caută în ${activeDim.name}...` : 'Caută opțiuni...'
+      const placeholder = activeDim?.name?.trim()
+        ? t('search.filter_dimension', { name: activeDim.name })
+        : t('search.filter_options')
       pushSearchContext('filter_sheet', placeholder)
       return () => {
         popSearchContext('filter_sheet')
         clearSearch()
       }
     }
-  }, [open, activeDimKey, dimensions, pushSearchContext, popSearchContext, clearSearch])
+  }, [open, activeDimKey, dimensions, pushSearchContext, popSearchContext, clearSearch, t])
 
   // Asigură că activeDimKey este valid
   useEffect(() => {

@@ -4,6 +4,7 @@ import {
   Plus, FolderInput, ChevronRight, ChevronLeft, ChevronDown, Folder, Tag,
   UnfoldVertical, FoldVertical, Check, SlidersHorizontal, ArrowLeft, RotateCcw,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useAppStore } from '../store/useAppStore'
 import { useCartStore } from '../store/useCartStore'
@@ -136,13 +137,14 @@ export default function CatalogPage() {
 
   // ── Placeholder — contextual în funcție de modul activ ──────────────────────
   const updateSearchContext = useAppStore((s) => s.updateSearchContext)
+  const { t } = useTranslation()
   useEffect(() => {
     updateSearchContext('global',
       filteredProductIds !== null
-        ? 'Caută în rezultate...'
-        : 'Caută categorie sau folder...'
+        ? t('search.catalog_results')
+        : t('search.catalog_default')
     )
-  }, [updateSearchContext, filteredProductIds])
+  }, [updateSearchContext, filteredProductIds, t])
 
 
 

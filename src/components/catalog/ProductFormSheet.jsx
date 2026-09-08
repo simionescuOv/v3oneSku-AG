@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronRight, Tag, Dices, ScanBarcode as ScanBarcodeIcon, RotateCcw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import BottomSheet from './BottomSheet'
 import PickerSheet from './PickerSheet'
 import ProductCard from './ProductCard'
@@ -33,6 +34,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
   const clearProductFormDraft = useAppStore((s) => s.clearProductFormDraft)
   const clearSearch = useAppStore((s) => s.clearSearch)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const isEdit = Boolean(product)
   const effectiveCategoryId = categoryId || product?.categoryId
@@ -283,8 +285,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
         selected={tags}
         multiSelect
         allowCreate
-        searchPlaceholder="Caută sau adaugă tag..."
-        restorePlaceholder="Caută produs în categorie..."
+        searchPlaceholder={t('search.tag_picker')}
         emptyLabel="Niciun tag încă — scrie în bara de căutare pentru a adăuga"
         onConfirm={handleTagsConfirm}
         onClose={() => setPicker(null)}
@@ -301,8 +302,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
         items={optionsOf(picker.attrId).map((o) => ({ value: o.value }))}
         selected={values[picker.attrId] ? [values[picker.attrId]] : []}
         allowCreate
-        searchPlaceholder={`Caută ${attr?.name ?? 'valoare'}...`}
-        restorePlaceholder="Caută produs în categorie..."
+        searchPlaceholder={t('search.attr_picker', { name: attr?.name ?? '' })}
         emptyLabel="Nicio opțiune încă — scrie în bara de căutare pentru a adăuga"
         onConfirm={(sel) => handleAttrConfirm(picker.attrId, sel)}
         onClose={() => setPicker(null)}

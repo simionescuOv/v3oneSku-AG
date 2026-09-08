@@ -3,6 +3,7 @@ import { Plus, Square, CheckSquare, Check } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { usePicker } from '../../hooks/usePicker'
 import { useAppStore } from '../../store/useAppStore'
+import { useTranslation } from 'react-i18next'
 
 // Picker generic în modul „cu căutare" (SPEC_Picker_v2 §4.5, SPEC_Tags §4):
 // BottomBar rămâne vizibil și inputul lui filtrează lista — fără input propriu
@@ -22,12 +23,12 @@ export default function PickerSheet({
   selected = [],              // string[] — selecția curentă din formular
   multiSelect = false,
   allowCreate = false,
-  searchPlaceholder = 'Caută...',
-  restorePlaceholder = 'Caută...',
+  searchPlaceholder = null,
   emptyLabel = 'Nicio valoare încă',
   onConfirm,                  // ({ selected: string[], created: string[] }) => void
   onClose,
 }) {
+  const { t } = useTranslation()
   const searchQuery = useAppStore((s) => s.searchQuery)
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
@@ -36,21 +37,26 @@ export default function PickerSheet({
   const [tempSelected, setTempSelected] = useState([])
   const [created, setCreated] = useState([])
 
+  // 1. Inițializare stare la deschidere
   useEffect(() => {
     if (!open) return
     setTempSelected([...selected])
     setCreated([])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  // 2. Înregistrare context de căutare
+  useEffect(() => {
+    if (!open) return
     clearSearch()
-    
-    // Înregistrăm contextul curent de căutare
-    pushSearchContext('picker_sheet', searchPlaceholder)
+    const effectivePlaceholder = searchPlaceholder || t('search.placeholder_fallback')
+    pushSearchContext('picker_sheet', effectivePlaceholder)
     
     return () => {
       clearSearch()
       popSearchContext('picker_sheet')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, clearSearch, pushSearchContext, popSearchContext, searchPlaceholder, t])
 
   const allItems = [
     ...items,

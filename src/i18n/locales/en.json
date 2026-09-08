@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "account": "My Account",
+    "catalog": "Catalog",
+    "stockhub": "StockHub",
+    "storefront": "Storefront",
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "search": {
+    "placeholder_fallback": "Search...",
+    "catalog_default": "Search category or folder...",
+    "catalog_results": "Search in results...",
+    "category": "Search product in category...",
+    "space": "Search product in space...",
+    "space_default": "Search or create spaces...",
+    "filter_dimension": "Search in {{name}}...",
+    "filter_options": "Search options...",
+    "destination_picker": "Search destination folder...",
+    "tag_picker": "Search or add tag...",
+    "attr_picker": "Search {{name}}...",
+    "name_id": "Search by Name ID..."
+  },
+  "common": {
+    "language": "RO"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "account": "Contul Meu",
+    "catalog": "Catalog",
+    "stockhub": "StockHub",
+    "storefront": "Magazin",
+    "dashboard": "Panou Control",
+    "settings": "Setări"
+  },
+  "search": {
+    "placeholder_fallback": "Caută...",
+    "catalog_default": "Caută categorie sau folder...",
+    "catalog_results": "Caută în rezultate...",
+    "category": "Caută produs în categorie...",
+    "space": "Caută produs în spațiu...",
+    "space_default": "Caută sau creează spații...",
+    "filter_dimension": "Caută în {{name}}...",
+    "filter_options": "Caută opțiuni...",
+    "destination_picker": "Caută folder destinație...",
+    "tag_picker": "Caută sau adaugă tag...",
+    "attr_picker": "Caută {{name}}...",
+    "name_id": "Caută după Name ID..."
+  },
+  "common": {
+    "language": "EN"
+  }
+}
