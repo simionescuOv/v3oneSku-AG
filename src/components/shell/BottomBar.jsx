@@ -72,7 +72,7 @@ export default function BottomBar({ hidden }) {
     const nextVal = !globalNameIdSearch
     setGlobalNameIdSearch(nextVal)
     if (nextVal) {
-      setTimeout(() => document.getElementById('search')?.focus(), 50)
+      setTimeout(() => document.getElementById('bottom-bar-search')?.focus(), 50)
     }
   }
 
@@ -124,7 +124,7 @@ export default function BottomBar({ hidden }) {
       e.preventDefault()
       setSearchQuery(autocompleteSuggestion.text)
       setTimeout(() => {
-        const input = document.getElementById('search')
+        const input = document.getElementById('bottom-bar-search')
         if (input) {
           input.focus()
           const len = autocompleteSuggestion.text.length
@@ -172,10 +172,11 @@ export default function BottomBar({ hidden }) {
             </div>
           )}
 
+          <label htmlFor="bottom-bar-search" className="sr-only">Căutare sau adăugare tag</label>
           <input
             type="search"
-            name="search"
-            id="search"
+            name="bottom-bar-search"
+            id="bottom-bar-search"
             placeholder={globalNameIdSearch ? t('search.name_id') : searchPlaceholder}
             autoComplete="off"
             enterKeyHint="search"
@@ -202,7 +203,7 @@ export default function BottomBar({ hidden }) {
               } else {
                 setSearchQuery('')
               }
-              setTimeout(() => document.getElementById('search')?.focus(), 0)
+              setTimeout(() => document.getElementById('bottom-bar-search')?.focus(), 0)
             }}
             className="shrink-0 p-1 text-zinc-400 active:text-zinc-100 hover:text-zinc-100 relative z-20"
             aria-label="Șterge căutarea"
