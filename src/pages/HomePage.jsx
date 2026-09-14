@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 
 // Cuvinte de validare generare build (se actualizează la fiecare push / commit major)
-const BUILD_WORD = 'diamant'
+const BUILD_WORD = 'satelit'
 const COMMIT_WORD = 'cascada'
 
 export default function HomePage() {
