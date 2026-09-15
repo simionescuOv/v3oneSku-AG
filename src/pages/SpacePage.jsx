@@ -157,7 +157,9 @@ export default function SpacePage() {
       }
       // Re-folosim state pentru a apela actions fără a le pune în dependințe
       state.updateSearchContext('global', t('search.space_default'))
-      useFluxStore.getState().clearFlux()
+      // Eliminăm clearFlux() de pe unmount pentru a permite cache-ului de WW
+      // să deservească instanța din RAM atunci când utilizatorul dă "Back".
+      // useFluxStore.getState().clearFlux()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spaceId])

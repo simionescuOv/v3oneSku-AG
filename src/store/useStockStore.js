@@ -161,7 +161,13 @@ export const useStockStore = create((set, get) => ({
   },
 
   // ... (rest of methods)
+  alertsLastFetchedAt: null,
   fetchAlerts: async () => {
+    const { alertsLastFetchedAt, alerts } = get()
+    if (alertsLastFetchedAt && Date.now() - alertsLastFetchedAt < 15000) {
+      return { ok: true, data: alerts, throttled: true }
+    }
+
     const { data, error } = await supabase
       .from('stock_alerts')
       .select('*, products(name_id)')
@@ -169,7 +175,7 @@ export const useStockStore = create((set, get) => ({
       .order('created_at', { ascending: false })
 
     if (error) return { ok: false, error: error.message }
-    set({ alerts: data })
+    set({ alerts: data, alertsLastFetchedAt: Date.now() })
     return { ok: true, data }
   },
 
@@ -278,6 +284,13 @@ export const useStockStore = create((set, get) => ({
   deltaFetchSpaceProducts: async (spaceId) => {
     const { activeSpaceCache } = get()
     if (activeSpaceCache.spaceId !== spaceId || !activeSpaceCache.lastFetchedAt) return { ok: false }
+    
+    // Throttle (Cache Expiration TTL): prevenim request-uri abuzive dacă utilizatorul face Back rapid
+    const now = Date.now()
+    const lastFetch = new Date(activeSpaceCache.lastFetchedAt).getTime()
+    if (now - lastFetch < 15000) {
+      return { ok: true, updated: false, throttled: true }
+    }
 
     const { data, error } = await supabase
       .from('space_products')
