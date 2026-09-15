@@ -501,9 +501,9 @@ export default function SpacePage() {
       {view === 'flux' && fluxFilterMode && !spaceMenuOpen && (
         <button
           onClick={() => setFluxFilterOpen(prev => !prev)}
-          className="fixed bottom-24 right-5 w-14 h-14 bg-blue-600 text-zinc-100 rounded-full shadow-lg flex items-center justify-center z-40 active:scale-95 transition-transform"
+          className="fixed bottom-20 right-4 w-10 h-10 bg-blue-600 text-zinc-100 rounded-xl shadow-lg flex items-center justify-center z-40 active:scale-95 transition-transform"
         >
-          <ListFilter size={24} />
+          <SlidersHorizontal size={20} />
         </button>
       )}
 
