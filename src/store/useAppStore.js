@@ -6,6 +6,10 @@ export const useAppStore = create((set) => ({
   closeSideMenu: () => set({ sideMenuOpen: false }),
   toggleSideMenu: () => set((s) => ({ sideMenuOpen: !s.sideMenuOpen })),
 
+  // ── Scroll Restoration Cache ─────────────────────────────────────────
+  scrollCache: {},
+  setScrollCache: (key, val) => set((s) => ({ scrollCache: { ...s.scrollCache, [key]: val } })),
+
   // BottomBar search shared between bar and active sheets
   searchQuery: '',
   searchContextStack: [{ id: 'global', placeholder: 'Caută...' }],

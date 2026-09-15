@@ -38,10 +38,14 @@ Pentru funcționalitățile viitoare (similar cu agregările din *Memento Databa
 
 ## 3. Arhitectura de Filtrare pentru FLUX (Hybrid-Cloud / Time-Series)
 
-Fluxul unui spațiu reprezintă registrul tuturor mișcărilor (intrări, ieșiri, corecții). Spre deosebire de Catalog, fluxul **crește infinit** în dimensiunea Timp. 
+> ⛔ **§3 DEPĂȘIT — sept. 2026.** Arhitectura de filtrare pentru tab-ul Flux a fost complet redesenată.
+> A se vedea **`SPEC_Flux_Filtering_Architecture.md`** (v2, sept. 2026) pentru implementarea curentă.
+> §1–§2 din acest document rămân valide pentru filtrarea Stoc.
+
+~~Fluxul unui spațiu reprezintă registrul tuturor mișcărilor (intrări, ieșiri, corecții). Spre deosebire de Catalog, fluxul **crește infinit** în dimensiunea Timp.
 Un spațiu mare poate avea zeci de mii de tranzacții lunar. Încărcarea acestora în memoria RAM a telefonului pentru a fi filtrate local ar bloca procesorul (V8/JavaScriptCore) și ar consuma ineficient traficul de date celular.
 
-Pentru această zonă renunțăm la procesarea exclusiv locală și trecem pe o arhitectură **Server-Side Filtering + Paginare**.
+Pentru această zonă renunțăm la procesarea exclusiv locală și trecem pe o arhitectură **Server-Side Filtering + Paginare**.~~
 
 ### Filtrarea pe "Timp" și "Produs Specific"
 Atunci când utilizatorul dorește să vadă: *"Toate tranzacțiile pentru Produsul X din ultimele 30 de zile"*:

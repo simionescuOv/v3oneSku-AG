@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Square, CheckSquare, Check } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { usePicker } from '../../hooks/usePicker'
-import { useAppStore } from '../../store/useAppStore'
+import { useAppStore, useActiveSearchQuery } from '../../store/useAppStore'
 import { useTranslation } from 'react-i18next'
 
 // Picker generic în modul „cu căutare" (SPEC_Picker_v2 §4.5, SPEC_Tags §4):
@@ -29,7 +29,7 @@ export default function PickerSheet({
   onClose,
 }) {
   const { t } = useTranslation()
-  const searchQuery = useAppStore((s) => s.searchQuery)
+  const searchQuery = useActiveSearchQuery('picker_sheet')
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
@@ -71,6 +71,7 @@ export default function PickerSheet({
     labelFn: (t) => t.value,
     allowCreate,
     query: searchQuery,
+    searchContext: 'picker_sheet',
   })
 
   if (!open) return null

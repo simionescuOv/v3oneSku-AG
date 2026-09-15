@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, Plus, Settings, Trash2, Upload, SlidersHorizontal, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -93,16 +93,32 @@ export default function CategoryPage() {
     clearSearch()
     updateSearchContext('global', t('search.category'))
     return () => {
-      clearSearch()
-      updateSearchContext('global', t('search.catalog_default'))
+      // Re-fetch store state to avoid capturing old closures/deps
+      const appStore = useAppStore.getState()
+      appStore.clearSearch()
+      appStore.updateSearchContext('global', t('search.catalog_default'))
     }
-  }, [clearSearch, updateSearchContext, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const showToast = useCallback((message) => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast(message)
     toastTimer.current = setTimeout(() => setToast(null), 3000)
   }, [])
+
+  // ── Restore Scroll Position ───────────────────────────────────────────
+  const scrollRef = useRef(null)
+  const { scrollCache, setScrollCache } = useAppStore()
+
+  useLayoutEffect(() => {
+    if (!loading && scrollRef.current) {
+      const savedPos = scrollCache[`category_${categoryId}`]
+      if (savedPos !== undefined) {
+        scrollRef.current.scrollTop = savedPos
+      }
+    }
+  }, [loading, categoryId, scrollCache])
 
   const productMeta = useCallback(
     (product) => attrs.map((a) => product.attributes?.[a.id]).filter(Boolean).join(' · '),
@@ -312,13 +328,18 @@ export default function CategoryPage() {
           </p>
         </div>
       ) : (
-        <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
           {matches.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
               meta={productMeta(product)}
-              onTap={(p) => routerNavigate('/catalog/product/' + encodeURIComponent(p.nameId))}
+              onTap={(p) => {
+                if (scrollRef.current) {
+                  setScrollCache(`category_${categoryId}`, scrollRef.current.scrollTop)
+                }
+                routerNavigate('/catalog/product/' + encodeURIComponent(p.nameId))
+              }}
             />
           ))}
           {showCreate && (

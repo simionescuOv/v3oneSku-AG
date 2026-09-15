@@ -25,6 +25,8 @@ export default function BaseFilterSheet({
   onConfirm,
   submitLabel,
   submitIcon: SubmitIcon,
+  headerExtension = null,
+  showCounts = true,
 }) {
   const { t } = useTranslation()
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
@@ -69,7 +71,7 @@ export default function BaseFilterSheet({
     const isCategory = activeDimKey === 'category'
 
     return [...items].sort((a, b) => {
-      if (isCategory) {
+      if (isCategory || !showCounts) {
         return normalize(a.label).localeCompare(normalize(b.label))
       }
 
@@ -121,7 +123,7 @@ export default function BaseFilterSheet({
       ? draftFilters[activeDimKey]?.[0] === v.value
       : (draftFilters[activeDimKey] || []).includes(v.value)
     const count = facetedCounts[v.value] ?? 0
-    const isDisabled = count === 0 && !isSelected
+    const isDisabled = showCounts ? (count === 0 && !isSelected) : false
 
     const bgClass = inStack
       ? 'bg-zinc-800/70 text-zinc-100 hover:bg-zinc-800/90 active:bg-zinc-700/60'
@@ -140,14 +142,16 @@ export default function BaseFilterSheet({
           isDisabled ? 'opacity-35 cursor-not-allowed' : '',
         ].join(' ')}
       >
-        <span
-          className={[
-            'text-xs font-bold shrink-0 w-[20px] text-right',
-            isSelected ? 'text-white' : 'text-zinc-100',
-          ].join(' ')}
-        >
-          {count}
-        </span>
+        {showCounts && (
+          <span
+            className={[
+              'text-xs font-bold shrink-0 w-[20px] text-right',
+              isSelected ? 'text-white' : 'text-zinc-100',
+            ].join(' ')}
+          >
+            {count}
+          </span>
+        )}
         <span className="flex-1 text-xs truncate">{v.label}</span>
         <div className="w-4 h-4 flex items-center justify-end shrink-0">
           {isSelected && <Check size={16} strokeWidth={3.5} className="text-blue-500" />}
@@ -174,6 +178,11 @@ export default function BaseFilterSheet({
               </span>
             )}
           </div>
+          {headerExtension && (
+            <div className="shrink-0 ml-2">
+              {headerExtension}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-1 min-h-0 divide-x divide-zinc-800 overflow-hidden">

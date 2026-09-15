@@ -207,6 +207,9 @@ export const useStockStore = create((set, get) => ({
     return { ok: true, transactionId: data.transaction_id, alerts: data.alerts }
   },
 
+  // ── Cache pentru ultimul spațiu vizitat (SWR / Delta Fetch) ───────────
+  activeSpaceCache: { spaceId: null, products: [], lastFetchedAt: null },
+
   // ── Pagina unui Space ────────────────────────────────────────────────
   // Produsele din Space: space_products (stoc + delta locală) + produsele din
   // Catalog (NameID, atribute, categorie) citite live prin pointer.
@@ -260,7 +263,75 @@ export const useStockStore = create((set, get) => ({
         : null,
     }))
 
+    // Salvează în cache
+    set({
+      activeSpaceCache: {
+        spaceId,
+        products: mapped,
+        lastFetchedAt: new Date().toISOString(),
+      }
+    })
+
     return { ok: true, data: mapped }
+  },
+
+  deltaFetchSpaceProducts: async (spaceId) => {
+    const { activeSpaceCache } = get()
+    if (activeSpaceCache.spaceId !== spaceId || !activeSpaceCache.lastFetchedAt) return { ok: false }
+
+    const { data, error } = await supabase
+      .from('space_products')
+      .select(`
+        space_id, product_id, stock, local_tags, updated_at,
+        products ( id, name_id, category_id, attributes, tags, list_price, categories ( name ) )
+      `)
+      .eq('space_id', spaceId)
+      .gt('updated_at', activeSpaceCache.lastFetchedAt)
+
+    if (error) return { ok: false, error: error.message }
+    if (!data || data.length === 0) return { ok: true, updated: false }
+
+    const mapped = data.map((row) => ({
+      productId: row.product_id,
+      spaceId: row.space_id,
+      stock: row.stock,
+      localTags: row.local_tags ?? [],
+      updatedAt: row.updated_at,
+      nameId: row.products?.name_id ?? '—',
+      categoryId: row.products?.category_id ?? null,
+      categoryName: row.products?.categories?.name ?? null,
+      attributes: row.products?.attributes ?? {},
+      tags: row.products?.tags ?? [],
+      listPrice: row.products?.list_price ?? null,
+      catalogProduct: row.products ? {
+        id: row.products.id,
+        nameId: row.products.name_id,
+        categoryId: row.products.category_id,
+        attributes: row.products.attributes ?? {},
+        tags: row.products.tags ?? [],
+        listPrice: row.products.list_price,
+      } : null,
+    }))
+
+    const currentProducts = [...activeSpaceCache.products]
+    mapped.forEach((updatedProduct) => {
+      const idx = currentProducts.findIndex(p => p.productId === updatedProduct.productId)
+      if (idx !== -1) {
+        currentProducts[idx] = updatedProduct
+      } else {
+        currentProducts.push(updatedProduct)
+      }
+    })
+
+    set({
+      activeSpaceCache: {
+        spaceId,
+        products: currentProducts,
+        lastFetchedAt: new Date().toISOString(),
+      }
+    })
+
+    return { ok: true, updated: true, data: currentProducts }
   },
 
   // ── Barcode Search in StockHub ───────────────────────────────────────
@@ -347,6 +418,7 @@ export const useStockStore = create((set, get) => ({
       }
 
       const items = (tx.transaction_items ?? []).map((item) => ({
+        productId: item.product_id,
         nameId: item.products?.name_id ?? '—',
         qty: item.quantity,
       }))

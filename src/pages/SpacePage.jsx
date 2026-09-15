@@ -1,14 +1,16 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ChevronLeft, SlidersHorizontal, RotateCcw, Warehouse } from 'lucide-react'
+import { ChevronLeft, SlidersHorizontal, RotateCcw, Warehouse, Activity, WifiOff, AlertCircle, CheckSquare, Square, ListFilter, Calendar } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useStockStore } from '../store/useStockStore'
+import { useFluxStore } from '../store/useFluxStore'
 import { useAppStore } from '../store/useAppStore'
 import { useCatalogStore } from '../store/useCatalogStore'
 import { useCartStore } from '../store/useCartStore'
 import { usePicker } from '../hooks/usePicker'
 import SpaceProductCard from '../components/stockhub/SpaceProductCard'
 import FluxFeed from '../components/stockhub/FluxFeed'
+import FluxFilterSheet, { PeriodPopover } from '../components/stockhub/FluxFilterSheet'
 import BottomSheet from '../components/catalog/BottomSheet'
 import FilterSheet from '../components/catalog/FilterSheet'
 import ContextMenu from '../components/shell/ContextMenu'
@@ -27,9 +29,22 @@ export default function SpacePage() {
   const spaces = useStockStore((s) => s.spaces)
   const alerts = useStockStore((s) => s.alerts)
   const fetchSpaceProducts = useStockStore((s) => s.fetchSpaceProducts)
-  const fetchSpaceTransactions = useStockStore((s) => s.fetchSpaceTransactions)
   const fetchAlerts = useStockStore((s) => s.fetchAlerts)
   const getBreadcrumb = useStockStore((s) => s.getBreadcrumb)
+
+  // ── Flux Store ────────────────────────────────────────────────────────
+  const initWorkingWindow = useFluxStore((s) => s.initWorkingWindow)
+  const deltaFetch = useFluxStore((s) => s.deltaFetch)
+  const loadMorePages = useFluxStore((s) => s.loadMorePages)
+  const clearFlux = useFluxStore((s) => s.clearFlux)
+  const fluxResult = useFluxStore((s) => s.fluxResult)
+  const fluxRoutingStatus = useFluxStore((s) => s.fluxRoutingStatus)
+  const fluxError = useFluxStore((s) => s.fluxError)
+  const fluxFilter = useFluxStore((s) => s.fluxFilter)
+  const resetFilter = useFluxStore((s) => s.resetFilter)
+  const applyFilter = useFluxStore((s) => s.applyFilter)
+  const filteredRawCount = useFluxStore((s) => s.filteredRawCount)
+  const currentRawSource = useFluxStore((s) => s.currentRawSource)
 
   const categoryAttributes = useCatalogStore((s) => s.categoryAttributes)
   const hasCart = useCartStore((s) => s.items.length > 0)
@@ -44,9 +59,11 @@ export default function SpacePage() {
   // ── Stare locală ──────────────────────────────────────────────────────
   const [view, setView] = useState('stoc')          // 'stoc' | 'flux'
   const [spaceProducts, setSpaceProducts] = useState([])
-  const [fluxBlocks, setFluxBlocks] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [fluxFilterOpen, setFluxFilterOpen] = useState(false)
+  const [fluxFilterMode, setFluxFilterMode] = useState(false)
+  const [intervalSheetOpen, setIntervalSheetOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState({})
   const [filteredProductIds, setFilteredProductIds] = useState(null)
   const [toast, setToast] = useState(null)
@@ -97,15 +114,35 @@ export default function SpacePage() {
     clearSearch()
     updateSearchContext('global', t('search.space'))
 
-    // Așteptăm doar datele critice pentru afișarea interfeței
-    Promise.all([
-      fetchSpaceProducts(spaceId),
-      fetchSpaceTransactions(spaceId),
-    ]).then(([productsRes, txRes]) => {
-      if (productsRes.ok) setSpaceProducts(productsRes.data)
-      if (txRes.ok) setFluxBlocks(txRes.data)
+    // 1. Verificăm Cache-ul
+    const { activeSpaceCache, deltaFetchSpaceProducts } = useStockStore.getState()
+    const hasCache = activeSpaceCache.spaceId === spaceId && activeSpaceCache.products.length > 0
+
+    if (hasCache) {
+      // Afișăm instant din cache
+      setSpaceProducts(activeSpaceCache.products)
       setIsLoading(false)
-    })
+
+      // Delta Fetch în fundal (fără să blocăm UI-ul)
+      Promise.all([
+        deltaFetchSpaceProducts(spaceId),
+        initWorkingWindow(spaceId)
+      ]).then(([deltaRes]) => {
+        if (deltaRes.ok && deltaRes.updated) {
+          setSpaceProducts(deltaRes.data)
+        }
+      })
+    } else {
+      // Așteptăm datele critice (Full Fetch)
+      setIsLoading(true)
+      Promise.all([
+        fetchSpaceProducts(spaceId),
+        initWorkingWindow(spaceId),
+      ]).then(([productsRes]) => {
+        if (productsRes.ok) setSpaceProducts(productsRes.data)
+        setIsLoading(false)
+      })
+    }
 
     // Alertele se încarcă în fundal (fire-and-forget), nu blochează afișarea
     fetchAlerts()
@@ -116,11 +153,27 @@ export default function SpacePage() {
       if (state.barcodeScanMode && state.scannedBarcode) {
         state.setSearchQuery(state.scannedBarcode)
       } else {
-        clearSearch()
+        state.clearSearch()
       }
-      updateSearchContext('global', t('search.space_default'))
+      // Re-folosim state pentru a apela actions fără a le pune în dependințe
+      state.updateSearchContext('global', t('search.space_default'))
+      useFluxStore.getState().clearFlux()
     }
-  }, [spaceId, fetchSpaceProducts, fetchSpaceTransactions, fetchAlerts, clearSearch, updateSearchContext, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spaceId])
+
+  // ── Restore Scroll Position ───────────────────────────────────────────
+  const scrollRef = useRef(null)
+  const { scrollCache, setScrollCache } = useAppStore()
+
+  useLayoutEffect(() => {
+    if (!isLoading && scrollRef.current) {
+      const savedPos = scrollCache[`space_${spaceId}`]
+      if (savedPos !== undefined) {
+        scrollRef.current.scrollTop = savedPos
+      }
+    }
+  }, [isLoading, spaceId, scrollCache])
 
   // Dacă utilizatorul declanșează o nouă scanare barcode din BottomBar în timp ce se află în SpacePage,
   // navigăm la StockHubPage pentru a afișa rezultatele globale per spații
@@ -293,7 +346,7 @@ export default function SpacePage() {
               <p className="text-zinc-500 text-sm">Niciun produs găsit.</p>
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
+            <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-800">
               {searchMatches.map((p) => (
                 <SpaceProductCard
                   key={p.productId}
@@ -303,6 +356,9 @@ export default function SpacePage() {
                   sourceId={spaceId}
                   onTap={(cp) => {
                     if (cp?.nameId) {
+                      if (scrollRef.current) {
+                        setScrollCache(`space_${spaceId}`, scrollRef.current.scrollTop)
+                      }
                       routerNavigate(
                         '/catalog/product/' + encodeURIComponent(cp.nameId), 
                         { state: { sourceSpaceId: spaceId } }
@@ -319,19 +375,68 @@ export default function SpacePage() {
           {/* ── Vizualizarea FLUX ────────────────────────────────────────── */}
           {view === 'flux' && (
             <>
-              {/* Rezumat flux */}
-              <div className="flex-none px-4 py-2 text-xs border-b border-zinc-900">
-                <span className="text-zinc-500">
-                  {fluxBlocks.length} {fluxBlocks.length === 1 ? 'tranzacție' : 'tranzacții'}
-                </span>
+              {/* Rezumat flux + buton filtru activ */}
+              <div className="flex-none flex items-center justify-between px-4 py-2 text-xs border-b border-zinc-900">
+                {fluxFilterMode ? (
+                  <span className="text-blue-400 font-medium">
+                    Filtrate {filteredRawCount}/{currentRawSource.length} tranzacții
+                  </span>
+                ) : (
+                  <span className="text-zinc-500">
+                    {fluxResult.length} {fluxResult.length === 1 ? 'tranzacție' : 'tranzacții'} recente
+                  </span>
+                )}
+                
+                {/* Buton manual de reset dacă e nevoie (când mode e activ) */}
+                {fluxFilterMode && (
+                  <button
+                    onClick={resetFilter}
+                    className="flex items-center gap-1 text-zinc-400 bg-zinc-800/60 px-2 py-0.5 rounded active:bg-zinc-700"
+                  >
+                    <RotateCcw size={10} />
+                    <span>Resetează</span>
+                  </button>
+                )}
               </div>
 
-              {isLoading ? (
+              {/* Banner stări speciale */}
+              {fluxRoutingStatus === 'offline_blocked' && (
+                <div className="flex-none mx-4 mt-3 flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-amber-950/50 border border-amber-800/60">
+                  <WifiOff size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-200 leading-relaxed">{fluxError}</p>
+                </div>
+              )}
+
+              {fluxRoutingStatus === 'volume_exceeded' && (
+                <div className="flex-none mx-4 mt-3 flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-red-950/50 border border-red-800/60">
+                  <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-200 leading-relaxed">{fluxError}</p>
+                </div>
+              )}
+
+              {fluxRoutingStatus === 'error' && (
+                <div className="flex-none mx-4 mt-3 flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-red-950/50 border border-red-800/60">
+                  <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-200 leading-relaxed">Eroare: {fluxError}</p>
+                </div>
+              )}
+
+              {/* Loading spinner (fetch inițial sau RPC în curs) */}
+              {(isLoading || fluxRoutingStatus === 'loading_ww' || fluxRoutingStatus === 'fetching_raw' || fluxRoutingStatus === 'counting') ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="w-6 h-6 rounded-full border-2 border-zinc-700 border-t-amber-400 animate-spin" />
                 </div>
+              ) : (fluxRoutingStatus === 'offline_blocked' || fluxRoutingStatus === 'volume_exceeded') ? (
+                // Banner ocupă spațiul — nu afișăm FluxFeed
+                <div className="flex-1" />
               ) : (
-                <FluxFeed blocks={fluxBlocks} alerts={spaceAlerts} />
+                <FluxFeed
+                  blocks={fluxResult}
+                  alerts={spaceAlerts}
+                  mode={fluxFilter.granularity === 'transaction' ? 'transaction' : 'aggregated'}
+                  spaceId={spaceId}
+                  onLoadMore={() => loadMorePages(spaceId)}
+                />
               )}
             </>
           )}
@@ -354,20 +459,53 @@ export default function SpacePage() {
             onClick: () => handleSwitchView('stoc')
           } : {
             label: 'Flux',
-            icon: <SlidersHorizontal size={18} />,
+            icon: <Activity size={18} />,
             onClick: () => handleSwitchView('flux')
           },
-          view === 'stoc' ? 'divider' : null,
+          'divider',
           view === 'stoc' ? {
             label: 'Filtrare',
             icon: <SlidersHorizontal size={18} />,
             badge: filteredProductIds !== null ? 'Activ' : undefined,
             onClick: () => { closeSpaceMenu(); setFilterOpen(true) }
-          } : null
+          } : {
+            label: 'Filtrare Flux',
+            icon: fluxFilterMode ? <CheckSquare size={18} className="text-blue-400" /> : <Square size={18} />,
+            active: fluxFilterMode,
+            onClick: () => {
+              closeSpaceMenu()
+              if (fluxFilterMode) {
+                setFluxFilterMode(false)
+                setFluxFilterOpen(false)
+                resetFilter()
+              } else {
+                setFluxFilterMode(true)
+                setFluxFilterOpen(true)
+              }
+            }
+          },
+          (view === 'flux' && fluxFilterMode) ? {
+            label: 'Interval',
+            icon: <Calendar size={18} />,
+            onClick: () => {
+              closeSpaceMenu()
+              setIntervalSheetOpen(true)
+            }
+          } : null,
         ].filter(Boolean)}
       />
 
-      {/* FilterSheet — instanțiat ca Adaptor contextual, limitat la produsele din spațiu */}
+      {/* Floating Action Button (FAB) Toggle Filtrare Flux */}
+      {view === 'flux' && fluxFilterMode && !spaceMenuOpen && (
+        <button
+          onClick={() => setFluxFilterOpen(prev => !prev)}
+          className="fixed bottom-24 right-5 w-14 h-14 bg-blue-600 text-zinc-100 rounded-full shadow-lg flex items-center justify-center z-40 active:scale-95 transition-transform"
+        >
+          <ListFilter size={24} />
+        </button>
+      )}
+
+      {/* FilterSheet — filtrare Stoc (produse) */}
       <FilterSheet
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
@@ -381,6 +519,33 @@ export default function SpacePage() {
           setFilteredProductIds(pids)
         }}
       />
+
+      {/* FluxFilterSheet — filtrare Flux (tranzacții) */}
+      <FluxFilterSheet
+        open={fluxFilterOpen}
+        onClose={() => setFluxFilterOpen(false)}
+      />
+
+      {/* Interval Sheet — setare rapida perioada din meniu */}
+      <BottomSheet open={intervalSheetOpen} onClose={() => setIntervalSheetOpen(false)} aboveBottomBar={true}>
+        <div className="px-4 pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+              <Calendar size={20} className="text-blue-400" />
+              Interval
+            </h2>
+          </div>
+          <PeriodPopover 
+            draft={fluxFilter}
+            onChangeDraft={(newDraft) => {
+              applyFilter(newDraft)
+              setIntervalSheetOpen(false)
+            }}
+            onClose={() => setIntervalSheetOpen(false)}
+            className="w-full relative mt-0 bg-transparent border-none shadow-none p-0"
+          />
+        </div>
+      </BottomSheet>
     </div>
   )
 }
