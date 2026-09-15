@@ -172,7 +172,7 @@ export const useCatalogStore = create((set, get) => ({
 
     set({
       nodes: nodesRes.data.map(mapNode),
-      products: productsRes.data.map(mapProduct),
+      products: productsRes.data.map(p => ({ ...mapProduct(p), _detailsLoadedAt: Date.now() })),
       categoryAttributes: attrsRes.data.map(mapCategoryAttribute),
       attributeOptions: optsRes.data.map(mapAttributeOption),
       loading: false,
@@ -464,6 +464,11 @@ export const useCatalogStore = create((set, get) => ({
 
   // ── Detalii complete produs (la cerere / ProductPage) ─────────────────
   fetchProductDetails: async (productId) => {
+    const existing = get().products.find(p => p.id === productId)
+    if (existing && existing._detailsLoadedAt && Date.now() - existing._detailsLoadedAt < 60000) {
+      return { ok: true, product: existing }
+    }
+
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -472,6 +477,7 @@ export const useCatalogStore = create((set, get) => ({
     if (error) return { ok: false, error: error.message }
     if (data) {
       const mapped = mapProduct(data)
+      mapped._detailsLoadedAt = Date.now()
       set((s) => ({
         products: s.products.map((p) => (p.id === productId ? { ...p, ...mapped } : p)),
       }))
@@ -481,17 +487,26 @@ export const useCatalogStore = create((set, get) => ({
   },
 
   // ── filter_idx — indexuri inversate precalculate (SPEC_LocalFilter_v3) ──
+  filterIdxLastFetchedAt: {},
   fetchFilterIdx: async (scopeType = 'global', scopeId = null) => {
+    const key = scopeType === 'global' ? 'global' : `${scopeType}:${scopeId}`
+    const { filterIdxLastFetchedAt, filterIndices } = get()
+
+    // Throttle / TTL: 60 secunde pentru cache-ul filter_idx
+    if (filterIdxLastFetchedAt[key] && Date.now() - filterIdxLastFetchedAt[key] < 60000) {
+      return { ok: true, data: filterIndices[key] || {}, throttled: true }
+    }
+
     let query = supabase.from('filter_idx').select('idx, scope_type, scope_id').eq('scope_type', scopeType)
     if (scopeId) query = query.eq('scope_id', scopeId)
     else query = query.is('scope_id', null)
 
     const { data, error } = await query.maybeSingle()
     if (error) return { ok: false, error: error.message }
-    const key = scopeType === 'global' ? 'global' : `${scopeType}:${scopeId}`
     const idx = data?.idx ?? {}
     set((s) => ({
       filterIndices: { ...s.filterIndices, [key]: idx },
+      filterIdxLastFetchedAt: { ...s.filterIdxLastFetchedAt, [key]: Date.now() }
     }))
     return { ok: true, data: idx }
   },
