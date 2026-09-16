@@ -643,11 +643,22 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ---
 
-### [Commit Pending]
-- **`docs/specs/SPEC_Flux_Filtering_Architecture.md` [RESCRIS v2]** — Rescriere completă a spec-ului de filtrare Flux. Modificări față de v1: (1) Working Window bazat pe volum (N ≤ 2.000 tranzacții), fără perioadă fixă de timp; (2) delta-fetch cursor = `created_at` server-side (NU `transaction_id` — UUID v4 aleator); (3) comportament offline = blocare + mesaj explicit, nu afișare silențioasă de date parțiale; (4) structura filtrelor în 3 categorii: sistem / atribute produs / atribute tranzacție [TBD]; (5) Inbound/Outbound selectabil independent fără constrângere minimă; (6) Sursă/Destinație promovat la v1 obligatoriu; (7) Tags adăugat ca filtru pe atribute produs; (8) eliminată constanta `WORKING_WINDOW_DAYS = 30`.
-- **`docs/specs/SPEC_LotTracking_v1.md` [NOU]** — Document de arhitectură pentru funcționalitățile viitoare de trasabilitate: (A) atribute de tranzacție (`transactions.attributes JSONB`, fără tabele noi — ex: "Nume Client"); (B) cost variabil per lot (rezolvat deja prin PMP via `transaction_items.unit_cost`); (C) trasabilitate completă lot/batch (FEFO/FIFO) — arhitectura preconizată cu tabelă `lots`, marcată TBD v2+ (refactorizare majoră a motorului de tranzacții).
+### [Commit `3ab3036`] — `build: termometru | commit: capsator - testare buton filtrare persistent pe toate spaces`
+- **Descriere Detaliată**:
+  - Testare și implementare buton de filtrare persistent în BottomBar pe toate spațiile (SpacePage).
+  - Rafinare FluxFeed, FluxFilterSheet și reconciliere stare de filtrare între stoc și flux.
 
 ---
+
+### [Commit `20bd839`] — `build: amfora | commit: labirint - fix css stacking context bottombar si overflow bottomsheet`
+- **Descriere Detaliată**:
+  - **Fix CSS / Stacking BottomBar & BottomSheet:** Rezolvat problema vizuală în care rândurile dintr-un `BottomSheet` cu `aboveBottomBar` (ex: detalii tranzacție din `FluxFeed`) depășeau containerul și se suprapuneau peste `BottomBar` din lipsă de `min-h-0` pe lista scrollabilă, lipsă de `overflow-hidden` pe `BottomSheet` și lipsă de stacking context dedicat (`relative z-20`) pe `BottomBar`.
+  - **`docs/specs/SPEC_Flux_Filtering_Architecture.md` [RESCRIS v2]** — Rescriere completă a spec-ului de filtrare Flux. Modificări față de v1: (1) Working Window bazat pe volum (N ≤ 2.000 tranzacții), fără perioadă fixă de timp; (2) delta-fetch cursor = `created_at` server-side (NU `transaction_id` — UUID v4 aleator); (3) comportament offline = blocare + mesaj explicit, nu afișare silențioasă de date parțiale; (4) structura filtrelor în 3 categorii: sistem / atribute produs / atribute tranzacție [TBD]; (5) Inbound/Outbound selectabil independent fără constrângere minimă; (6) Sursă/Destinație promovat la v1 obligatoriu; (7) Tags adăugat ca filtru pe atribute produs; (8) eliminată constanta `WORKING_WINDOW_DAYS = 30`.
+  - **`docs/specs/SPEC_LotTracking_v1.md` [NOU]** — Document de arhitectură pentru funcționalitățile viitoare de trasabilitate: (A) atribute de tranzacție (`transactions.attributes JSONB`, fără tabele noi — ex: "Nume Client"); (B) cost variabil per lot (rezolvat deja prin PMP via `transaction_items.unit_cost`); (C) trasabilitate completă lot/batch (FEFO/FIFO) — arhitectura preconizată cu tabelă `lots`, marcată TBD v2+ (refactorizare majoră a motorului de tranzacții).
+
+---
+
+### [Commit Pending]
 
 *(Notă pentru agent: Adaugă următorul commit deasupra acestei linii)*
 

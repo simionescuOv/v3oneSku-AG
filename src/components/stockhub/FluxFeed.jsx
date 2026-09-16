@@ -264,7 +264,7 @@ function TransactionSheetContent({ block, onClose }) {
   const isInbound = !isSummary && block.direction === 'inbound'
   
   return (
-    <div className="flex flex-col h-full max-h-[85vh]">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Mâner pt swipe */}
       <div className="shrink-0 flex justify-center pt-3 pb-2">
         <div className="w-12 h-1.5 rounded-full bg-zinc-700"></div>
@@ -285,7 +285,7 @@ function TransactionSheetContent({ block, onClose }) {
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 min-h-0 overflow-y-auto py-2 pb-4">
         {results.map((p, i) => (
           <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/30">
             <div className="flex items-center gap-2 min-w-0">

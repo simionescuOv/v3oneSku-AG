@@ -142,6 +142,7 @@ export default function BottomBar({ hidden }) {
         'bg-zinc-900 border-t border-zinc-800',
         'transition-transform duration-300 ease-in-out',
         hidden || bottomBarHidden ? 'translate-y-full' : 'translate-y-0',
+        'relative z-20',
       ].join(' ')}
     >
       <div 

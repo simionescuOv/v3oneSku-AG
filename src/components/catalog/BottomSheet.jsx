@@ -180,10 +180,9 @@ export default function BottomSheet({ open, onClose, children, className = '', a
       <div
         className={[
           'absolute left-0 right-0 z-40',
-          aboveBottomBar ? 'bottom-16' : 'bottom-0',
-          'bg-zinc-900 rounded-t-2xl',
+          aboveBottomBar ? 'bottom-16 max-h-[calc(90dvh-4rem)]' : 'bottom-0 max-h-[90dvh]',
+          'bg-zinc-900 rounded-t-2xl overflow-hidden',
           'flex flex-col',
-          'max-h-[90dvh]',
           className,
         ].join(' ')}
         style={aboveBottomBar ? undefined : { paddingBottom: 'env(safe-area-inset-bottom)' }}
