@@ -9,7 +9,7 @@ import BottomSheet from '../catalog/BottomSheet'
  * @param {function} onClose
  * @param {Array} options - [{ label, icon, badge, onClick, danger }]
  */
-export default function ContextMenu({ open, onClose, options = [] }) {
+export default function ContextMenu({ open, onClose, options = [], footer }) {
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="px-4 pb-6 space-y-1">
@@ -29,19 +29,37 @@ export default function ContextMenu({ open, onClose, options = [] }) {
                   : "text-zinc-200 hover:bg-zinc-800"
               ].join(' ')}
             >
-              <span className={opt.active ? '' : (opt.danger ? "text-red-400" : "text-zinc-400")}>
-                {opt.icon}
-              </span>
+              {opt.leadingAction && (
+                <div 
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); opt.leadingAction.onClick(e); }}
+                  className="shrink-0 p-1 -ml-1 text-zinc-400 hover:text-zinc-200"
+                >
+                  {opt.leadingAction.icon}
+                </div>
+              )}
+              {opt.icon && (
+                <span className={opt.active ? '' : (opt.danger ? "text-red-400" : "text-zinc-400")}>
+                  {opt.icon}
+                </span>
+              )}
               <span className="flex-1 text-left">{opt.label}</span>
-              {opt.badge && (
+              {opt.trailingAction ? (
+                <div 
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); opt.trailingAction.onClick(e); }}
+                  className="shrink-0 p-2 -mr-2 text-zinc-400 hover:text-zinc-200"
+                >
+                  {opt.trailingAction.icon}
+                </div>
+              ) : opt.badge ? (
                 <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
                   {opt.badge}
                 </span>
-              )}
+              ) : null}
             </button>
           )
         ))}
       </div>
+      {footer}
     </BottomSheet>
   )
 }

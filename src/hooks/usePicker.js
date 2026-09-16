@@ -14,6 +14,7 @@ export function usePicker({
   searchContext = 'global',
   value = [],
   maxSelections = Infinity,
+  enabled = true,
   onChange,
 }) {
   const activeQuery = useActiveSearchQuery(searchContext)
@@ -29,8 +30,11 @@ export function usePicker({
 
   // ── Mod inline: filtrare directă pe lista paginii ───────────────────────────
   const filteredItems = useMemo(
-    () => filterAndSort(items, query, labelFn),
-    [items, query, labelFn]
+    () => {
+      if (!enabled) return items
+      return filterAndSort(items, query, labelFn)
+    },
+    [items, query, labelFn, enabled]
   )
 
   // „+ Adaugă «query»" apare pe match inexact
@@ -39,7 +43,7 @@ export function usePicker({
   const showCreate =
     isInline && allowCreate && trimmedQuery.length > 0 && !inlineExactExists
 
-  useAutocompleteGhost(isInline, trimmedQuery, filteredItems, labelFn)
+  useAutocompleteGhost(isInline && enabled, trimmedQuery, filteredItems, labelFn)
 
   // ── Mod standalone: filtrare pe opțiuni locale, excluzând cele deja selectate ─
   const filteredOptions = useMemo(() => {

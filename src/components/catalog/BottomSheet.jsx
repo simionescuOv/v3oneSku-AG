@@ -175,7 +175,7 @@ export default function BottomSheet({ open, onClose, children, className = '', a
           'absolute inset-x-0 top-0 z-30 bg-black/50',
           aboveBottomBar ? 'bottom-16' : 'bottom-0',
         ].join(' ')}
-        onPointerDown={onClose}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose?.(); }}
       />
       <div
         className={[

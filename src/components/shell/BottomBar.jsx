@@ -1,4 +1,4 @@
-import { Menu, Search, BookOpen, Package, X, ScanBarcode } from 'lucide-react'
+import { Menu, Search, BookOpen, Package, X, ScanBarcode, ListFilter } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../../store/useAppStore'
@@ -21,6 +21,7 @@ export default function BottomBar({ hidden }) {
   const openStockHubMenu = useAppStore((s) => s.openStockHubMenu)
   const openSpaceMenu = useAppStore((s) => s.openSpaceMenu)
   const bottomBarHidden = useAppStore((s) => s.bottomBarHidden)
+  const bottomBarFilterAction = useAppStore((s) => s.bottomBarFilterAction)
 
   const { pathname } = useLocation()
   // „Familia Catalog\" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
@@ -223,6 +224,19 @@ export default function BottomBar({ hidden }) {
           title="Căutare Globală NameID"
         >
           <Package size={20} />
+        </button>
+      )}
+
+      {bottomBarFilterAction && (
+        <button
+          onClick={(e) => { e.stopPropagation(); bottomBarFilterAction.onClick(); }}
+          className={[
+            "shrink-0 flex items-center justify-center w-10 h-10 rounded-xl transition-colors",
+            bottomBarFilterAction.active ? "bg-blue-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-300 active:bg-zinc-700"
+          ].join(' ')}
+          title="Filtrare"
+        >
+          <ListFilter size={20} />
         </button>
       )}
 

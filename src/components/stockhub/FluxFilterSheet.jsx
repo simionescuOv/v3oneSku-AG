@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { SlidersHorizontal, Calendar, ArrowLeftRight, Box, Folder, Tag, List, CheckSquare, Square } from 'lucide-react'
 import BaseFilterSheet from '../catalog/BaseFilterSheet'
+import BottomSheet from '../catalog/BottomSheet'
 import { useFluxStore } from '../../store/useFluxStore'
 import { useStockStore } from '../../store/useStockStore'
 import { useCatalogStore } from '../../store/useCatalogStore'
@@ -92,7 +93,7 @@ export function PeriodPopover({ draft, onChangeDraft, onClose, className = "abso
   )
 }
 
-export default function FluxFilterSheet({ open, onClose }) {
+export default function FluxFilterSheet({ open, onClose, onOpenInterval }) {
   const fluxFilter = useFluxStore((s) => s.fluxFilter)
   const applyFilter = useFluxStore((s) => s.applyFilter)
   const currentRawSource = useFluxStore((s) => s.currentRawSource)
@@ -108,13 +109,11 @@ export default function FluxFilterSheet({ open, onClose }) {
   const filterIndices = useCatalogStore((s) => s.filterIndices)
 
   const [draft, setDraft] = useState(fluxFilter)
-  const [periodPopoverOpen, setPeriodPopoverOpen] = useState(false)
   const [activeDimKey, setActiveDimKey] = useState('types')
 
   useEffect(() => {
     if (!open) return
     setDraft(fluxFilter)
-    setPeriodPopoverOpen(false)
   }, [open, fluxFilter])
 
   const allCategories = useMemo(
@@ -286,11 +285,11 @@ export default function FluxFilterSheet({ open, onClose }) {
   }, [])
 
   const handleResetAll = useCallback(() => {
-    setDraft({
-      period: null, from: null, to: null, granularity: 'transaction',
+    setDraft(prev => ({
+      ...prev,
       types: ['inbound', 'outbound'], partnerSpaceId: null, productId: null,
       categoryId: null, tags: [], attributes: {}
-    })
+    }))
   }, [])
 
   const handleConfirm = useCallback(() => {
@@ -300,7 +299,6 @@ export default function FluxFilterSheet({ open, onClose }) {
 
   const totalActiveFilterCount = useMemo(() => {
     let count = 0
-    if (draft.period) count++
     if (draft.partnerSpaceId) count++
     if (draft.productId) count++
     if (draft.categoryId) count++
@@ -311,25 +309,9 @@ export default function FluxFilterSheet({ open, onClose }) {
   }, [draft])
 
   const headerExt = (
-    <div className="relative">
-      <button
-        onClick={() => setPeriodPopoverOpen(!periodPopoverOpen)}
-        className={[
-          'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-medium border transition-colors',
-          periodPopoverOpen ? 'bg-zinc-800 border-zinc-600 text-zinc-100' : 'bg-zinc-900 border-zinc-800 text-zinc-400',
-        ].join(' ')
-        }
-      >
-        <Calendar size={12} />
-        {formatHeaderLabel(draft)}
-      </button>
-      {periodPopoverOpen && (
-        <PeriodPopover
-          draft={draft}
-          onChangeDraft={setDraft}
-          onClose={() => setPeriodPopoverOpen(false)}
-        />
-      )}
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-medium border bg-zinc-900 border-zinc-800 text-zinc-400">
+      <Calendar size={12} />
+      {formatHeaderLabel(draft)}
     </div>
   )
 
@@ -354,6 +336,17 @@ export default function FluxFilterSheet({ open, onClose }) {
       submitLabel="Aplică filtrul"
       submitIcon={SlidersHorizontal}
       headerExtension={headerExt}
+      footerMiddleAction={
+        <button
+          onClick={() => onOpenInterval?.()}
+          className="relative flex items-center justify-center w-[46px] h-[34px] rounded-lg text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 transition-colors shrink-0"
+        >
+          <Calendar size={18} />
+          {draft.period && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500 border border-zinc-900" />
+          )}
+        </button>
+      }
       showCounts={false}
     />
   )

@@ -45,6 +45,10 @@ export const useAppStore = create((set) => ({
   pushBottomBarOverride: (override) => set((s) => ({ bottomBarOverrides: [...s.bottomBarOverrides, override] })),
   popBottomBarOverride: (id) => set((s) => ({ bottomBarOverrides: s.bottomBarOverrides.filter(o => o.id !== id) })),
 
+  // BottomBar filter action injectat de pagini (ex: SpacePage)
+  bottomBarFilterAction: null,
+  setBottomBarFilterAction: (action) => set({ bottomBarFilterAction: action }),
+
   // Catalog context menu trigger (BottomBar -> CatalogPage)
   catalogMenuOpen: false,
   openCatalogMenu: () => set({ catalogMenuOpen: true }),

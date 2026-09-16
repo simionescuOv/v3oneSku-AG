@@ -1,6 +1,8 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
-import { ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Check } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Check } from 'lucide-react'
 import { useFluxStore } from '../../store/useFluxStore'
+import BottomSheet from '../catalog/BottomSheet'
+import { useBottomSearch } from '../../hooks/useBottomSearch'
 
 // ── FluxFeed ──────────────────────────────────────────────────────────────────
 // Feed WhatsApp-style al tranzacțiilor unui Space.
@@ -43,60 +45,57 @@ function formatBucketLabel(bucketDate, granularity) {
   return formatDate(bucketDate)
 }
 
-// Grupare tranzacții individuale pe zi (cheie = data scurtă)
-function groupByDay(blocks) {
-  const days = {}
-  for (const b of blocks) {
-    const key = new Date(b.createdAt).toDateString()
-    if (!days[key]) days[key] = { label: formatDate(b.createdAt), blocks: [] }
-    days[key].blocks.push(b)
-  }
-  return Object.values(days)
-}
-
 // ── FluxBlock: tranzacție individuală ─────────────────────────────────────────
-function FluxBlock({ block }) {
+function FluxBlock({ block, onSelect }) {
   const isInbound = block.direction === 'inbound'
   const TRUNCATE_AT = 3
-  const [expanded, setExpanded] = useState(false)
-  const showAll = expanded || block.items.length <= TRUNCATE_AT
-  const visible = showAll ? block.items : block.items.slice(0, TRUNCATE_AT)
+  const visible = block.items.slice(0, TRUNCATE_AT)
   const hidden = block.items.length - TRUNCATE_AT
 
   return (
     <div className={[
-      'flex w-full px-4 py-1',
+      'flex w-full px-4 py-1 justify-start cursor-pointer',
       isInbound ? 'justify-start' : 'justify-end',
     ].join(' ')}>
-      <div className={[
-        'relative max-w-[80%] rounded-xl px-3 py-2.5 bg-zinc-800',
-        isInbound
-          ? 'rounded-tl-none border-r-2 border-green-500'
-          : 'rounded-tr-none border-l-2 border-red-500',
-      ].join(' ')}>
-
+      <div 
+        onClick={() => onSelect({ ...block, blockType: 'transaction' })}
+        className={[
+          'relative w-full max-w-[85%] rounded-xl px-3 py-2.5 bg-zinc-800 active:bg-zinc-700/80 transition-colors',
+          isInbound
+            ? 'rounded-tl-none border-r-2 border-green-500'
+            : 'rounded-tr-none border-l-2 border-red-500',
+        ].join(' ')}
+      >
         {/* Header bloc */}
         <div className={[
-          'flex items-center gap-2 mb-1.5',
+          'flex items-center justify-between mb-2',
           isInbound ? 'flex-row' : 'flex-row-reverse',
         ].join(' ')}>
-          {isInbound
-            ? <ArrowDownLeft size={14} className="text-green-400 shrink-0" />
-            : <ArrowUpRight size={14} className="text-red-400 shrink-0" />
-          }
-          <span className={[
-            'text-xs font-semibold uppercase tracking-wide',
-            isInbound ? 'text-green-400' : 'text-red-400',
+          <div className={[
+            'flex items-center gap-1.5 min-w-0',
+            isInbound ? 'flex-row' : 'flex-row-reverse',
           ].join(' ')}>
-            {isInbound ? 'Intrare' : 'Ieșire'}
-          </span>
-          <span className="text-xs text-zinc-500 shrink-0">
-            {block.sourceLabel}
+            {isInbound
+              ? <ArrowDownLeft size={14} className="text-green-400 shrink-0" />
+              : <ArrowUpRight size={14} className="text-red-400 shrink-0" />
+            }
+            <span className={[
+              'text-[10px] font-bold uppercase tracking-wider shrink-0',
+              isInbound ? 'text-green-400' : 'text-red-400',
+            ].join(' ')}>
+              {isInbound ? 'Intrare' : 'Ieșire'}
+            </span>
+            <span className="text-xs text-zinc-500 truncate max-w-[110px] mx-0.5">
+              {block.sourceLabel}
+            </span>
+          </div>
+          <span className="text-[10px] text-zinc-500 shrink-0 opacity-70 mt-0.5">
+            {formatTime(block.createdAt)}
           </span>
         </div>
 
         {/* Produse */}
-        <ul className="space-y-0.5">
+        <ul className="space-y-1">
           {visible.map((item, i) => (
             <li key={i} className="flex items-baseline justify-between gap-3">
               <div className="flex items-center gap-1.5 min-w-0">
@@ -111,30 +110,24 @@ function FluxBlock({ block }) {
               </span>
             </li>
           ))}
-          {!showAll && hidden > 0 && (
-            <li>
-              <button
-                onClick={() => setExpanded(true)}
-                className="text-xs text-blue-400 active:text-blue-300 mt-0.5"
-              >
-                +{hidden} {hidden === 1 ? 'produs' : 'produse'}...
-              </button>
+          {hidden > 0 && (
+            <li className="text-[11px] text-zinc-500 font-medium pt-0.5">
+              + încă {hidden} {hidden === 1 ? 'produs' : 'produse'}
             </li>
           )}
         </ul>
 
-        {/* Sumar + ora */}
-        <div className={[
-          'flex items-center gap-3 mt-2 pt-2 border-t border-zinc-700/60',
-          isInbound ? 'flex-row' : 'flex-row-reverse',
-        ].join(' ')}>
+        {/* Sumar (Footer read-only) */}
+        <div className="flex items-center gap-3 mt-2.5 pt-2 border-t border-zinc-700/60 justify-between">
+          <span className="text-[11px] font-medium text-zinc-400">
+            {block.items.length} {block.items.length === 1 ? 'articol' : 'articole'}
+          </span>
           <span className={[
-            'text-xs font-medium',
-            isInbound ? 'text-green-400/80' : 'text-red-400/80',
+            'text-xs font-semibold',
+            isInbound ? 'text-green-400/90' : 'text-red-400/90',
           ].join(' ')}>
             {block.totalQty} {block.totalQty === 1 ? 'buc.' : 'bucăți'}
           </span>
-          <span className="text-xs text-zinc-600">{formatTime(block.createdAt)}</span>
         </div>
       </div>
     </div>
@@ -142,15 +135,17 @@ function FluxBlock({ block }) {
 }
 
 // ── SummaryBlock: bloc agregat (zilnic/săptămânal/lunar) ──────────────────────
-function SummaryBlock({ bucket }) {
-  const [expanded, setExpanded] = useState(false)
+function SummaryBlock({ bucket, onSelect }) {
   const PREVIEW_COUNT = 3
   const products = bucket.products ?? []
-  const previewProducts = expanded ? products : products.slice(0, PREVIEW_COUNT)
+  const previewProducts = products.slice(0, PREVIEW_COUNT)
   const hiddenCount = products.length - PREVIEW_COUNT
 
   return (
-    <div className="mx-4 my-1 rounded-xl bg-zinc-800/70 border border-zinc-700/50 overflow-hidden">
+    <div 
+      onClick={() => onSelect({ ...bucket, blockType: 'summary' })}
+      className="mx-4 my-1 rounded-xl bg-zinc-800/70 border border-zinc-700/50 overflow-hidden cursor-pointer active:bg-zinc-700/90 transition-colors"
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-700/40">
         <span className="text-sm font-semibold text-zinc-200">
@@ -193,25 +188,22 @@ function SummaryBlock({ bucket }) {
             </div>
           </div>
         ))}
+        {hiddenCount > 0 && (
+          <div className="text-[11px] text-zinc-500 font-medium pt-1">
+            + încă {hiddenCount} {hiddenCount === 1 ? 'produs' : 'produse'}
+          </div>
+        )}
+      </div>
 
-        {!expanded && hiddenCount > 0 && (
-          <button
-            onClick={() => setExpanded(true)}
-            className="flex items-center gap-1 text-xs text-blue-400 active:text-blue-300 mt-1"
-          >
-            <ChevronDown size={12} />
-            +{hiddenCount} {hiddenCount === 1 ? 'produs' : 'produse'}
-          </button>
-        )}
-        {expanded && products.length > PREVIEW_COUNT && (
-          <button
-            onClick={() => setExpanded(false)}
-            className="flex items-center gap-1 text-xs text-zinc-500 active:text-zinc-300 mt-1"
-          >
-            <ChevronUp size={12} />
-            Restrânge
-          </button>
-        )}
+      {/* Footer sumar */}
+      <div className="flex items-center justify-between px-3 py-2 border-t border-zinc-700/40 bg-zinc-800/30">
+        <span className="text-xs font-medium text-zinc-400">
+          {products.length} {products.length === 1 ? 'articol' : 'articole'}
+        </span>
+        <div className="flex items-center gap-2">
+          {bucket.totalInbound > 0 && <span className="text-xs font-semibold text-green-400">+{bucket.totalInbound}</span>}
+          {bucket.totalOutbound > 0 && <span className="text-xs font-semibold text-red-400">-{bucket.totalOutbound}</span>}
+        </div>
       </div>
     </div>
   )
@@ -261,10 +253,79 @@ function InfiniteScrollSentinel({ onIntersect, hasMore, loading }) {
   )
 }
 
+// ── TransactionSheetContent ────────────────────────────────────────────────────
+const transactionLabelFn = (p) => p.nameId || p.productId;
+
+function TransactionSheetContent({ block, onClose }) {
+  const isSummary = block.blockType === 'summary'
+  const items = isSummary ? block.products : block.items
+  const { results } = useBottomSearch(items, transactionLabelFn, { enabled: true })
+
+  const isInbound = !isSummary && block.direction === 'inbound'
+  
+  return (
+    <div className="flex flex-col h-full max-h-[85vh]">
+      {/* Mâner pt swipe */}
+      <div className="shrink-0 flex justify-center pt-3 pb-2">
+        <div className="w-12 h-1.5 rounded-full bg-zinc-700"></div>
+      </div>
+      
+      <div className="flex items-center justify-between px-4 pb-3 border-b border-zinc-800 shrink-0">
+        <div className="flex flex-col">
+          <h3 className="font-semibold text-zinc-100">
+            {isSummary 
+              ? formatBucketLabel(block.bucketDate, block.granularity) 
+              : (isInbound ? 'Detalii Intrare' : 'Detalii Ieșire')}
+          </h3>
+          {!isSummary && (
+            <span className="text-xs text-zinc-400 mt-0.5">
+              {block.sourceLabel} · {formatDate(block.createdAt)} {formatTime(block.createdAt)}
+            </span>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto py-2">
+        {results.map((p, i) => (
+          <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/30">
+            <div className="flex items-center gap-2 min-w-0">
+              {p._matchedFilter && <Check size={16} className="text-blue-400 shrink-0" />}
+              <span className="text-sm text-zinc-200 truncate font-medium">{p.nameId || p.productId}</span>
+            </div>
+            <div className="flex items-center gap-3 shrink-0 pl-2">
+              {isSummary ? (
+                <>
+                  {p.qtyInbound > 0 && <span className="text-sm font-semibold text-green-400">+{p.qtyInbound}</span>}
+                  {p.qtyOutbound > 0 && <span className="text-sm font-semibold text-red-400">−{p.qtyOutbound}</span>}
+                </>
+              ) : (
+                <span className={['text-sm font-bold', isInbound ? 'text-green-400' : 'text-red-400'].join(' ')}>
+                  {p.qty}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+        {results.length === 0 && (
+          <div className="px-4 py-8 text-center text-sm text-zinc-500">
+            Niciun produs găsit
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── FluxFeed (principal) ───────────────────────────────────────────────────────
-export default function FluxFeed({ blocks, alerts = [], mode = 'transaction', spaceId, onLoadMore }) {
+export default function FluxFeed({ blocks = [], alerts = [], mode = 'transaction', spaceId, onLoadMore, onSheetOpenChange }) {
   const hasMorePages = useFluxStore((s) => s.hasMorePages)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [selectedBlock, setSelectedBlock] = useState(null)
+
+  // Anunță părintele când se deschide/închide sheet-ul
+  useEffect(() => {
+    onSheetOpenChange?.(!!selectedBlock)
+  }, [selectedBlock, onSheetOpenChange])
 
   const handleLoadMore = useCallback(async () => {
     if (!onLoadMore || loadingMore) return
@@ -273,9 +334,8 @@ export default function FluxFeed({ blocks, alerts = [], mode = 'transaction', sp
     setLoadingMore(false)
   }, [onLoadMore, loadingMore])
 
-  // ── Mutat sus pentru a respecta Rules of Hooks (niciun hook după return) ──
   const days = useMemo(() => {
-    if (mode === 'aggregated') return [] // scurtcircuitare pentru a evita procesarea inutilă
+    if (mode === 'aggregated') return [] 
 
     // 1. Combine blocks (transactions) and alerts
     const feedItems = [
@@ -290,7 +350,6 @@ export default function FluxFeed({ blocks, alerts = [], mode = 'transaction', sp
     ]
 
     // 2. Sort descending (newest first).
-    // If times are very close, ensure Transaction comes BEFORE (above) Alert in the UI.
     feedItems.sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime()
       const dateB = new Date(b.createdAt).getTime()
@@ -328,13 +387,25 @@ export default function FluxFeed({ blocks, alerts = [], mode = 'transaction', sp
       )
     }
     return (
-      <div className="flex-1 min-h-0 py-2 overflow-y-auto">
-        <div className="max-w-2xl mx-auto space-y-2">
-          {blocks.map((bucket, i) => (
-            <SummaryBlock key={bucket.bucketKey ?? i} bucket={bucket} />
-          ))}
+      <>
+        <div className="flex-1 min-h-0 py-2 overflow-y-auto">
+          <div className="max-w-2xl mx-auto space-y-2">
+            {blocks.map((bucket, i) => (
+              <SummaryBlock key={bucket.bucketKey ?? i} bucket={bucket} onSelect={setSelectedBlock} />
+            ))}
+          </div>
         </div>
-      </div>
+        
+        <BottomSheet 
+          open={!!selectedBlock} 
+          onClose={() => setSelectedBlock(null)} 
+          aboveBottomBar={true}
+        >
+          {selectedBlock && (
+            <TransactionSheetContent block={selectedBlock} onClose={() => setSelectedBlock(null)} />
+          )}
+        </BottomSheet>
+      </>
     )
   }
 
@@ -350,36 +421,43 @@ export default function FluxFeed({ blocks, alerts = [], mode = 'transaction', sp
   }
 
   return (
-    <div className="flex-1 min-h-0 py-2 overflow-y-auto">
-      {/* Wrapper pentru centrarea fluxului pe ecrane late */}
-      <div className="max-w-2xl mx-auto space-y-4">
-        {days.map((day, di) => (
-          <div key={di}>
-            {/* Sticky day header */}
-            <div className="sticky top-0 z-10 flex justify-center py-1.5">
-              <span className="text-xs text-zinc-400 bg-zinc-950/90 backdrop-blur-sm px-3 py-1 rounded-full border border-zinc-800 shadow-sm">
-                {day.label}
-              </span>
+    <>
+      <div className="flex-1 min-h-0 py-2 overflow-y-auto">
+        <div className="max-w-2xl mx-auto space-y-4">
+          {days.map((day, di) => (
+            <div key={di}>
+              <div className="sticky top-0 z-10 flex justify-center py-1.5">
+                <span className="text-xs text-zinc-400 bg-zinc-950/90 backdrop-blur-sm px-3 py-1 rounded-full border border-zinc-800 shadow-sm">
+                  {day.label}
+                </span>
+              </div>
+              <div className="space-y-2 mt-1">
+                {day.items.map((item) => (
+                  item.itemType === 'alert'
+                    ? <AlertBlock key={item.id} alert={item} />
+                    : <FluxBlock key={item.id} block={item} onSelect={setSelectedBlock} />
+                ))}
+              </div>
             </div>
-            {/* Items for this day */}
-            <div className="space-y-2 mt-1">
-              {day.items.map((item) => (
-                item.itemType === 'alert'
-                  ? <AlertBlock key={item.id} alert={item} />
-                  : <FluxBlock key={item.id} block={item} />
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Infinite Scroll Sentinel */}
-        <InfiniteScrollSentinel
-          hasMore={hasMorePages}
-          loading={loadingMore}
-          onIntersect={handleLoadMore}
-        />
+          <InfiniteScrollSentinel
+            hasMore={hasMorePages}
+            loading={loadingMore}
+            onIntersect={handleLoadMore}
+          />
+        </div>
       </div>
-    </div>
+
+      <BottomSheet 
+        open={!!selectedBlock} 
+        onClose={() => setSelectedBlock(null)} 
+        aboveBottomBar={true}
+      >
+        {selectedBlock && (
+          <TransactionSheetContent block={selectedBlock} onClose={() => setSelectedBlock(null)} />
+        )}
+      </BottomSheet>
+    </>
   )
 }
-

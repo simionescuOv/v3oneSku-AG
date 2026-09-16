@@ -26,6 +26,7 @@ export default function BaseFilterSheet({
   submitLabel,
   submitIcon: SubmitIcon,
   headerExtension = null,
+  footerMiddleAction = null,
   showCounts = true,
 }) {
   const { t } = useTranslation()
@@ -310,6 +311,7 @@ export default function BaseFilterSheet({
           >
             <RotateCcw size={16} />
           </button>
+          {footerMiddleAction}
           <button
             onClick={onConfirm}
             aria-label={submitLabel ? `${submitLabel} (${matchingCount})` : `Arată produsele (${matchingCount})`}

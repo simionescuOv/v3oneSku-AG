@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ChevronLeft, SlidersHorizontal, RotateCcw, Warehouse, Activity, WifiOff, AlertCircle, CheckSquare, Square, ListFilter, Calendar } from 'lucide-react'
+import { ChevronLeft, SlidersHorizontal, RotateCcw, Warehouse, Activity, WifiOff, AlertCircle, CheckSquare, Square, Calendar, ListFilter } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useStockStore } from '../store/useStockStore'
 import { useFluxStore } from '../store/useFluxStore'
@@ -62,14 +62,26 @@ export default function SpacePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
   const [fluxFilterOpen, setFluxFilterOpen] = useState(false)
-  const [fluxFilterMode, setFluxFilterMode] = useState(false)
-  const [intervalSheetOpen, setIntervalSheetOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState({})
   const [filteredProductIds, setFilteredProductIds] = useState(null)
+  const [intervalSheetOpen, setIntervalSheetOpen] = useState(false)
+  const [isTransactionSheetOpen, setIsTransactionSheetOpen] = useState(false)
   const [toast, setToast] = useState(null)
   const toastTimer = useRef(null)
 
   // ── Datele Space-ului curent ──────────────────────────────────────────
+  const isFluxFilterActive = useMemo(() => {
+    let count = 0
+    if (fluxFilter.period) count++
+    if (fluxFilter.partnerSpaceId) count++
+    if (fluxFilter.productId) count++
+    if (fluxFilter.categoryId) count++
+    if (fluxFilter.tags?.length > 0) count++
+    if (Object.keys(fluxFilter.attributes ?? {}).length > 0) count++
+    if (fluxFilter.types?.length === 1) count++
+    return count > 0
+  }, [fluxFilter])
+
   const space = useMemo(
     () => spaces.find((s) => s.id === spaceId),
     [spaces, spaceId]
@@ -105,6 +117,24 @@ export default function SpacePage() {
     () => [{ id: null, name: 'StockHub' }, ...breadcrumb, space ? { id: space.id, name: space.name } : null].filter(Boolean),
     [breadcrumb, space]
   )
+
+  const setBottomBarFilterAction = useAppStore(s => s.setBottomBarFilterAction)
+
+  useEffect(() => {
+    const isActive = view === 'stoc' ? filteredProductIds !== null : isFluxFilterActive
+    if (isActive && !filterOpen && !fluxFilterOpen) {
+      setBottomBarFilterAction({
+        active: true,
+        onClick: () => {
+          if (view === 'stoc') setFilterOpen(true)
+          else setFluxFilterOpen(true)
+        }
+      })
+    } else {
+      setBottomBarFilterAction(null)
+    }
+    return () => setBottomBarFilterAction(null)
+  }, [view, filteredProductIds, isFluxFilterActive, filterOpen, fluxFilterOpen, setBottomBarFilterAction])
 
   // ── Fetch la montare ─────────────────────────────────────────────────
   const { t } = useTranslation()
@@ -205,6 +235,7 @@ export default function SpacePage() {
     items: baseProducts,
     labelFn: (p) => `${p.nameId} ${p.categoryName ?? ''} ${(p.tags ?? []).join(' ')}`,
     query: searchQuery,
+    enabled: view === 'stoc',
   })
 
   // ── Meta atribute pentru card (câmpurile cu cardPreview = true) ───────
@@ -379,7 +410,7 @@ export default function SpacePage() {
             <>
               {/* Rezumat flux + buton filtru activ */}
               <div className="flex-none flex items-center justify-between px-4 py-2 text-xs border-b border-zinc-900">
-                {fluxFilterMode ? (
+                {isFluxFilterActive ? (
                   <span className="text-blue-400 font-medium">
                     Filtrate {filteredRawCount}/{currentRawSource.length} tranzacții
                   </span>
@@ -390,7 +421,7 @@ export default function SpacePage() {
                 )}
                 
                 {/* Buton manual de reset dacă e nevoie (când mode e activ) */}
-                {fluxFilterMode && (
+                {isFluxFilterActive && (
                   <button
                     onClick={resetFilter}
                     className="flex items-center gap-1 text-zinc-400 bg-zinc-800/60 px-2 py-0.5 rounded active:bg-zinc-700"
@@ -438,6 +469,7 @@ export default function SpacePage() {
                   mode={fluxFilter.granularity === 'transaction' ? 'transaction' : 'aggregated'}
                   spaceId={spaceId}
                   onLoadMore={() => loadMorePages(spaceId)}
+                  onSheetOpenChange={setIsTransactionSheetOpen}
                 />
               )}
             </>
@@ -455,57 +487,57 @@ export default function SpacePage() {
         open={spaceMenuOpen}
         onClose={closeSpaceMenu}
         options={[
-          view === 'flux' ? {
-            label: 'Stoc',
-            icon: <Warehouse size={18} />,
-            onClick: () => handleSwitchView('stoc')
-          } : {
-            label: 'Flux',
-            icon: <Activity size={18} />,
-            onClick: () => handleSwitchView('flux')
-          },
-          'divider',
-          view === 'stoc' ? {
-            label: 'Filtrare',
-            icon: <SlidersHorizontal size={18} />,
-            badge: filteredProductIds !== null ? 'Activ' : undefined,
-            onClick: () => { closeSpaceMenu(); setFilterOpen(true) }
-          } : {
-            label: 'Filtrare Flux',
-            icon: fluxFilterMode ? <CheckSquare size={18} className="text-blue-400" /> : <Square size={18} />,
-            active: fluxFilterMode,
+          {
+            label: `Filtrare ${view === 'stoc' ? 'Stoc' : 'Flux'}`,
+            icon: <ListFilter size={18} />,
+            active: view === 'stoc' ? filteredProductIds !== null : isFluxFilterActive,
             onClick: () => {
               closeSpaceMenu()
-              if (fluxFilterMode) {
-                setFluxFilterMode(false)
-                setFluxFilterOpen(false)
-                resetFilter()
-              } else {
-                setFluxFilterMode(true)
-                setFluxFilterOpen(true)
+              if (view === 'stoc') setFilterOpen(true)
+              else setFluxFilterOpen(true)
+            },
+            leadingAction: {
+              icon: (view === 'stoc' ? filteredProductIds !== null : isFluxFilterActive) 
+                ? <CheckSquare size={18} className="text-blue-400" /> 
+                : <Square size={18} className="text-zinc-500" />,
+              onClick: () => {
+                if (view === 'stoc') {
+                  if (filteredProductIds !== null) {
+                    setAppliedFilters({})
+                    setFilteredProductIds(null)
+                  } else {
+                    closeSpaceMenu()
+                    setFilterOpen(true)
+                  }
+                } else {
+                  if (isFluxFilterActive) {
+                    resetFilter()
+                  } else {
+                    closeSpaceMenu()
+                    setFluxFilterOpen(true)
+                  }
+                }
               }
             }
-          },
-          (view === 'flux' && fluxFilterMode) ? {
-            label: 'Interval',
-            icon: <Calendar size={18} />,
-            onClick: () => {
-              closeSpaceMenu()
-              setIntervalSheetOpen(true)
-            }
-          } : null,
-        ].filter(Boolean)}
+          }
+        ]}
+        footer={
+          <div className="px-4 pb-4 flex gap-2">
+            <button 
+              onClick={() => setView('stoc')} 
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-colors ${view === 'stoc' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
+            >
+              <Warehouse size={18} /> Stoc
+            </button>
+            <button 
+              onClick={() => setView('flux')} 
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-colors ${view === 'flux' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
+            >
+              <Activity size={18} /> Flux
+            </button>
+          </div>
+        }
       />
-
-      {/* Floating Action Button (FAB) Toggle Filtrare Flux */}
-      {view === 'flux' && fluxFilterMode && !spaceMenuOpen && (
-        <button
-          onClick={() => setFluxFilterOpen(prev => !prev)}
-          className="fixed bottom-20 right-4 w-10 h-10 bg-blue-600 text-zinc-100 rounded-xl shadow-lg flex items-center justify-center z-40 active:scale-95 transition-transform"
-        >
-          <SlidersHorizontal size={20} />
-        </button>
-      )}
 
       {/* FilterSheet — filtrare Stoc (produse) */}
       <FilterSheet
@@ -517,8 +549,13 @@ export default function SpacePage() {
         initialFilters={appliedFilters}
         baseProductIds={spaceProductIds}
         onApply={(filters, pids) => {
-          setAppliedFilters(filters)
-          setFilteredProductIds(pids)
+          if (Object.keys(filters).length === 0) {
+            setAppliedFilters({})
+            setFilteredProductIds(null)
+          } else {
+            setAppliedFilters(filters)
+            setFilteredProductIds(pids)
+          }
         }}
       />
 
@@ -526,16 +563,31 @@ export default function SpacePage() {
       <FluxFilterSheet
         open={fluxFilterOpen}
         onClose={() => setFluxFilterOpen(false)}
+        onOpenInterval={() => {
+          setFluxFilterOpen(false)
+          setIntervalSheetOpen(true)
+        }}
       />
 
-      {/* Interval Sheet — setare rapida perioada din meniu */}
-      <BottomSheet open={intervalSheetOpen} onClose={() => setIntervalSheetOpen(false)} aboveBottomBar={true}>
-        <div className="px-4 pb-6">
+      {/* Interval Sheet — setare rapida perioada */}
+      <BottomSheet open={intervalSheetOpen} onClose={() => setIntervalSheetOpen(false)} aboveBottomBar={true} zIndex={60}>
+        <div className="px-4 pb-6 pt-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
               <Calendar size={20} className="text-blue-400" />
-              Interval
+              Interval & Granularitate
             </h2>
+            <button
+              onClick={() => {
+                const nextFilter = { ...fluxFilter, period: null, from: null, to: null, granularity: 'transaction', showWholeTransaction: true }
+                applyFilter(nextFilter)
+                setIntervalSheetOpen(false)
+              }}
+              className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 bg-zinc-800 px-3 py-1.5 rounded-lg active:bg-zinc-700 hover:text-zinc-200 transition-colors"
+            >
+              <RotateCcw size={12} />
+              Resetează
+            </button>
           </div>
           <PeriodPopover 
             draft={fluxFilter}
