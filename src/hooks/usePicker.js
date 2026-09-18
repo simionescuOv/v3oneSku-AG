@@ -18,6 +18,11 @@ export function usePicker({
   onChange,
 }) {
   const activeQuery = useActiveSearchQuery(searchContext)
+  const isContextActive = useAppStore((s) => {
+    const activeContext = s.searchContextStack[s.searchContextStack.length - 1]
+    const currentId = activeContext?.id || 'global'
+    return currentId === searchContext
+  })
   const [localOptions, setLocalOptions] = useState([...options])
   const [tempSelected, setTempSelected] = useState([])
   const [internalQuery, setInternalQuery] = useState('')
@@ -43,7 +48,7 @@ export function usePicker({
   const showCreate =
     isInline && allowCreate && trimmedQuery.length > 0 && !inlineExactExists
 
-  useAutocompleteGhost(isInline && enabled, trimmedQuery, filteredItems, labelFn)
+  useAutocompleteGhost(isInline && enabled && isContextActive, trimmedQuery, filteredItems, labelFn)
 
   // ── Mod standalone: filtrare pe opțiuni locale, excluzând cele deja selectate ─
   const filteredOptions = useMemo(() => {

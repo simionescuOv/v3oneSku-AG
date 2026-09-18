@@ -38,13 +38,16 @@ export default function CartPage() {
     }
   }, [closeCart])
   const { spaces, fetchSpaces, commitCart } = useStockStore()
-  const { searchQuery, setSearchQuery, clearSearch } = useAppStore()
+  const searchQuery = useAppStore((s) => s.searchQuery)
+  const setSearchQuery = useAppStore((s) => s.setSearchQuery)
+  const clearSearch = useAppStore((s) => s.clearSearch)
 
   useEffect(() => {
     clearSearch()
   }, [clearSearch])
   
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false)
   const [toast, setToast] = useState(null)
   
   // 'source' | 'destination' | null
@@ -135,8 +138,14 @@ export default function CartPage() {
       return
     }
     
-    clearCart()
-    handleUIClose() // go back to catalog after success
+    setCheckoutSuccess(true)
+    showToast('Tranzacție salvată cu succes!')
+    
+    setTimeout(() => {
+      clearCart()
+      setCheckoutSuccess(false)
+      handleUIClose() // go back to catalog after success
+    }, 600)
   }
 
   // --- Logica pentru Picker ---
@@ -436,14 +445,20 @@ export default function CartPage() {
           <div className="p-4 mt-4">
             <button 
               onClick={handleCheckout}
-              disabled={!destination || checkoutLoading || source === destination}
-              className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white font-semibold text-base transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+              disabled={!destination || checkoutLoading || checkoutSuccess || source === destination}
+              className={`w-full py-4 rounded-xl text-white font-semibold text-base transition-colors flex items-center justify-center gap-2 shadow-lg ${
+                checkoutSuccess 
+                  ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20' 
+                  : 'bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none shadow-blue-900/20'
+              }`}
             >
               {checkoutLoading ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
                   Se procesează...
                 </>
+              ) : checkoutSuccess ? (
+                'Succes!'
               ) : (
                 `Confirmă tranzacția cu ${totalItems} bucăți`
               )}

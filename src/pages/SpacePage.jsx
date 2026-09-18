@@ -29,6 +29,7 @@ export default function SpacePage() {
   const spaces = useStockStore((s) => s.spaces)
   const alerts = useStockStore((s) => s.alerts)
   const fetchSpaceProducts = useStockStore((s) => s.fetchSpaceProducts)
+  const deltaFetchSpaceProducts = useStockStore((s) => s.deltaFetchSpaceProducts)
   const fetchAlerts = useStockStore((s) => s.fetchAlerts)
   const getBreadcrumb = useStockStore((s) => s.getBreadcrumb)
 
@@ -68,6 +69,34 @@ export default function SpacePage() {
   const [isTransactionSheetOpen, setIsTransactionSheetOpen] = useState(false)
   const [toast, setToast] = useState(null)
   const toastTimer = useRef(null)
+
+  // ── Smart JIT Sync ────────────────────────────────────────────────────
+  const handleIntentSync = useCallback(() => {
+    if (!spaceId) return
+    deltaFetchSpaceProducts(spaceId).then(res => {
+      if (res.ok && res.updated && res.data) {
+        setSpaceProducts(res.data)
+      }
+    })
+    // Sincronizăm și fluxul (dacă există instanțiat)
+    deltaFetch(spaceId)
+    // Opțional, actualizăm și alertele în fundal
+    fetchAlerts()
+  }, [spaceId, deltaFetchSpaceProducts, deltaFetch, fetchAlerts])
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') handleIntentSync()
+    }
+    const onFocus = () => handleIntentSync()
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('focus', onFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [handleIntentSync])
 
   // ── Datele Space-ului curent ──────────────────────────────────────────
   const isFluxFilterActive = useMemo(() => {
@@ -119,6 +148,7 @@ export default function SpacePage() {
   )
 
   const setBottomBarFilterAction = useAppStore(s => s.setBottomBarFilterAction)
+  const setBottomBarSearchFocusAction = useAppStore(s => s.setBottomBarSearchFocusAction)
 
   useEffect(() => {
     const isActive = view === 'stoc' ? filteredProductIds !== null : isFluxFilterActive
@@ -126,6 +156,7 @@ export default function SpacePage() {
       setBottomBarFilterAction({
         active: true,
         onClick: () => {
+          handleIntentSync() // JIT Sync la intenția de filtrare
           if (view === 'stoc') setFilterOpen(true)
           else setFluxFilterOpen(true)
         }
@@ -134,7 +165,12 @@ export default function SpacePage() {
       setBottomBarFilterAction(null)
     }
     return () => setBottomBarFilterAction(null)
-  }, [view, filteredProductIds, isFluxFilterActive, filterOpen, fluxFilterOpen, setBottomBarFilterAction])
+  }, [view, filteredProductIds, isFluxFilterActive, filterOpen, fluxFilterOpen, setBottomBarFilterAction, handleIntentSync])
+
+  useEffect(() => {
+    setBottomBarSearchFocusAction(handleIntentSync)
+    return () => setBottomBarSearchFocusAction(null)
+  }, [setBottomBarSearchFocusAction, handleIntentSync])
 
   // ── Fetch la montare ─────────────────────────────────────────────────
   const { t } = useTranslation()
@@ -196,7 +232,8 @@ export default function SpacePage() {
 
   // ── Restore Scroll Position ───────────────────────────────────────────
   const scrollRef = useRef(null)
-  const { scrollCache, setScrollCache } = useAppStore()
+  const scrollCache = useAppStore((s) => s.scrollCache)
+  const setScrollCache = useAppStore((s) => s.setScrollCache)
 
   useLayoutEffect(() => {
     if (!isLoading && scrollRef.current) {
@@ -492,6 +529,7 @@ export default function SpacePage() {
             icon: <ListFilter size={18} />,
             active: view === 'stoc' ? filteredProductIds !== null : isFluxFilterActive,
             onClick: () => {
+              handleIntentSync() // JIT Sync
               closeSpaceMenu()
               if (view === 'stoc') setFilterOpen(true)
               else setFluxFilterOpen(true)
@@ -506,6 +544,7 @@ export default function SpacePage() {
                     setAppliedFilters({})
                     setFilteredProductIds(null)
                   } else {
+                    handleIntentSync() // JIT Sync
                     closeSpaceMenu()
                     setFilterOpen(true)
                   }

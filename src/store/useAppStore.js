@@ -49,6 +49,10 @@ export const useAppStore = create((set) => ({
   bottomBarFilterAction: null,
   setBottomBarFilterAction: (action) => set({ bottomBarFilterAction: action }),
 
+  // BottomBar search focus action injectat de pagini (ex: JIT Sync din SpacePage)
+  bottomBarSearchFocusAction: null,
+  setBottomBarSearchFocusAction: (action) => set({ bottomBarSearchFocusAction: action }),
+
   // Catalog context menu trigger (BottomBar -> CatalogPage)
   catalogMenuOpen: false,
   openCatalogMenu: () => set({ catalogMenuOpen: true }),

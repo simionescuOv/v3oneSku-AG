@@ -210,6 +210,33 @@ export const useStockStore = create((set, get) => ({
       await get().fetchAlerts()
     }
 
+    // --- Cache Invalidation for UI ---
+    const { activeSpaceCache, deltaFetchSpaceProducts } = get()
+    
+    // 1. Invalidate Stock Cache if active
+    if (activeSpaceCache && activeSpaceCache.spaceId === destinationSpaceId) {
+       await deltaFetchSpaceProducts(destinationSpaceId)
+    }
+    if (sourceType === 'space' && activeSpaceCache && activeSpaceCache.spaceId === sourceSpaceId) {
+       await deltaFetchSpaceProducts(sourceSpaceId)
+    }
+
+    // 2. Invalidate Flux Cache (dynamically to avoid circular dependency)
+    try {
+      const { useFluxStore } = await import('./useFluxStore')
+      const fluxState = useFluxStore.getState()
+      
+      if (fluxState.workingWindowMeta?.spaceId === destinationSpaceId) {
+         await fluxState.deltaFetch(destinationSpaceId)
+      }
+      if (sourceType === 'space' && fluxState.workingWindowMeta?.spaceId === sourceSpaceId) {
+         await fluxState.deltaFetch(sourceSpaceId)
+      }
+    } catch (err) {
+      console.warn('Eroare la sincronizarea cache-ului de flux:', err)
+    }
+    // ---------------------------------
+
     return { ok: true, transactionId: data.transaction_id, alerts: data.alerts }
   },
 
@@ -269,12 +296,18 @@ export const useStockStore = create((set, get) => ({
         : null,
     }))
 
+    // Folosim ora de la server (ultimul updated_at) pentru a preveni "clock drift".
+    // Arhitectura Null-Cursor: Dacă spațiul este complet gol, nu inventăm un cursor de timp.
+    const latestUpdate = mapped.length > 0 
+      ? mapped[0].updatedAt 
+      : null;
+
     // Salvează în cache
     set({
       activeSpaceCache: {
         spaceId,
         products: mapped,
-        lastFetchedAt: new Date().toISOString(),
+        lastFetchedAt: latestUpdate,
       }
     })
 
@@ -283,7 +316,14 @@ export const useStockStore = create((set, get) => ({
 
   deltaFetchSpaceProducts: async (spaceId) => {
     const { activeSpaceCache } = get()
-    if (activeSpaceCache.spaceId !== spaceId || !activeSpaceCache.lastFetchedAt) return { ok: false }
+    if (activeSpaceCache.spaceId !== spaceId) return { ok: false }
+    
+    // Arhitectura Null-Cursor: Dacă spațiul era gol la ultima verificare,
+    // abandonăm delta fetch și delegăm direct către un Full Fetch.
+    if (!activeSpaceCache.lastFetchedAt) {
+      const fullRes = await get().fetchSpaceProducts(spaceId);
+      return { ok: fullRes.ok, updated: true, data: fullRes.data, throttled: false };
+    }
     
     // Throttle (Cache Expiration TTL): prevenim request-uri abuzive dacă utilizatorul face Back rapid
     const now = Date.now()
@@ -336,11 +376,19 @@ export const useStockStore = create((set, get) => ({
       }
     })
 
+    // Sortăm descrescător după updatedAt pentru ca produsele proaspăt adăugate/modificate să apară sus
+    currentProducts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+
+    const maxUpdatedAt = mapped.reduce(
+      (max, p) => p.updatedAt > max ? p.updatedAt : max,
+      activeSpaceCache.lastFetchedAt
+    )
+
     set({
       activeSpaceCache: {
         spaceId,
         products: currentProducts,
-        lastFetchedAt: new Date().toISOString(),
+        lastFetchedAt: maxUpdatedAt,
       }
     })
 

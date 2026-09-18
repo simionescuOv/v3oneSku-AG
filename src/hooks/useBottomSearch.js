@@ -5,6 +5,11 @@ import { useAutocompleteGhost } from './useAutocompleteGhost'
 
 export function useBottomSearch(items, labelFn = (x) => x, { enabled = true, searchContext = 'global' } = {}) {
   const searchQuery = useActiveSearchQuery(searchContext)
+  const isContextActive = useAppStore((s) => {
+    const activeContext = s.searchContextStack[s.searchContextStack.length - 1]
+    const currentId = activeContext?.id || 'global'
+    return currentId === searchContext
+  })
 
   const results = useMemo(() => {
     if (!enabled || !searchQuery.trim()) return items
@@ -12,7 +17,7 @@ export function useBottomSearch(items, labelFn = (x) => x, { enabled = true, sea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, searchQuery, labelFn, enabled])
 
-  useAutocompleteGhost(enabled, searchQuery, results, labelFn)
+  useAutocompleteGhost(enabled && isContextActive, searchQuery, results, labelFn)
 
   return {
     results,

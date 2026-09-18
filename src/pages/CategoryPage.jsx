@@ -109,7 +109,8 @@ export default function CategoryPage() {
 
   // ── Restore Scroll Position ───────────────────────────────────────────
   const scrollRef = useRef(null)
-  const { scrollCache, setScrollCache } = useAppStore()
+  const scrollCache = useAppStore((s) => s.scrollCache)
+  const setScrollCache = useAppStore((s) => s.setScrollCache)
 
   useLayoutEffect(() => {
     if (!loading && scrollRef.current) {

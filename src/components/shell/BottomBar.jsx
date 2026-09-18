@@ -22,6 +22,7 @@ export default function BottomBar({ hidden }) {
   const openSpaceMenu = useAppStore((s) => s.openSpaceMenu)
   const bottomBarHidden = useAppStore((s) => s.bottomBarHidden)
   const bottomBarFilterAction = useAppStore((s) => s.bottomBarFilterAction)
+  const bottomBarSearchFocusAction = useAppStore((s) => s.bottomBarSearchFocusAction)
 
   const { pathname } = useLocation()
   // „Familia Catalog\" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
@@ -185,6 +186,9 @@ export default function BottomBar({ hidden }) {
             data-lpignore="true"
             data-1p-ignore="true"
             value={searchQuery}
+            onFocus={() => {
+              if (bottomBarSearchFocusAction) bottomBarSearchFocusAction()
+            }}
             onChange={(e) => {
               setSearchQuery(e.target.value)
               if (barcodeScanMode && e.target.value === '') {

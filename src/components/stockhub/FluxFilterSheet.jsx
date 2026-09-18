@@ -5,6 +5,7 @@ import BottomSheet from '../catalog/BottomSheet'
 import { useFluxStore } from '../../store/useFluxStore'
 import { useStockStore } from '../../store/useStockStore'
 import { useCatalogStore } from '../../store/useCatalogStore'
+const EMPTY_OBJECT = {}
 
 const PERIODS = [
   { key: 'today', label: 'Azi' },
@@ -327,7 +328,7 @@ export default function FluxFilterSheet({ open, onClose, onOpenInterval }) {
       activeDimKey={activeDimKey}
       setActiveDimKey={setActiveDimKey}
       activeDimValues={activeDimValues}
-      facetedCounts={{}} 
+      facetedCounts={EMPTY_OBJECT} 
       draftFilters={sheetDraft}
       onToggleValue={handleToggleValue}
       onResetAll={handleResetAll}

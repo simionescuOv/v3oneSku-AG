@@ -32,26 +32,38 @@ export default function BaseFilterSheet({
   const { t } = useTranslation()
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
+  const updateSearchContext = useAppStore((s) => s.updateSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
 
   const activeContextObj = useAppStore(s => s.searchContextStack[s.searchContextStack.length - 1])
   const isMySearch = activeContextObj?.id === 'filter_sheet'
   const effectiveQuery = useActiveSearchQuery('filter_sheet')
 
+  // Gestiune ciclu viață context căutare (doar la deschidere/închidere)
   useEffect(() => {
     if (open) {
       setIsStackCollapsed(true)
       const activeDim = dimensions.find((d) => d.key === activeDimKey)
-      const placeholder = activeDim?.name?.trim()
+      const initialPlaceholder = activeDim?.name?.trim()
         ? t('search.filter_dimension', { name: activeDim.name })
         : t('search.filter_options')
-      pushSearchContext('filter_sheet', placeholder)
+      pushSearchContext('filter_sheet', initialPlaceholder)
       return () => {
         popSearchContext('filter_sheet')
         clearSearch()
       }
     }
-  }, [open, activeDimKey, dimensions, pushSearchContext, popSearchContext, clearSearch, t])
+  }, [open, pushSearchContext, popSearchContext, clearSearch])
+
+  // Actualizare dinamică placeholder când se schimbă dimensiunea activă (fără resetare stivă)
+  useEffect(() => {
+    if (!open) return
+    const activeDim = dimensions.find((d) => d.key === activeDimKey)
+    const placeholder = activeDim?.name?.trim()
+      ? t('search.filter_dimension', { name: activeDim.name })
+      : t('search.filter_options')
+    updateSearchContext('filter_sheet', placeholder)
+  }, [open, activeDimKey, dimensions, updateSearchContext, t])
 
   // Asigură că activeDimKey este valid
   useEffect(() => {
@@ -60,24 +72,26 @@ export default function BaseFilterSheet({
     }
   }, [dimensions, activeDimKey, setActiveDimKey])
 
-  // Filtrare și sortare inteligentă
+  // Filtrare și sortare inteligentă pe coloana din dreapta
   const filteredValues = useMemo(() => {
-    const q = normalize(effectiveQuery.trim())
+    const q = normalize((effectiveQuery || '').trim())
     let items = activeDimValues || []
     if (q) {
-      items = items.filter((v) => normalize(v.label).includes(q))
+      items = items.filter((v) => normalize(v?.label ?? '').includes(q))
     }
 
     const activeDim = dimensions.find(d => d.key === activeDimKey)
     const isCategory = activeDimKey === 'category'
 
     return [...items].sort((a, b) => {
+      const labelA = a?.label ?? ''
+      const labelB = b?.label ?? ''
       if (isCategory || !showCounts) {
-        return normalize(a.label).localeCompare(normalize(b.label))
+        return normalize(labelA).localeCompare(normalize(labelB))
       }
 
-      const countA = facetedCounts[a.value] || 0
-      const countB = facetedCounts[b.value] || 0
+      const countA = facetedCounts?.[a?.value] || 0
+      const countB = facetedCounts?.[b?.value] || 0
 
       const hasA = countA > 0 ? 1 : 0
       const hasB = countB > 0 ? 1 : 0
@@ -85,11 +99,11 @@ export default function BaseFilterSheet({
       if (hasA !== hasB) return hasB - hasA
       if (countA !== countB) return countB - countA
 
-      return normalize(a.label).localeCompare(normalize(b.label))
+      return normalize(labelA).localeCompare(normalize(labelB))
     })
-  }, [activeDimKey, activeDimValues, draftFilters, effectiveQuery, facetedCounts, dimensions])
+  }, [activeDimKey, activeDimValues, effectiveQuery, facetedCounts, dimensions, showCounts])
 
-  useAutocompleteGhost(open && isMySearch, effectiveQuery, filteredValues, (v) => v.label)
+  useAutocompleteGhost(open && isMySearch, effectiveQuery, filteredValues, (v) => v?.label ?? '')
 
   const [isStackCollapsed, setIsStackCollapsed] = useState(true)
   const [isScrolling, setIsScrolling] = useState(false)
