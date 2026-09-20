@@ -80,7 +80,15 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 
 ### [Commit Pending]
 
-### [Commit fa08604] — build: meteor | commit: delfin - refresh-soft stochub
+### [Commit ddd11b6] — build: scripete | commit: mozaic - ramificatie catre rec-value
+- **Docs (STATUS.md)**: Actualizat fișierul `STATUS.md` cu Sesiunile 8, 9 și 10, sintetizând căutarea barcode cross-space, arhitectura modulului Flux (Working Window, JIT sync, 2-column faceted filters), integrarea i18n, securizarea RLS pe StockHub și noile specificații de șabloane pentru carduri.
+- **Bug Fix (Flux Filter Period)**: Corectat rezolvarea datelor `from` și `to` pe baza selecției de perioadă („Azi”, „7 Zile”, „Luna curentă”) înainte de salvarea în starea Zustand `fluxFilter`, permițând funcționarea corectă a filtrului local.
+- **Security Fix (StockHub Spaces RLS)**: Securizat vizualizarea `spaces_summary` prin adăugarea `WITH (security_invoker = true)` în migrația SQL `20260918190000_secure_spaces_view.sql` și adăugat filtrare defensivă `.eq('tenant_id', tenantId)` pe client în `useStockStore.js`.
+- **UX (Space Context Menu)**: Restructurat meniul contextual din `SpacePage.jsx` într-o listă plată cu 4 opțiuni directe: „Stoc”, „Filtrare Stoc”, „Flux”, „Filtrare Flux”, eliminând butoanele redundante din subsol și declanșând sincronizarea JIT.
+- **Docs (Configurable Product Cards)**: Actualizat `SPEC_ConfigurableProductCards.md` cu definirea celor 4 layout-uri arhitecturale standard (Listă Detaliată, Stoc-Focus, Card Grilă, Listă Super-Densă).
+- **Build & Commit Words**: Actualizat `BUILD_WORD` la `scripete` și `COMMIT_WORD` la `mozaic` în `HomePage.jsx` pentru push-ul către GitHub / Vercel.
+
+### [Commit acf744f] — build: meteor | commit: delfin - refresh-soft stochub
 - **Bug Fix (Cart Checkout & Cache Sync)**: Adăugat delay vizual de 0.6 secunde la checkout-ul din coș pentru confirmare clară (buton de `Succes!`). Sincronizarea cache-ului a fost integrată în `useStockStore.commitCart`, folosind un import dinamic către `useFluxStore` pentru a actualiza instant stocurile și fluxul fără refresh forțat.
 - **Architecture (Null-Cursor Clock Drift Fix)**: Corectat logica de SWR/Delta Fetch din `useStockStore.js` pentru actualizări de stoc. În loc să utilizeze `new Date().toISOString()` de pe client (care provoca ratarea actualizărilor din cauza diferențelor de fus orar sau hardware clock drift), cache-ul folosește acum exclusiv maximul `updated_at` (ora exactă a serverului) extras direct din rezultate. Pentru spații complet goale s-a implementat arhitectura "Null-Cursor" (`lastFetchedAt: null`), delegând cererea de delta înapoi către un Full Fetch ieftin pentru a evita inventarea unor cursoare temporale.
 - **Bug Fix (Vercel SPA Routing)**: Creat `vercel.json` cu un rewrite global `/(.*) -> /index.html` pentru a asigura funcționarea corectă a refresh-urilor (F5) direct pe linkurile de interior pe Vercel.
@@ -88,7 +96,7 @@ Fiecare commit nou trebuie adăugat la începutul acestei liste:
 - **Bug Fix (JIT Sorting & Flux Param)**: Corectat două bug-uri apărute în urma implementării JIT: (1) S-a adăugat o sortare explicită (`updatedAt` descendent) pe array-ul din memorie în `deltaFetchSpaceProducts` pentru ca produsele noi din tranzacții să apară corect pe prima poziție în loc de ultima. (2) S-a adăugat parametrul lipsă `spaceId` în apelul asincron `deltaFetch(spaceId)` din `SpacePage.jsx` pentru a permite fluxului să se actualizeze local.
 - **Feature (Smart JIT Search)**: Extins arhitectura JIT pentru a acoperi și intenția de căutare. Sincronizarea asincronă cu baza de date (`handleIntentSync`) este acum declanșată și în momentul în care utilizatorul pune focus (apasă) pe input-ul de search din `BottomBar`, garantând rezultate la zi înainte de tastare.
 
-### [Commit Pending] — build: termometru | commit: capsator - testare buton filtrare persistent pe toate spaces
+### [Commit 3ab3036] — build: termometru | commit: capsator - testare buton filtrare persistent pe toate spaces
 - **UX & Architecture (Space Filter, BottomBar, Backdrop Click)**:
   - **Backdrop Click Bug**: Reparat bug-ul global al click-urilor fantomă pe fundalurile modale. Schimbat `onPointerDown` în `onClick` (cu `stopPropagation()`) în `BottomSheet.jsx`. Modalele absorb acum complet ciclul click-ului, oprind declanșarea butoanelor din fundal.
   - **BottomBar Filter Button**: S-a renunțat la butonul plutitor (FAB) de pe `SpacePage` (care stătea peste conținut). A fost implementat un mecanism `bottomBarFilterAction` în `useAppStore`, permițând injectarea curată a butonului de Filtrare direct în `BottomBar`, fix între inputul de căutare și meniul principal. Respectă strict filosofia „bottom-first”.

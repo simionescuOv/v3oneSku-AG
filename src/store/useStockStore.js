@@ -61,10 +61,12 @@ export const useStockStore = create((set, get) => ({
 
   // ── API ─────────────────────────────────────────────────────────────
   fetchSpaces: async () => {
+    const tenantId = (await import('./useAuthStore')).useAuthStore.getState().tenantId
     set({ isLoading: true, error: null })
     const { data, error } = await supabase
       .from('spaces_summary')
       .select('*')
+      .eq('tenant_id', tenantId)
       .order('position', { ascending: true }) // changed from created_at to position
 
     if (error) {

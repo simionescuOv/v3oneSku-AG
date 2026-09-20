@@ -525,57 +525,71 @@ export default function SpacePage() {
         onClose={closeSpaceMenu}
         options={[
           {
-            label: `Filtrare ${view === 'stoc' ? 'Stoc' : 'Flux'}`,
+            label: 'Stoc',
+            icon: <Warehouse size={18} />,
+            active: view === 'stoc',
+            onClick: () => handleSwitchView('stoc')
+          },
+          {
+            label: 'Filtrare Stoc',
             icon: <ListFilter size={18} />,
-            active: view === 'stoc' ? filteredProductIds !== null : isFluxFilterActive,
+            active: filteredProductIds !== null,
             onClick: () => {
-              handleIntentSync() // JIT Sync
+              setView('stoc')
+              handleIntentSync()
               closeSpaceMenu()
-              if (view === 'stoc') setFilterOpen(true)
-              else setFluxFilterOpen(true)
+              setFilterOpen(true)
             },
             leadingAction: {
-              icon: (view === 'stoc' ? filteredProductIds !== null : isFluxFilterActive) 
+              icon: filteredProductIds !== null 
                 ? <CheckSquare size={18} className="text-blue-400" /> 
                 : <Square size={18} className="text-zinc-500" />,
               onClick: () => {
-                if (view === 'stoc') {
-                  if (filteredProductIds !== null) {
-                    setAppliedFilters({})
-                    setFilteredProductIds(null)
-                  } else {
-                    handleIntentSync() // JIT Sync
-                    closeSpaceMenu()
-                    setFilterOpen(true)
-                  }
+                if (filteredProductIds !== null) {
+                  setAppliedFilters({})
+                  setFilteredProductIds(null)
                 } else {
-                  if (isFluxFilterActive) {
-                    resetFilter()
-                  } else {
-                    closeSpaceMenu()
-                    setFluxFilterOpen(true)
-                  }
+                  setView('stoc')
+                  handleIntentSync()
+                  closeSpaceMenu()
+                  setFilterOpen(true)
+                }
+              }
+            }
+          },
+          {
+            label: 'Flux',
+            icon: <Activity size={18} />,
+            active: view === 'flux',
+            onClick: () => handleSwitchView('flux')
+          },
+          {
+            label: 'Filtrare Flux',
+            icon: <ListFilter size={18} />,
+            active: isFluxFilterActive,
+            onClick: () => {
+              setView('flux')
+              handleIntentSync()
+              closeSpaceMenu()
+              setFluxFilterOpen(true)
+            },
+            leadingAction: {
+              icon: isFluxFilterActive 
+                ? <CheckSquare size={18} className="text-blue-400" /> 
+                : <Square size={18} className="text-zinc-500" />,
+              onClick: () => {
+                if (isFluxFilterActive) {
+                  resetFilter()
+                } else {
+                  setView('flux')
+                  handleIntentSync()
+                  closeSpaceMenu()
+                  setFluxFilterOpen(true)
                 }
               }
             }
           }
         ]}
-        footer={
-          <div className="px-4 pb-4 flex gap-2">
-            <button 
-              onClick={() => setView('stoc')} 
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-colors ${view === 'stoc' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
-            >
-              <Warehouse size={18} /> Stoc
-            </button>
-            <button 
-              onClick={() => setView('flux')} 
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-colors ${view === 'flux' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'}`}
-            >
-              <Activity size={18} /> Flux
-            </button>
-          </div>
-        }
       />
 
       {/* FilterSheet — filtrare Stoc (produse) */}

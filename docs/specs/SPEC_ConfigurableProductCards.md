@@ -51,3 +51,38 @@ Prin modificarea exclusivă a logicii interne a `<ProductCard />`, **toate modul
 2. **Store UI:** Extindere `useUiStore` pentru a ține șablonul activ.
 3. **Refactor `ProductCard`:** Parsarea regulilor JSON și scrierea logicilor condiționate Tailwind (ex: flex-col vs flex-row, text-xl vs text-sm).
 4. **Interfață de Configurare:** Un formular/editor unde utilizatorul își compune și testează (live-preview) cardul dorit, cu opțiunea de a salva rezultatul.
+
+---
+
+## Modele de Șabloane (Standard Industrie)
+
+Pentru a oferi un sistem robust și flexibil fără complexitatea unui builder drag-and-drop, sistemul va include următoarele Layout-uri de bază, recunoscute ca standard în industrie pentru UX pe mobil. Utilizatorul alege un Layout și configurează ce atribute asociază fiecărui "Slot".
+
+### 1. Șablonul "Listă Detaliată" (Standard E-Commerce)
+*Ideal pentru: aplicații de tip magazin, frontend pentru clienți, produse cu variații vizuale.*
+- **Stânga / Sus-Stânga:** [Imagine Produs] (slot dedicat imaginii principale).
+- **Dreapta Sus:** [Titlu/NameID] cu `line-clamp-2` sau `3` (dacă textul e lung, se taie politicos cu `...`).
+- **Dreapta Mijloc:** 2-3 Sloturi pentru atribute sub formă de listă stivuită (ex: Culoare, Dimensiune, Producător).
+- **Dreapta Jos:** [Preț] (evidențiat) și, opțional, [Buton Adaugă în Coș].
+
+### 2. Șablonul "Stoc-Focus" (Standard WMS/Depozit)
+*Ideal pentru: manipulare marfă, verificare stoc, inventar intern.*
+- **Stânga:** [Slot Accent - de obicei Stoc] (pătrat colorat, număr mare, ocupă înălțime).
+- **Centru:** [Titlu/NameID] (`line-clamp-2`), urmat de 1-2 Sloturi pentru atribute specifice operațiunilor (ex: [Locație Raft], [Cod de bare/SKU]).
+- **Dreapta:** Fără imagine. Doar informații de acțiune: [Buton Coș/Transfer].
+- *Acesta este cel mai apropiat de designul curent al aplicației din pagina de Spațiu.*
+
+### 3. Șablonul "Card Grilă" (Visual Catalog)
+*Ideal pentru: ecrane mai mari sau prezentări extrem de vizuale (îmbrăcăminte, mobilă). Pe mobil se randează pe 2 coloane.*
+- **Top:** [Imagine Produs] (lată, raport de aspect fix).
+- **Mijloc:** [Titlu] limitat strict la 1-2 linii.
+- **Mijloc-Jos:** 1 Slot pentru atribut (ex: Categorie).
+- **Subsol:** [Preț] la stânga, [Buton Coș] mic la dreapta.
+- *Limitare tehnică: Textele foarte lungi aici sparg grila, deci necesită trunchiere severă.*
+
+### 4. Șablonul "Listă Super-Densă" (Logistics/Picking)
+*Ideal pentru: scanare ultra-rapidă, zeci de produse pe un singur ecran.*
+- **Fără imagini, padding minim (compact).**
+- **Stânga:** [Titlu] (pe un singur rând, tăiat dacă e prea lung).
+- **Dreapta:** [Valori numerice] (ex: Stoc curent, Cantitate necesară).
+- *Scopul principal este densitatea de informație. Nu oferă spațiu pentru atribute lungi de tip "Descriere".*

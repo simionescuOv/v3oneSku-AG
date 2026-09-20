@@ -499,22 +499,26 @@ export const useFluxStore = create((set, get) => ({
    * Implementează decision tree-ul pe 3 niveluri (Faza 1: max Nivel 2 local).
    */
   applyFilter: async (newFilter) => {
-    set({ fluxFilter: newFilter, fluxError: null })
+    let resolvedFrom = newFilter.from
+    let resolvedTo = newFilter.to
+
+    if (newFilter.period && newFilter.period !== 'custom') {
+      const range = getPeriodRange(newFilter.period)
+      resolvedFrom = range?.from || null
+      resolvedTo = range?.to || null
+    }
+
+    const finalFilter = { ...newFilter, from: resolvedFrom, to: resolvedTo }
+    set({ fluxFilter: finalFilter, fluxError: null })
 
     // Modul Infinite Scroll (niciun filtru de perioadă)
-    if (!newFilter.period) {
+    if (!finalFilter.period) {
       get()._recomputeResult()
       return
     }
 
-    // Rezolvă from/to din period
-    let range = null
-    if (newFilter.period === 'custom') {
-      range = { from: newFilter.from, to: newFilter.to }
-    } else {
-      range = getPeriodRange(newFilter.period)
-    }
-    const { from, to } = range || {}
+    const from = finalFilter.from
+    const to = finalFilter.to
 
     const { workingWindow, workingWindowMeta, sessionCache } = get()
 
@@ -683,13 +687,8 @@ export const useFluxStore = create((set, get) => ({
       source = workingWindow
     } else {
       // Cu filtru activ → determinăm sursa pe baza perioadei
-      let range = null
-      if (fluxFilter.period === 'custom') {
-        range = { from: fluxFilter.from, to: fluxFilter.to }
-      } else {
-        range = getPeriodRange(fluxFilter.period)
-      }
-      const { from, to } = range || {}
+      const from = fluxFilter.from
+      const to = fluxFilter.to
 
       if (isPeriodCoveredByWorkingWindow(workingWindow, workingWindowMeta, from)) {
         source = workingWindow

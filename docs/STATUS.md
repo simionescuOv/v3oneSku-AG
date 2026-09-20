@@ -4,6 +4,63 @@
 
 ---
 
+## Sesiunea 10 — Securitate Multi-Tenant StockHub, Corecții Flux & Șabloane Carduri (În curs)
+
+### Ce s-a schimbat
+
+- **Securitate RLS Backend (`spaces_summary`)**:
+  - S-a remediat un risc de securitate prin care vizualizarea SQL `spaces_summary` ocolea regulile RLS din cauza lipsei opțiunii `security_invoker = true`.
+  - Migrația `20260918190000_secure_spaces_view.sql` forțează PostgreSQL să evalueze RLS-ul pe tabela `spaces` în contextul utilizatorului autentificat.
+  - S-a aplicat principiul *Defense in Depth* și pe client: interogarea `fetchSpaces` din `useStockStore.js` filtrează explicit `.eq('tenant_id', tenantId)`.
+- **Corecție Filtrare Tranzacții Flux (Perioadă)**:
+  - Rezolvat un bug critic în `useFluxStore.js` unde filtrele rapide de timp („Azi”, „7 Zile”, „Luna curentă”) nu filtrau datele. Datele calendaristice exacte (`from` și `to`) sunt acum rezolvate și salvate în starea Zustand *înainte* de aplicarea filtrelor locale.
+- **UX Simplificat Meniu Spațiu (`SpacePage`)**:
+  - Restructurat meniul contextual într-o listă plată cu 4 opțiuni directe: „Stoc”, „Filtrare Stoc”, „Flux”, „Filtrare Flux”, eliminând butoanele redundante din subsol și declanșând sincronizarea automată la tap.
+- **Specificație Șabloane Carduri (`SPEC_ConfigurableProductCards.md`)**:
+  - Documentat cele 4 tipuri de șabloane mobile-first inspirate din standardele industriale (Listă Detaliată, Stoc-Focus, Card Grilă, Listă Super-Densă).
+
+---
+
+## Sesiunea 9 — Arhitectura Modulului Flux, Sincronizare JIT & Internaționalizare (i18n)
+
+### Ce s-a schimbat
+
+- **Arhitectură Modul Flux (`useFluxStore.js`)**:
+  - Store Zustand dedicat pentru fluxul de tranzacții, complet decuplat de `useStockStore` și `useCatalogStore`.
+  - Sistem pe 3 niveluri: **Working Window** (cele mai recente 2.000 tranzacții stocate offline-first în memorie), **Session Cache** și routing `volume_exceeded`.
+  - Infinite scroll cu paginare locală (50 tranzacții/pagină) și agregare dinamică pe intervale (zilnic, săptămânal, lunar) prin blocuri de sinteză (`SummaryBlock`).
+- **Filtrare 2-Coloane pentru Flux (`FluxFilterSheet.jsx`)**:
+  - Adaptat layout-ul consacrat `BaseFilterSheet` pentru cerințele fluxului: selecția spațiului partener, categoriei, tag-urilor și atributelor dinamice.
+  - **Faceted Extraction Dinamic**: filtrele din stânga și opțiunile din dreapta se generează exclusiv din tranzacțiile existente în memoria locală, eliminând opțiunile care ar conduce la rezultate goale (0 rezultate).
+  - Decuplat resetarea atributelor de resetarea intervalului calendaristic (`IntervalSheet`).
+- **Smart JIT (Just-In-Time) Data Sync & Cache Resilience**:
+  - Înlocuit butoanele manuale de refresh sau polling-ul costisitor cu triggere invizibile de sincronizare la acțiunile utilizatorului: revenire în aplicație (`visibilitychange`, `focus`), tap pe bara de căutare din BottomBar sau deschiderea filtrelor.
+  - **Null-Cursor Clock Drift Fix**: sincronizarea delta (`updated_at`) folosește timpul exact al serverului din înregistrări, eliminând desincronizările cauzate de ceasul dispozitivului client.
+  - SWR Cache Throttling (TTL de 15s / 60s) pentru prevenirea apelurilor redundante de rețea la navigarea rapidă Back/Forward.
+- **Detalii Tranzacție în BottomSheet & Căutare Integrată**:
+  - Elementele unei tranzacții se deschid acum într-un `BottomSheet` dedicat, conectat direct la bara de jos prin `useBottomSearch`, permițând căutarea instantanee a unui produs în cadrul unei recepții/transfer.
+- **Infrastructură i18n (`react-i18next`)**:
+  - Configurat `i18next` cu dicționare (`ro.json`, `en.json`).
+  - Sistem declarativ pe stivă pentru bara de căutare (`searchContextStack` în `useAppStore`), asigurând traducerea și actualizarea dinamică a placeholder-elor în orice sheet sau pagină.
+
+---
+
+## Sesiunea 8 — Căutare Barcode în StockHub & Ierarhie Multi-Spațiu
+
+### Ce s-a schimbat
+
+- **Căutare Barcode Cross-Space (`StockHubBarcodeResults.jsx`)**:
+  - `useStockStore.fetchProductStockAcrossSpaces(productId)`: extragerea în timp real a stocurilor unui produs din toate spațiile de depozitare.
+  - Spațiile cu stoc 0 sunt afișate cu opacitate atenuată, iar spațiile unde produsul nu a fost alocat niciodată sunt omise curat.
+  - Navigare contextuală: tap pe numele spațiului deschide `SpacePage`, iar tap pe cardul de produs duce în `ProductPage` trimițând `{ state: { sourceSpaceId } }` conform convenției `ARCH_ProductNavigation`.
+  - Persistența stării la navigare Back: utilizatorul poate inspecta un spațiu și reveni direct la rezultatele scanării fără pierderea contextului (`scannedBarcode`).
+- **Rafinări UX pe Filtre (`BaseFilterSheet`)**:
+  - Înlocuit badge-ul numeric cu bifă (`Check`) pentru dimensiunile cu selecție unică.
+  - Buton minimalist de submit (pictogramă `Package` + contor numeric de rezultate).
+  - Stiva superioară de filtre active a primit buton de reset dedicat (`RotateCcw`) și delimitare vizuală curată.
+
+---
+
 ## Sesiunea 7 — Scanner Barcode Integrat & Persistența Formularului (Draft)
 
 ### Ce s-a schimbat
@@ -333,7 +390,7 @@ src/
 
 ### StockHub
 - [x] Pagina unui Space (tab Stoc + tab Flux)
-- [ ] Dialogul de filtrare (model eMAG, categorie ca filtru) pe tab Flux
+- [x] Dialogul de filtrare (model eMAG, faceted dinamic pe 2 coloane) pe tab Flux
 - [x] Tab Flux — feed WhatsApp-style al tranzacțiilor (UI integrat)
 
 ### Storefront
@@ -341,7 +398,7 @@ src/
 - [ ] Link public fără autentificare
 
 ### Tranzacții / Cart
-- [ ] Coșul ca motor de mișcare stoc
+- [x] Coșul ca motor de mișcare stoc (commitCart integrat cu cache sync)
 - [ ] Clonare automată la prima apariție produs în Space
 
 ### Account
