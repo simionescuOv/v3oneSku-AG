@@ -57,6 +57,10 @@ export const useAppStore = create((set) => ({
   bottomBarSearchFocusAction: null,
   setBottomBarSearchFocusAction: (action) => set({ bottomBarSearchFocusAction: action }),
 
+  // Context Menu override pentru butonul Menu din dreapta BottomBar
+  bottomBarMenuOverride: null,
+  setBottomBarMenuOverride: (action) => set({ bottomBarMenuOverride: action }),
+
   // Catalog context menu trigger (BottomBar -> CatalogPage)
   catalogMenuOpen: false,
   openCatalogMenu: () => set({ catalogMenuOpen: true }),

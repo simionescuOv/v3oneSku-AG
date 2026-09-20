@@ -13,6 +13,16 @@
 
 ---
 
+### [Commit 0161d85] — build: vulcan | commit: cactus - mutare optiuni selectie in meniu contextual bottombar
+- **Ramură**: rec-value
+- **Data**: 2026-09-20
+- **Descriere Detaliată**:
+  - **Meniu Contextual**: Am eliminat butonul fix de text "Selectează" care acoperea `BottomBar`-ul și l-am mutat într-un `BottomSheet` nativ.
+  - **Arhitectură BottomBar**: Am introdus starea `bottomBarMenuOverride` în `useAppStore` pentru a permite paginilor să preia controlul asupra butonului ≡ (Menu) din dreapta jos.
+  - La apăsarea pe meniul `BottomBar` în paginile `Items` și `Archive`, se deschide un meniu contextual dedicat cu opțiunile "Selectează" / "Anulează selecția" / "Selectează & recuperează".
+
+---
+
 ### [Commit Pending]
 
 *(Notă pentru agent: Adaugă următorul commit deasupra acestei linii)*

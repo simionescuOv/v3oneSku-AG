@@ -58,6 +58,12 @@ export default function BottomBar({ hidden, autocompleteLabel = 'autocomplete' }
       return
     }
     
+    const menuOverride = useAppStore.getState().bottomBarMenuOverride
+    if (menuOverride) {
+      menuOverride()
+      return
+    }
+
     if (isCartPage) useAppStore.getState().openCartMenu()
     else if (isCatalogFamily) openCatalogMenu()
     else if (isSpacePage) openSpaceMenu()

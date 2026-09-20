@@ -44,6 +44,10 @@ export default function ArchivePage() {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [confirmRestore, setConfirmRestore] = useState(false)
+  
+  // Context Menu
+  const [contextMenuOpen, setContextMenuOpen] = useState(false)
+  const setBottomBarMenuOverride = useAppStore((s) => s.setBottomBarMenuOverride)
 
   const vocabulary = useMemo(() => getArchivedTagVocabulary(), [archivedItems, getArchivedTagVocabulary])
 
@@ -52,11 +56,13 @@ export default function ArchivePage() {
     setActiveTags([])
     pushSearchContext(SEARCH_CONTEXT_ID, 'Caută tag...')
     setBottomBarScrollHidden(false)
+    setBottomBarMenuOverride(() => setContextMenuOpen(true))
     return () => {
       clearSearch()
       popSearchContext(SEARCH_CONTEXT_ID)
+      setBottomBarMenuOverride(null)
     }
-  }, [pushSearchContext, popSearchContext, clearSearch, setBottomBarScrollHidden])
+  }, [pushSearchContext, popSearchContext, clearSearch, setBottomBarScrollHidden, setBottomBarMenuOverride])
 
   const handleTagSelect = useCallback((tagValue) => {
     setActiveTags((prev) => prev.includes(tagValue) ? prev : [...prev, tagValue])
@@ -256,15 +262,25 @@ export default function ArchivePage() {
         </button>
       ) : null}
 
-      {/* Buton Selectează / Anulează în BottomBar */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 z-30 flex items-center justify-end px-4 pointer-events-none">
-        <button
-          onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
-          className="pointer-events-auto text-sm font-medium text-blue-400 active:text-blue-300 px-3 py-2"
-        >
-          {selectionMode ? 'Anulează' : 'Selectează & recuperează'}
-        </button>
-      </div>
+      {/* Context Menu Sheet */}
+      <BottomSheet open={contextMenuOpen} onClose={() => setContextMenuOpen(false)}>
+        <div className="pb-6">
+          <h2 className="px-4 text-sm font-medium text-zinc-400 mb-3 text-center">Acțiuni listă</h2>
+          <button
+            onClick={() => {
+              setContextMenuOpen(false)
+              if (selectionMode) exitSelectionMode()
+              else setSelectionMode(true)
+            }}
+            className="w-full flex items-center gap-4 px-6 py-4 active:bg-zinc-800"
+          >
+            <CheckSquare size={20} className="text-blue-400 shrink-0" />
+            <span className="text-sm font-medium text-blue-400">
+              {selectionMode ? 'Anulează selecția' : 'Selectează & recuperează'}
+            </span>
+          </button>
+        </div>
+      </BottomSheet>
 
       {/* Panel sugestii tags */}
       {isSearchActive && (
