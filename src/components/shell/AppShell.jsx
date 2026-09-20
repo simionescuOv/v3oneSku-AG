@@ -27,6 +27,9 @@ export default function AppShell() {
   const cartOpen = useAppStore((s) => s.cartOpen)
   const scannerOpen = useAppStore((s) => s.scannerOpen)
 
+  // [ITEMS FEATURE] — Dacă ești pe ListPage sau ArchivePage, BottomBar folosește '>' în loc de 'autocomplete'
+  const isListPage = location.pathname === '/dashboard/items' || location.pathname === '/dashboard/items/archive'
+
   return (
     <div
       className="fixed inset-x-0 flex flex-col bg-zinc-950 text-zinc-100 overflow-hidden"
@@ -34,7 +37,7 @@ export default function AppShell() {
     >
       <TopBar />
       <MainContent onScrollDown={handleScrollDown} onScrollUp={handleScrollUp} />
-      <BottomBar hidden={bottomHidden} />
+      <BottomBar hidden={bottomHidden} autocompleteLabel={isListPage ? '>' : 'autocomplete'} />
       <SideMenu />
 
       {/* Global Cart FAB */}

@@ -5,7 +5,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
 import { normalize } from '../../lib/search'
 
-export default function BottomBar({ hidden }) {
+export default function BottomBar({ hidden, autocompleteLabel = 'autocomplete' }) {
   const { t } = useTranslation()
   const toggleSideMenu = useAppStore((s) => s.toggleSideMenu)
   const searchQuery = useAppStore((s) => s.searchQuery)
@@ -23,6 +23,7 @@ export default function BottomBar({ hidden }) {
   const bottomBarHidden = useAppStore((s) => s.bottomBarHidden)
   const bottomBarFilterAction = useAppStore((s) => s.bottomBarFilterAction)
   const bottomBarSearchFocusAction = useAppStore((s) => s.bottomBarSearchFocusAction)
+  const bottomBarAcceptAction = useAppStore((s) => s.bottomBarAcceptAction)
 
   const { pathname } = useLocation()
   // „Familia Catalog\" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
@@ -124,6 +125,10 @@ export default function BottomBar({ hidden }) {
   const acceptSuggestion = (e) => {
     if (hasSuggestion) {
       e.preventDefault()
+      if (bottomBarAcceptAction) {
+        bottomBarAcceptAction(autocompleteSuggestion.text)
+        return
+      }
       setSearchQuery(autocompleteSuggestion.text)
       setTimeout(() => {
         const input = document.getElementById('bottom-bar-search')
@@ -171,7 +176,7 @@ export default function BottomBar({ hidden }) {
               {ghostPrefix && <span>{ghostPrefix}</span>}
               {ghostMatch && <span className="text-blue-400">{ghostMatch}</span>}
               <span>{ghostSuffix}</span>
-              <span className="text-blue-500/50"> autocomplete</span>
+              <span className="text-blue-500/50"> {autocompleteLabel}</span>
             </div>
           )}
 
@@ -193,6 +198,18 @@ export default function BottomBar({ hidden }) {
               setSearchQuery(e.target.value)
               if (barcodeScanMode && e.target.value === '') {
                 clearBarcodeScan()
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                if (bottomBarAcceptAction) {
+                  if (hasSuggestion) {
+                    bottomBarAcceptAction(autocompleteSuggestion.text)
+                  } else if (searchQuery.trim()) {
+                    bottomBarAcceptAction(searchQuery.trim())
+                  }
+                }
               }
             }}
             className="w-full h-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none relative z-10 [&::-webkit-search-cancel-button]:hidden"

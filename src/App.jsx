@@ -11,6 +11,8 @@ import SpacePage from './pages/SpacePage'
 import StorefrontPage from './pages/StorefrontPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import ListPage from './pages/ListPage' // [ITEMS FEATURE]
+import ArchivePage from './pages/ArchivePage' // [ITEMS FEATURE]
 import LoginPage from './pages/LoginPage'
 import { useCatalogStore } from './store/useCatalogStore'
 import { useAuthStore } from './store/useAuthStore'
@@ -67,6 +69,8 @@ export default function App() {
           <Route path="stockhub/space/:spaceId" element={<SpacePage />} />
           <Route path="storefront" element={<StorefrontPage />} />
           <Route path="dashboard"  element={<DashboardPage />} />
+          <Route path="dashboard/items" element={<ListPage />} /> {/* [ITEMS FEATURE] */}
+          <Route path="dashboard/items/archive" element={<ArchivePage />} /> {/* [ITEMS FEATURE] */}
           <Route path="settings"   element={<SettingsPage />} />
         </Route>
       </Routes>

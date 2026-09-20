@@ -16,8 +16,6 @@ export function scoreMatch(label, tokens) {
       if (word.startsWith(tok)) {
         const rank = i === 0 ? 0 : 1
         if (best === null || rank < best.rank) best = { idx: i, rank }
-      } else if (tok.length >= 2 && word.includes(tok)) {
-        if (best === null || 2 < best.rank) best = { idx: i, rank: 2 }
       }
     }
     if (best === null) return null

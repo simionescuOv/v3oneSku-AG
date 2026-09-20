@@ -49,6 +49,10 @@ export const useAppStore = create((set) => ({
   bottomBarFilterAction: null,
   setBottomBarFilterAction: (action) => set({ bottomBarFilterAction: action }),
 
+  // BottomBar accept action injectat de pagini/sheet-uri (ex: ListPage, PickerSheet)
+  bottomBarAcceptAction: null,
+  setBottomBarAcceptAction: (action) => set({ bottomBarAcceptAction: action }),
+
   // BottomBar search focus action injectat de pagini (ex: JIT Sync din SpacePage)
   bottomBarSearchFocusAction: null,
   setBottomBarSearchFocusAction: (action) => set({ bottomBarSearchFocusAction: action }),

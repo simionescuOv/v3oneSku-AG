@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Plus, Square, CheckSquare, Check } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { usePicker } from '../../hooks/usePicker'
@@ -33,9 +33,11 @@ export default function PickerSheet({
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
+  const setBottomBarAcceptAction = useAppStore((s) => s.setBottomBarAcceptAction)
 
   const [tempSelected, setTempSelected] = useState([])
   const [created, setCreated] = useState([])
+
 
   // 1. Inițializare stare la deschidere
   useEffect(() => {
@@ -45,7 +47,13 @@ export default function PickerSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  // 2. Înregistrare context de căutare
+  const confirm = useCallback((sel, extraCreated = created) =>
+    onConfirm?.({
+      selected: sel,
+      created: extraCreated.filter((c) => sel.includes(c)),
+    }), [onConfirm, created])
+
+  // 2a. Înregistrare context de căutare
   useEffect(() => {
     if (!open) return
     clearSearch()
@@ -57,6 +65,30 @@ export default function PickerSheet({
       popSearchContext('picker_sheet')
     }
   }, [open, clearSearch, pushSearchContext, popSearchContext, searchPlaceholder, t])
+
+  // 2b. Acțiune accept BottomBar
+  useEffect(() => {
+    if (!open) return
+
+    const action = (text) => {
+      const trimmed = text.trim()
+      if (!trimmed) return
+      if (!multiSelect) {
+        confirm([trimmed], [...created, trimmed])
+        return
+      }
+      setCreated((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
+      setTempSelected((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
+      clearSearch()
+    }
+    setBottomBarAcceptAction(action)
+
+    return () => {
+      if (useAppStore.getState().bottomBarAcceptAction === action) {
+        setBottomBarAcceptAction(null)
+      }
+    }
+  }, [open, multiSelect, created, confirm, setBottomBarAcceptAction, clearSearch])
 
   const allItems = [
     ...items,
@@ -72,15 +104,12 @@ export default function PickerSheet({
     allowCreate,
     query: searchQuery,
     searchContext: 'picker_sheet',
+    multiSelect,
+    value: tempSelected,
   })
 
   if (!open) return null
 
-  const confirm = (sel, extraCreated = created) =>
-    onConfirm?.({
-      selected: sel,
-      created: extraCreated.filter((c) => sel.includes(c)),
-    })
 
   const handleTap = (value) => {
     if (!multiSelect) {

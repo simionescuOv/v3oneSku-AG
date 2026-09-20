@@ -48,7 +48,17 @@ export function usePicker({
   const showCreate =
     isInline && allowCreate && trimmedQuery.length > 0 && !inlineExactExists
 
-  useAutocompleteGhost(isInline && enabled && isContextActive, trimmedQuery, filteredItems, labelFn)
+  // Excludem elementele deja bifate din variantele fantomă
+  const ghostItems = useMemo(() => {
+    if (!multiSelect) return filteredItems
+    const currentSelected = isInline ? value : tempSelected
+    return filteredItems.filter((it) => {
+      const label = labelFn(it)
+      return !currentSelected.includes(it) && !currentSelected.includes(label)
+    })
+  }, [filteredItems, multiSelect, isInline, value, tempSelected, labelFn])
+
+  useAutocompleteGhost(isInline && enabled && isContextActive, trimmedQuery, ghostItems, labelFn)
 
   // ── Mod standalone: filtrare pe opțiuni locale, excluzând cele deja selectate ─
   const filteredOptions = useMemo(() => {
