@@ -68,6 +68,16 @@
 
 ---
 
+### [Commit 5aca54d] — build: ocean | commit: baterie - faithful UX refactor tag groups picker
+- **Ramură**: rec-value
+- **Data**: 2026-09-22
+- **Descriere Detaliată**:
+  - **Refactorizare fidelă UX TagGroupsPicker**:
+    - **Filtre Active (Tag-uri fixate)**: Rescris containerul din coloana dreaptă pentru a replica fidel vizualul și comportamentul de acordeon (`isPinnedCollapsed`) din componenta `BaseFilterSheet`, incluzând butonul de debifare rapidă (`RotateCcw`).
+    - **FAB & Modal Folder**: Șters complet input-ul inline de creare folder. Adăugat un FAB (Floating Action Button) deasupra listei din stânga. La click, se deschide un modal (Dialog) izolat, pe ecran complet (`z-[100]`), clar, cu butoane dedicate Anulează/Salvează.
+
+---
+
 ### [Commit Pending]
 
 *(Notă pentru agent: Adaugă următorul commit deasupra acestei linii)*

@@ -17,7 +17,7 @@
 //   - Butoane „Salvează" / „Anulează"
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square } from 'lucide-react'
+import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square, ChevronDown, RotateCcw } from 'lucide-react'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
@@ -52,6 +52,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   const [newFolderMode, setNewFolderMode] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [actionsSheetOpen, setActionsSheetOpen] = useState(false)
+  const [isPinnedCollapsed, setIsPinnedCollapsed] = useState(false)
 
   // ─── BottomBar search context ────────────────────────────────────────────
   useEffect(() => {
@@ -281,50 +282,17 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
       {/* ── Layout 2 coloane ─────────────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0">
         {/* Coloana stângă — Foldere */}
-        <div className="w-[42%] border-r border-zinc-800 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto pb-16">
-            {/* Buton + Folder nou (mod organizare cu tag-uri selectate) */}
-            {organizeMode && hasTagsSelected && !isSearching && (
-              <div className="p-2 border-b border-zinc-800/50">
-                {newFolderMode ? (
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="text"
-                      autoFocus
-                      placeholder="Nume folder..."
-                      value={newFolderName}
-                      onChange={(e) => setNewFolderName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleCreateFolder()
-                        if (e.key === 'Escape') setNewFolderMode(false)
-                      }}
-                      className="flex-1 min-w-0 bg-zinc-950 text-xs px-2 py-1.5 rounded outline-none border border-zinc-800 focus:border-blue-500"
-                    />
-                    <button
-                      onClick={handleCreateFolder}
-                      disabled={!newFolderName.trim()}
-                      className="p-1.5 text-blue-400 disabled:text-zinc-600 active:bg-blue-900/30 rounded"
-                    >
-                      <Check size={14} />
-                    </button>
-                    <button
-                      onClick={() => setNewFolderMode(false)}
-                      className="p-1.5 text-zinc-400 active:bg-zinc-800 rounded"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setNewFolderMode(true)}
-                    className="w-full flex items-center justify-center gap-2 px-2 py-2 text-blue-400 active:bg-blue-900/20 rounded-md transition-colors border border-dashed border-blue-900/50"
-                  >
-                    <Plus size={14} />
-                    <span className="text-xs font-medium">Folder nou</span>
-                  </button>
-                )}
-              </div>
-            )}
+        <div className="w-[42%] border-r border-zinc-800 flex flex-col min-h-0 relative">
+          {organizeMode && hasTagsSelected && !isSearching && (
+            <button
+              onClick={() => setNewFolderMode(true)}
+              className="absolute bottom-16 right-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.4)] active:bg-blue-700 hover:bg-blue-500 transition-colors z-30"
+              aria-label="Creează folder nou"
+            >
+              <Plus size={24} />
+            </button>
+          )}
+          <div className="flex-1 overflow-y-auto pb-32">
 
 
             {visibleGroups.length === 0 && isSearching && (
@@ -401,11 +369,55 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
           ) : (
             <>
               {pinnedTags.length > 0 && (
-                <div className="border-b border-zinc-800">
-                  <div className="px-4 py-1.5 sticky top-0 bg-zinc-950/95 backdrop-blur z-10">
-                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Selectate</span>
+                <div
+                  className={[
+                    'shrink-0 flex flex-col transition-all',
+                    isPinnedCollapsed
+                      ? 'mb-2 bg-zinc-900/40 rounded-xl border border-zinc-800/60 overflow-hidden mx-2 mt-2'
+                      : 'pb-2.5 mb-2.5 border-b border-zinc-700/80',
+                  ].join(' ')}
+                >
+                  <div className="w-full flex items-center justify-between px-1.5 py-1 transition-colors sticky top-0 bg-zinc-950/95 backdrop-blur z-10">
+                    {isPinnedCollapsed ? (
+                      <button
+                        onClick={() => setIsPinnedCollapsed(false)}
+                        className="w-full flex items-center justify-between px-2 py-1.5 text-left rounded-lg hover:bg-zinc-800/40 transition-colors"
+                      >
+                        <span className="text-xs font-medium text-zinc-400">
+                          {pinnedTags.length} tag-uri selectate
+                        </span>
+                        <ChevronDown size={14} className="text-zinc-500" />
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedTagValues(new Set())
+                            setIsPinnedCollapsed(true)
+                          }}
+                          aria-label="Debifează toate"
+                          className="flex items-center justify-center py-1.5 px-3 rounded-lg text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 transition-colors shrink-0"
+                        >
+                          <RotateCcw size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsPinnedCollapsed(true)}
+                          aria-label="Restrânge"
+                          className="flex-1 flex items-center justify-end py-1.5 px-2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                        >
+                          <ChevronDown size={14} className="rotate-180" />
+                        </button>
+                      </>
+                    )}
                   </div>
-                  {pinnedTags.map(renderTag)}
+                  {!isPinnedCollapsed && (
+                    <div className="flex flex-col pb-1">
+                      {pinnedTags.map(renderTag)}
+                    </div>
+                  )}
                 </div>
               )}
               <div className="pb-2">
@@ -468,6 +480,49 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
           </button>
         </div>
       </BottomSheet>
+
+      {/* ── Modal Folder Nou ─────────────────────────────────────────────────── */}
+      {newFolderMode && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col shadow-2xl">
+            <div className="px-5 pt-5 pb-4 border-b border-zinc-800/50">
+              <h3 className="font-bold text-lg text-zinc-100">Folder nou</h3>
+              <p className="text-sm text-zinc-400 mt-1">
+                Acest folder va conține cele {selectedTagValues.size} tag-uri selectate.
+              </p>
+            </div>
+            <div className="p-5">
+              <input
+                autoFocus
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateFolder()
+                  if (e.key === 'Escape') setNewFolderMode(false)
+                }}
+                placeholder="Numele noului folder..."
+                className="w-full bg-zinc-950 text-base px-4 py-3 rounded-xl outline-none border border-zinc-800 focus:border-blue-500 text-zinc-100 placeholder-zinc-600 transition-colors"
+              />
+            </div>
+            <div className="p-3 flex items-center justify-end gap-2 bg-zinc-950/30">
+              <button
+                onClick={() => setNewFolderMode(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-zinc-200 active:bg-zinc-800 transition-colors"
+              >
+                Anulează
+              </button>
+              <button
+                onClick={handleCreateFolder}
+                disabled={!newFolderName.trim()}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Salvează
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
