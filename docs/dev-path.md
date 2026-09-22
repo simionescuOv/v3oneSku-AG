@@ -48,7 +48,7 @@
 
 ---
 
-### [Commit Pending] — build: umbrelă | commit: oglindă - bug fixes TagGroupsPicker
+### [Commit 41eebb4] — build: umbrelă | commit: oglindă - bug fixes TagGroupsPicker
 - **Ramură**: rec-value
 - **Data**: 2026-09-22
 - **Descriere Detaliată**:
@@ -56,6 +56,15 @@
     - **Meniu contextual**: Am fixat ordinea de aplicare a `pushBottomBarOverride` dintr-un `BottomSheet` imbricat (folosind `setTimeout`), restabilind iconița ≡ care era ascunsă de părinte.
     - **Căutare Tags**: Schimbat filtrarea tag-urilor din `.includes()` în `.startsWith()` pentru a respecta regula de căutare pe prefix.
     - **Autocomplete**: Instanțiat hook-ul `useAutocompleteGhost` în `TagGroupsPicker`, activând afișarea textului gri predictiv din `BottomBar` în timpul căutării.
+
+---
+
+### [Commit 41eebb4] — build: cireș | commit: rachetă - ux/ui improvements tag groups
+- **Îmbunătățiri UX / UI TagGroupsPicker**:
+  - **Iconiță BottomBar**: Trimisă instanța componentei `AlignLeft` în loc de string, restabilind vizibilitatea iconiței Meniu.
+  - **Folder Nou**: Mutat butonul "+ Folder nou" în partea de sus a listei din stânga (sub header), apărând dinamic când există tag-uri selectate, pentru a nu mai fi ascuns sub footer.
+  - **Curățare Header**: Ștearsă linia de text albastru inutilă cu "3 tag-uri selectate" pentru a maximiza spațiul.
+  - **Tag-uri Pinned**: În coloana din dreapta, elementele bifate sunt grupate acum în partea de sus a listei, separate vizual de celelalte, uniformizând comportamentul cu cel de la filtre.
 
 ---
 

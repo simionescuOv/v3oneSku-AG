@@ -70,7 +70,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
       const timer = setTimeout(() => {
         pushBottomBarOverride({
           id: overrideId,
-          icon: 'AlignLeft',
+          icon: AlignLeft,
           onClick: () => setActionsSheetOpen(true),
         })
       }, 0)
@@ -144,6 +144,16 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
     return vocabulary.filter((t) => members.includes(t.value))
   }, [isSearching, filteredTags, activeGroupId, vocabulary, tagGroupMembers])
 
+  const pinnedTags = useMemo(() => {
+    if (!organizeMode) return []
+    return visibleTags.filter(t => selectedTagValues.has(t.value))
+  }, [visibleTags, organizeMode, selectedTagValues])
+
+  const unpinnedTags = useMemo(() => {
+    if (!organizeMode) return visibleTags
+    return visibleTags.filter(t => !selectedTagValues.has(t.value))
+  }, [visibleTags, organizeMode, selectedTagValues])
+
   // Contor tag-uri per folder (pentru display)
   const groupCount = useCallback(
     (groupId) => (tagGroupMembers[groupId] ?? []).length,
@@ -207,6 +217,44 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   const hasTagsSelected = selectedTagValues.size > 0
   const hasGroupsSelected = selectedGroupIds.size > 0
 
+  // ─── Helper render tag ───────────────────────────────────────────────────
+  const renderTag = (tag) => {
+    const isTagSelected = organizeMode && selectedTagValues.has(tag.value)
+    const belongsToCount = (tagToGroups[tag.value] ?? []).length
+
+    return (
+      <button
+        key={tag.value}
+        onClick={() => {
+          if (organizeMode) toggleTagSelect(tag.value)
+        }}
+        className={[
+          'w-full flex items-center gap-2 px-4 py-3 text-left border-b border-zinc-800/50 last:border-b-0 transition-colors',
+          isTagSelected ? 'bg-blue-900/20' : organizeMode ? 'active:bg-zinc-800/40' : '',
+        ].join(' ')}
+      >
+        {organizeMode && (
+          <span className="shrink-0">
+            {isTagSelected
+              ? <CheckSquare size={15} className="text-blue-400" />
+              : <Square size={15} className="text-zinc-600" />}
+          </span>
+        )}
+        <span className="flex-1 text-sm text-zinc-200 font-medium truncate">
+          {tag.value}
+        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          {belongsToCount > 0 && (
+            <span className="text-[10px] text-zinc-600">{belongsToCount}f</span>
+          )}
+          {tag.count > 0 && (
+            <span className="text-xs text-zinc-500 tabular-nums w-4 text-right">{tag.count}</span>
+          )}
+        </div>
+      </button>
+    )
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
@@ -227,17 +275,6 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
         </button>
       </div>
 
-      {/* ── Bandă stare modul organizare ─────────────────────────────────── */}
-      {organizeMode && (
-        <div className="px-4 pb-2 shrink-0">
-          <p className="text-xs text-blue-400 font-medium">
-            {hasTagsSelected
-              ? `${selectedTagValues.size} tag${selectedTagValues.size !== 1 ? '-uri' : ''} selectat${selectedTagValues.size !== 1 ? 'e' : ''} · bifează foldere pentru asociere`
-              : 'Bifează tag-uri din dreapta, apoi foldere din stânga'}
-          </p>
-        </div>
-      )}
-
       {/* ── Separator ────────────────────────────────────────────────────── */}
       <div className="shrink-0 h-px bg-zinc-800" />
 
@@ -246,6 +283,50 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
         {/* Coloana stângă — Foldere */}
         <div className="w-[42%] border-r border-zinc-800 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto pb-16">
+            {/* Buton + Folder nou (mod organizare cu tag-uri selectate) */}
+            {organizeMode && hasTagsSelected && !isSearching && (
+              <div className="p-2 border-b border-zinc-800/50">
+                {newFolderMode ? (
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Nume folder..."
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleCreateFolder()
+                        if (e.key === 'Escape') setNewFolderMode(false)
+                      }}
+                      className="flex-1 min-w-0 bg-zinc-950 text-xs px-2 py-1.5 rounded outline-none border border-zinc-800 focus:border-blue-500"
+                    />
+                    <button
+                      onClick={handleCreateFolder}
+                      disabled={!newFolderName.trim()}
+                      className="p-1.5 text-blue-400 disabled:text-zinc-600 active:bg-blue-900/30 rounded"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      onClick={() => setNewFolderMode(false)}
+                      className="p-1.5 text-zinc-400 active:bg-zinc-800 rounded"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setNewFolderMode(true)}
+                    className="w-full flex items-center justify-center gap-2 px-2 py-2 text-blue-400 active:bg-blue-900/20 rounded-md transition-colors border border-dashed border-blue-900/50"
+                  >
+                    <Plus size={14} />
+                    <span className="text-xs font-medium">Folder nou</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+
             {visibleGroups.length === 0 && isSearching && (
               <p className="px-3 py-4 text-xs text-zinc-600 italic">Niciun folder cu rezultate</p>
             )}
@@ -309,47 +390,6 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
               )
             })}
           </div>
-
-          {/* Buton „+ Folder nou" — doar în modul organizare cu tag-uri selectate */}
-          {organizeMode && hasTagsSelected && !newFolderMode && (
-            <button
-              onClick={() => setNewFolderMode(true)}
-              className="shrink-0 flex items-center gap-2 px-3 py-3 border-t border-zinc-800 text-blue-400 text-xs font-medium active:bg-zinc-800/50"
-            >
-              <Plus size={14} />
-              Folder nou
-            </button>
-          )}
-
-          {/* Input creare folder nou */}
-          {newFolderMode && (
-            <div className="shrink-0 border-t border-zinc-800 p-2 flex gap-1">
-              <input
-                autoFocus
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateFolder()
-                  if (e.key === 'Escape') setNewFolderMode(false)
-                }}
-                placeholder="Nume folder..."
-                className="flex-1 min-w-0 bg-zinc-800 text-zinc-100 text-xs rounded-lg px-2 py-1.5 placeholder:text-zinc-600 outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              <button
-                onClick={handleCreateFolder}
-                disabled={!newFolderName.trim()}
-                className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-600 text-white disabled:opacity-40 active:bg-blue-700"
-              >
-                <Check size={13} />
-              </button>
-              <button
-                onClick={() => setNewFolderMode(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 active:bg-zinc-800"
-              >
-                <X size={13} />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Coloana dreaptă — Tag-uri */}
@@ -359,53 +399,19 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
               {isSearching ? 'Niciun tag găsit' : 'Niciun tag în acest folder'}
             </p>
           ) : (
-            visibleTags.map((tag) => {
-              const isTagSelected = organizeMode && selectedTagValues.has(tag.value)
-              // Foldere care conțin acest tag (pentru badge info)
-              const belongsToCount = (tagToGroups[tag.value] ?? []).length
-
-              return (
-                <button
-                  key={tag.value}
-                  onClick={() => {
-                    if (organizeMode) toggleTagSelect(tag.value)
-                    // Read-Only: tap pe tag = no-op (extensibil în viitor)
-                  }}
-                  className={[
-                    'w-full flex items-center gap-2 px-4 py-3 text-left border-b border-zinc-800/50 last:border-b-0 transition-colors',
-                    isTagSelected ? 'bg-blue-900/20' : organizeMode ? 'active:bg-zinc-800/40' : '',
-                  ].join(' ')}
-                >
-                  {/* Checkbox selecție tag (modul organizare) */}
-                  {organizeMode && (
-                    <span className="shrink-0">
-                      {isTagSelected
-                        ? <CheckSquare size={15} className="text-blue-400" />
-                        : <Square size={15} className="text-zinc-600" />}
-                    </span>
-                  )}
-
-                  <span className="flex-1 text-sm text-zinc-200 font-medium truncate">
-                    {tag.value}
-                  </span>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Badge: câte foldere conțin tag-ul */}
-                    {belongsToCount > 0 && (
-                      <span className="text-[10px] text-zinc-600">
-                        {belongsToCount}f
-                      </span>
-                    )}
-                    {/* Frecvența tag-ului în items */}
-                    {tag.count > 0 && (
-                      <span className="text-xs text-zinc-500 tabular-nums w-4 text-right">
-                        {tag.count}
-                      </span>
-                    )}
+            <>
+              {pinnedTags.length > 0 && (
+                <div className="border-b border-zinc-800">
+                  <div className="px-4 py-1.5 sticky top-0 bg-zinc-950/95 backdrop-blur z-10">
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Selectate</span>
                   </div>
-                </button>
-              )
-            })
+                  {pinnedTags.map(renderTag)}
+                </div>
+              )}
+              <div className="pb-2">
+                {unpinnedTags.map(renderTag)}
+              </div>
+            </>
           )}
         </div>
       </div>
