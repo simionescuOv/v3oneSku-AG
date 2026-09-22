@@ -35,7 +35,7 @@
 
 ---
 
-### [Commit Pending] — build: pian | commit: fular - ux/layout fixes tag groups (rec-value)
+### [Commit 2acbc10] — build: pian | commit: fular - ux/layout fixes tag groups (rec-value)
 - **Ramură**: rec-value
 - **Data**: 2026-09-22
 - **Descriere Detaliată**:
@@ -45,6 +45,17 @@
     - Mutată logica de selecție în meniul contextual din BottomBar (`pushBottomBarOverride`) conform convențiilor aplicației, cu un BottomSheet curat de acțiuni.
     - Integrate butoanele de "Salvează" / "Anulează" într-un footer fix în partea de jos a ferestrei (precum în `BaseFilterSheet`), eliberând complet header-ul.
     - Regula 7 (Artefacte cu referințe la prompt) a fost adăugată oficial în `GEMINI.md`.
+
+---
+
+### [Commit Pending] — build: umbrelă | commit: oglindă - bug fixes TagGroupsPicker
+- **Ramură**: rec-value
+- **Data**: 2026-09-22
+- **Descriere Detaliată**:
+  - **Bug Fixes la TagGroupsPicker**:
+    - **Meniu contextual**: Am fixat ordinea de aplicare a `pushBottomBarOverride` dintr-un `BottomSheet` imbricat (folosind `setTimeout`), restabilind iconița ≡ care era ascunsă de părinte.
+    - **Căutare Tags**: Schimbat filtrarea tag-urilor din `.includes()` în `.startsWith()` pentru a respecta regula de căutare pe prefix.
+    - **Autocomplete**: Instanțiat hook-ul `useAutocompleteGhost` în `TagGroupsPicker`, activând afișarea textului gri predictiv din `BottomBar` în timpul căutării.
 
 ---
 

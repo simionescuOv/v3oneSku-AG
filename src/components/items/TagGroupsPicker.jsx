@@ -22,6 +22,7 @@ import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
 import BottomSheet from '../catalog/BottomSheet'
+import { useAutocompleteGhost } from '../../hooks/useAutocompleteGhost'
 
 const SEARCH_CONTEXT_ID = 'tag-groups-picker'
 
@@ -66,12 +67,17 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   useEffect(() => {
     if (allowOrganize) {
       const overrideId = 'tag-groups-picker-menu'
-      pushBottomBarOverride({
-        id: overrideId,
-        icon: 'AlignLeft',
-        onClick: () => setActionsSheetOpen(true),
-      })
-      return () => popBottomBarOverride(overrideId)
+      const timer = setTimeout(() => {
+        pushBottomBarOverride({
+          id: overrideId,
+          icon: 'AlignLeft',
+          onClick: () => setActionsSheetOpen(true),
+        })
+      }, 0)
+      return () => {
+        clearTimeout(timer)
+        popBottomBarOverride(overrideId)
+      }
     }
   }, [allowOrganize, pushBottomBarOverride, popBottomBarOverride])
 
@@ -97,8 +103,11 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   const filteredTags = useMemo(() => {
     if (!isSearching) return null
     const qNorm = normalize(q)
-    return vocabulary.filter((t) => normalize(t.value).includes(qNorm))
+    return vocabulary.filter((t) => normalize(t.value).startsWith(qNorm))
   }, [isSearching, q, vocabulary])
+
+  // ─── Autocomplete ────────────────────────────────────────────────────────
+  useAutocompleteGhost(isSearching, searchQuery, vocabulary, (t) => t.value)
 
   // Foldere relevante pentru căutare (conțin cel puțin un tag din filteredTags)
   const relevantGroupIds = useMemo(() => {
