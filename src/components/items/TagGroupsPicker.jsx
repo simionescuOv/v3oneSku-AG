@@ -21,6 +21,7 @@ import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
+import BottomSheet from '../catalog/BottomSheet'
 
 const SEARCH_CONTEXT_ID = 'tag-groups-picker'
 
@@ -39,15 +40,17 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
   const popSearchContext = useAppStore((s) => s.popSearchContext)
   const clearSearch = useAppStore((s) => s.clearSearch)
+  const pushBottomBarOverride = useAppStore((s) => s.pushBottomBarOverride)
+  const popBottomBarOverride = useAppStore((s) => s.popBottomBarOverride)
 
   // ─── State local ──────────────────────────────────────────────────────────
   const [activeGroupId, setActiveGroupId] = useState(ALL_GROUP.id)
-  const [organizeMode, setOrganizeMode] = useState(false)        // activ doar când allowOrganize=true
+  const [organizeMode, setOrganizeMode] = useState(false)
   const [selectedTagValues, setSelectedTagValues] = useState(new Set())
   const [selectedGroupIds, setSelectedGroupIds] = useState(new Set())
   const [newFolderMode, setNewFolderMode] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
-  const [contextMenuOpen, setContextMenuOpen] = useState(false)
+  const [actionsSheetOpen, setActionsSheetOpen] = useState(false)
 
   // ─── BottomBar search context ────────────────────────────────────────────
   useEffect(() => {
@@ -58,6 +61,19 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
       popSearchContext(SEARCH_CONTEXT_ID)
     }
   }, [pushSearchContext, popSearchContext, clearSearch])
+
+  // ─── BottomBar Meniu Contextual ──────────────────────────────────────────
+  useEffect(() => {
+    if (allowOrganize) {
+      const overrideId = 'tag-groups-picker-menu'
+      pushBottomBarOverride({
+        id: overrideId,
+        icon: 'AlignLeft',
+        onClick: () => setActionsSheetOpen(true),
+      })
+      return () => popBottomBarOverride(overrideId)
+    }
+  }, [allowOrganize, pushBottomBarOverride, popBottomBarOverride])
 
   // ─── Vocabular complet (toate tag-urile din items) ───────────────────────
   const vocabulary = useMemo(() => getTagVocabulary(), [items, getTagVocabulary])
@@ -186,56 +202,20 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0 relative">
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="px-4 pt-4 pb-2 shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Tag size={18} className="text-zinc-400" />
           <h2 className="text-lg font-bold text-zinc-100">Tags</h2>
         </div>
-        <div className="flex items-center gap-1">
-          {/* Buton meniu contextual (≡) — doar allowOrganize, nu în organizeMode */}
-          {allowOrganize && !organizeMode && (
-            <button
-              onClick={() => setContextMenuOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 active:bg-zinc-800 active:text-zinc-100"
-              aria-label="Meniu"
-            >
-              <AlignLeft size={18} />
-            </button>
-          )}
-          {/* Butoane Anulează + Salvează (modul organizare) */}
-          {organizeMode && (
-            <>
-              <button
-                onClick={exitOrganizeMode}
-                className="px-3 h-8 rounded-xl text-sm text-zinc-400 active:bg-zinc-800"
-              >
-                Anulează
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!hasTagsSelected || !hasGroupsSelected}
-                className={[
-                  'px-3 h-8 rounded-xl text-sm font-medium transition-colors',
-                  hasTagsSelected && hasGroupsSelected
-                    ? 'bg-blue-600 text-white active:bg-blue-700'
-                    : 'bg-zinc-800 text-zinc-600',
-                ].join(' ')}
-              >
-                Salvează
-              </button>
-            </>
-          )}
-          {/* Buton închidere */}
-          <button
-            onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 active:bg-zinc-800 active:text-zinc-100"
-            aria-label="Închide"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 active:bg-zinc-800 active:text-zinc-100"
+          aria-label="Închide"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* ── Bandă stare modul organizare ─────────────────────────────────── */}
@@ -256,7 +236,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
       <div className="flex flex-1 min-h-0">
         {/* Coloana stângă — Foldere */}
         <div className="w-[42%] border-r border-zinc-800 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto pb-16">
             {visibleGroups.length === 0 && isSearching && (
               <p className="px-3 py-4 text-xs text-zinc-600 italic">Niciun folder cu rezultate</p>
             )}
@@ -364,7 +344,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
         </div>
 
         {/* Coloana dreaptă — Tag-uri */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pb-16">
           {visibleTags.length === 0 ? (
             <p className="px-4 py-4 text-xs text-zinc-600 italic">
               {isSearching ? 'Niciun tag găsit' : 'Niciun tag în acest folder'}
@@ -421,34 +401,58 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
         </div>
       </div>
 
-      {/* ── Context Menu Sheet (≡ din header) ────────────────────────────── */}
-      {contextMenuOpen && (
-        <div
-          className="absolute inset-0 z-50 bg-black/50 flex flex-col justify-end"
-          onClick={() => setContextMenuOpen(false)}
-        >
-          <div
-            className="bg-zinc-900 rounded-t-2xl"
-            onClick={(e) => e.stopPropagation()}
+      {/* ── Footer fix de acțiune (mod organizare) ───────────────────────── */}
+      {organizeMode && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2.5 px-4 py-2 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-md">
+          <button
+            onClick={exitOrganizeMode}
+            className="px-4 py-1.5 rounded-lg text-sm text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 transition-colors"
           >
-            <div className="pb-6">
-              <h3 className="px-4 pt-4 pb-3 text-sm font-medium text-zinc-400 text-center">
-                Acțiuni Tags
-              </h3>
-              <button
-                onClick={() => {
-                  setContextMenuOpen(false)
-                  setOrganizeMode(true)
-                }}
-                className="w-full flex items-center gap-4 px-6 py-4 active:bg-zinc-800"
-              >
-                <CheckSquare size={20} className="text-blue-400 shrink-0" />
-                <span className="text-sm font-medium text-blue-400">Selectează</span>
-              </button>
-            </div>
-          </div>
+            Anulează
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!hasTagsSelected || !hasGroupsSelected}
+            className={[
+              'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-colors',
+              hasTagsSelected && hasGroupsSelected
+                ? 'bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700'
+                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
+            ].join(' ')}
+          >
+            <Check size={16} className="shrink-0" />
+            <span>Salvează asocierile</span>
+          </button>
         </div>
       )}
+
+      {/* ── Actions Sheet (din BottomBar) ──────────────────────────────── */}
+      <BottomSheet
+        open={actionsSheetOpen}
+        onClose={() => setActionsSheetOpen(false)}
+      >
+        <div className="pb-6">
+          <h3 className="px-4 pt-2 pb-3 text-sm font-medium text-zinc-400 text-center border-b border-zinc-800/50 mb-2">
+            Acțiuni Tags
+          </h3>
+          <button
+            onClick={() => {
+              setActionsSheetOpen(false)
+              if (organizeMode) {
+                exitOrganizeMode()
+              } else {
+                setOrganizeMode(true)
+              }
+            }}
+            className="w-full flex items-center gap-4 px-6 py-4 active:bg-zinc-800 transition-colors"
+          >
+            <CheckSquare size={20} className="text-blue-400 shrink-0" />
+            <span className="text-sm font-medium text-blue-400">
+              {organizeMode ? 'Anulează selecția' : 'Selectează'}
+            </span>
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   )
 }

@@ -16,6 +16,7 @@
    La orice modificare, funcționalitate sau refactorizare propusă în modul de planificare, agentul este **OBLIGAT** să includă o secțiune dedicată:
    - **„Dezavantaje, Riscuri și Compromisuri (Trade-offs)”**: unde va analiza critic și transparent chiar și cele mai mici riscuri posibile (degradare UX, asimetrii vizuale, cazuri limită / edge cases, complexitate inutilă în cod, impact asupra altor pagini sau regresii viitoare).
    - Dacă o propunere are chiar și cel mai mic dezavantaj, agentul trebuie să îl menționeze explicit înainte de a cere confirmarea pentru execuție.
+7. PLANIFICARE BAZATĂ PE ARTEFACTE: Întotdeauna când răspunzi cu un plan, propunere sau soluție, ești obligat să o pui într-un artefact (de regulă `implementation_plan.md`) pentru a permite utilizatorului să comenteze pe fiecare rând. Pentru ca utilizatorul să aibă certitudinea că citește fișierul actualizat, **fiecare artefact trebuie să înceapă cu citatul promptului / cerinței utilizatorului** la care răspunzi.
 
 
 

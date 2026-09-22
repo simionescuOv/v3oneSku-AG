@@ -23,7 +23,7 @@
 
 ---
 
-### [Commit Pending] — build: castor | commit: busola - tags-grup în items (rec-value).
+### [Commit 7769a65] — build: castor | commit: busola - tags-grup în items (rec-value).
 - **Ramură**: rec-value
 - **Data**: 2026-09-22
 - **Descriere Detaliată**:
@@ -32,6 +32,19 @@
     - **`TagGroupsPicker.jsx`** (nou): Componentă izolată cu layout 2 coloane (Foldere stânga / Tag-uri dreapta). Suport dual-mode: `allowOrganize=false` (Read-Only — filtru vizual rapid, nicio mutație posibilă) și `allowOrganize=true` (modul complet — selecție multi-tag+folder, asociere many-to-many, creare folder nou). Căutare sincronizată prin BottomBar: la tastare, coloana stângă ascunde folderul „Toate" și afișează doar foldere cu rezultate relevante.
     - **`ListPage.jsx`**: Adăugat import `Tag` din lucide-react + `TagGroupsPicker`. Adăugat state `tagsSheetOpen`. Adăugat butonul „Tags" (cu iconiță Tag) în ContextMenu existent. Integrat `TagGroupsPicker` ca `BottomSheet aboveBottomBar` cu `allowOrganize=true`.
     - **`SideMenu.jsx`**: Făcut titlul „oneSku" buton interactiv care navighează la pagina principală `/`.
+
+---
+
+### [Commit Pending] — build: pian | commit: fular - ux/layout fixes tag groups (rec-value)
+- **Ramură**: rec-value
+- **Data**: 2026-09-22
+- **Descriere Detaliată**:
+  - **UX / Layout Fixes pentru TagGroupsPicker**:
+    - Remediat un bug de CSS Flexbox (`flex-1 min-h-0` aplicat) care bloca posibilitatea de a face scroll în liste.
+    - Convertit afișarea în `ListPage` la full-screen deasupra BottomBar-ului pentru maximizarea spațiului (`h-[calc(100dvh-4rem)] max-h-none rounded-none`).
+    - Mutată logica de selecție în meniul contextual din BottomBar (`pushBottomBarOverride`) conform convențiilor aplicației, cu un BottomSheet curat de acțiuni.
+    - Integrate butoanele de "Salvează" / "Anulează" într-un footer fix în partea de jos a ferestrei (precum în `BaseFilterSheet`), eliberând complet header-ul.
+    - Regula 7 (Artefacte cu referințe la prompt) a fost adăugată oficial în `GEMINI.md`.
 
 ---
 

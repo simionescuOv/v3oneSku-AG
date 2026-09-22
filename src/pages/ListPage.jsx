@@ -347,7 +347,7 @@ export default function ListPage() {
         open={tagsSheetOpen}
         onClose={() => setTagsSheetOpen(false)}
         aboveBottomBar
-        className="max-h-[85dvh]"
+        className="h-[calc(100dvh-4rem)] max-h-none rounded-none border-t-0"
       >
         <TagGroupsPicker
           allowOrganize
