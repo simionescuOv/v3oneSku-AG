@@ -35,7 +35,12 @@ export default function SideMenu() {
       <div className="fixed inset-y-0 left-0 z-50 w-max min-w-[200px] max-w-[85vw] pr-6 bg-zinc-900 flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-800 shrink-0">
-          <span className="text-base font-semibold text-zinc-100">oneSku</span>
+          <button
+            onClick={() => handleNav('/')}
+            className="text-base font-semibold text-zinc-100 hover:text-white active:opacity-75 transition-opacity text-left"
+          >
+            oneSku
+          </button>
           <button
             onClick={close}
             className="flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"

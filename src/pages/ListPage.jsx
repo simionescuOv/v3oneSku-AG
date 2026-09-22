@@ -1,14 +1,16 @@
 // [ITEMS FEATURE] — Pagină izolată, removable. Șterge din App.jsx și DashboardPage pentru a elimina.
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Plus, X, ArrowLeft, CheckSquare, Square, Archive } from 'lucide-react'
+import { Plus, X, ArrowLeft, CheckSquare, Square, Archive, Tag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { useItemsStore } from '../store/useItemsStore'
 import ItemFormSheet from '../components/items/ItemFormSheet'
 import ItemDetailSheet from '../components/items/ItemDetailSheet'
 import TagSuggestionsPanel from '../components/items/TagSuggestionsPanel'
+import TagGroupsPicker from '../components/items/TagGroupsPicker'
 import { useAutocompleteGhost } from '../hooks/useAutocompleteGhost'
 import BottomSheet from '../components/catalog/BottomSheet'
+
 
 const SEARCH_CONTEXT_ID = 'items-list'
 
@@ -51,7 +53,9 @@ export default function ListPage() {
   
   // Context Menu
   const [contextMenuOpen, setContextMenuOpen] = useState(false)
+  const [tagsSheetOpen, setTagsSheetOpen] = useState(false)
   const setBottomBarMenuOverride = useAppStore((s) => s.setBottomBarMenuOverride)
+
 
   const vocabulary = useMemo(() => getTagVocabulary(), [items, getTagVocabulary])
 
@@ -324,8 +328,33 @@ export default function ListPage() {
               {inSelectionMode ? 'Anulează selecția' : 'Selectează'}
             </span>
           </button>
+          {/* Opțiunea Tags — deschide TagGroupsPicker cu modul complet de organizare */}
+          <button
+            onClick={() => {
+              setContextMenuOpen(false)
+              setTagsSheetOpen(true)
+            }}
+            className="w-full flex items-center gap-4 px-6 py-4 active:bg-zinc-800"
+          >
+            <Tag size={20} className="text-zinc-400 shrink-0" />
+            <span className="text-sm text-zinc-100">Tags</span>
+          </button>
         </div>
       </BottomSheet>
+
+      {/* TagGroupsPicker Sheet — aboveBottomBar pentru a permite căutarea prin BottomBar */}
+      <BottomSheet
+        open={tagsSheetOpen}
+        onClose={() => setTagsSheetOpen(false)}
+        aboveBottomBar
+        className="max-h-[85dvh]"
+      >
+        <TagGroupsPicker
+          allowOrganize
+          onClose={() => setTagsSheetOpen(false)}
+        />
+      </BottomSheet>
+
 
       {/* Panel sugestii tags */}
       {isSearchActive && (

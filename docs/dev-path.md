@@ -13,7 +13,7 @@
 
 ---
 
-### [Commit 0161d85] — build: vulcan | commit: cactus - mutare optiuni selectie in meniu contextual bottombar
+### [Commit 530fb49] — build: vulcan | commit: cactus - mutare optiuni selectie in meniu contextual bottombar
 - **Ramură**: rec-value
 - **Data**: 2026-09-20
 - **Descriere Detaliată**:
@@ -23,7 +23,18 @@
 
 ---
 
+### [Commit Pending] — build: castor | commit: busola - tags-grup în items (rec-value).
+- **Ramură**: rec-value
+- **Data**: 2026-09-22
+- **Descriere Detaliată**:
+  - **Implementare modul Tag Groups (v2.3)**:
+    - **`useItemsStore.js`**: Adăugat state `tagGroups` (array de foldere) și `tagGroupMembers` (map many-to-many groupId → string[]) cu persistență automată în localStorage. Metode CRUD: `addTagGroup`, `renameTagGroup`, `deleteTagGroup`, `associateTagsToGroups`, `createGroupWithTags`, `removeTagFromGroup`, `setGroupMembers`, `getGroupsForTag`.
+    - **`TagGroupsPicker.jsx`** (nou): Componentă izolată cu layout 2 coloane (Foldere stânga / Tag-uri dreapta). Suport dual-mode: `allowOrganize=false` (Read-Only — filtru vizual rapid, nicio mutație posibilă) și `allowOrganize=true` (modul complet — selecție multi-tag+folder, asociere many-to-many, creare folder nou). Căutare sincronizată prin BottomBar: la tastare, coloana stângă ascunde folderul „Toate" și afișează doar foldere cu rezultate relevante.
+    - **`ListPage.jsx`**: Adăugat import `Tag` din lucide-react + `TagGroupsPicker`. Adăugat state `tagsSheetOpen`. Adăugat butonul „Tags" (cu iconiță Tag) în ContextMenu existent. Integrat `TagGroupsPicker` ca `BottomSheet aboveBottomBar` cu `allowOrganize=true`.
+    - **`SideMenu.jsx`**: Făcut titlul „oneSku" buton interactiv care navighează la pagina principală `/`.
+
+---
+
 ### [Commit Pending]
 
 *(Notă pentru agent: Adaugă următorul commit deasupra acestei linii)*
-
