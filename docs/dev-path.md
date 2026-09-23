@@ -68,7 +68,7 @@
 
 ---
 
-### [Commit 5aca54d] — build: ocean | commit: baterie - faithful UX refactor tag groups picker
+### [Commit 7036f71] — build: ocean | commit: baterie - faithful UX refactor tag groups picker
 - **Ramură**: rec-value
 - **Data**: 2026-09-22
 - **Descriere Detaliată**:
@@ -78,6 +78,17 @@
 
 ---
 
+### [Commit cerneala] — build: cerneală | commit: aripă - fix TagGroupsPicker active tags behavior
+- **Ramură**: rec-value
+- **Data**: 2026-09-23
+- **Descriere Detaliată**:
+  - **TagGroupsPicker Active Filters Fix**: Ștearsă condiția de filtrare care ascundea tag-urile din lista principală atunci când acestea erau bifate. Acum, elementele bifate urcă în panoul de tag-uri fixate din partea de sus, dar rămân vizibile (și marcate ca bifate) și în poziția lor originală din listă, menținând astfel un comportament identic (1:1) cu cel al `BaseFilterSheet` pentru consistență de UX.
+  - **Documentație UI Componente**: Creat fișierul `docs/componente.md` care centralizează și explică comportamentul vizual și interactiv al tuturor componentelor React (Shell, Catalog, StockHub, etc.) din aplicație.
+  - **Actualizare reguli AGENT (GEMINI.md)**: Adăugat Regula 8 (`MOD REMOTE ON / OFF PROTOCOL`).
+
+---
+
 ### [Commit Pending]
+- 
 
 *(Notă pentru agent: Adaugă următorul commit deasupra acestei linii)*

@@ -150,10 +150,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
     return visibleTags.filter(t => selectedTagValues.has(t.value))
   }, [visibleTags, organizeMode, selectedTagValues])
 
-  const unpinnedTags = useMemo(() => {
-    if (!organizeMode) return visibleTags
-    return visibleTags.filter(t => !selectedTagValues.has(t.value))
-  }, [visibleTags, organizeMode, selectedTagValues])
+
 
   // Contor tag-uri per folder (pentru display)
   const groupCount = useCallback(
@@ -421,7 +418,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
                 </div>
               )}
               <div className="pb-2">
-                {unpinnedTags.map(renderTag)}
+                {visibleTags.map(renderTag)}
               </div>
             </>
           )}
