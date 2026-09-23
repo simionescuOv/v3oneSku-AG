@@ -78,13 +78,23 @@
 
 ---
 
-### [Commit cerneala] — build: cerneală | commit: aripă - fix TagGroupsPicker active tags behavior
+### [Commit f911f3d] — build: cerneală | commit: aripă - fix TagGroupsPicker active tags behavior
 - **Ramură**: rec-value
 - **Data**: 2026-09-23
 - **Descriere Detaliată**:
   - **TagGroupsPicker Active Filters Fix**: Ștearsă condiția de filtrare care ascundea tag-urile din lista principală atunci când acestea erau bifate. Acum, elementele bifate urcă în panoul de tag-uri fixate din partea de sus, dar rămân vizibile (și marcate ca bifate) și în poziția lor originală din listă, menținând astfel un comportament identic (1:1) cu cel al `BaseFilterSheet` pentru consistență de UX.
   - **Documentație UI Componente**: Creat fișierul `docs/componente.md` care centralizează și explică comportamentul vizual și interactiv al tuturor componentelor React (Shell, Catalog, StockHub, etc.) din aplicație.
   - **Actualizare reguli AGENT (GEMINI.md)**: Adăugat Regula 8 (`MOD REMOTE ON / OFF PROTOCOL`).
+
+---
+
+### [Commit telescop] — build: telescop | commit: bilet - implementare mod scoate in tag groups picker
+- **Ramură**: rec-value
+- **Data**: 2026-09-23
+- **Descriere Detaliată**:
+  - **Meniu de Organizare**: Înlocuit butonul simplu „Selectează” cu meniul complet „Organizare” având opțiunile „Adaugă” și „Scoate”.
+  - **Modul Scoate**: Implementată o funcționalitate intuitivă de eliminare a tag-urilor. Când modul „Scoate” este activat, navigarea prin foldere din coloana stângă rămâne exact ca în varianta Read-Only, dar în coloana dreaptă tag-urile primesc checkbox-uri roșii. Utilizatorul navighează într-un folder, bifează tag-urile pe care vrea să le elimine și apasă „Aplică eliminarea”. Acestea sunt șterse imediat din folderul respectiv, fără a fi șterse din vocabularul „Toate” sau din alte foldere.
+  - Adăugată metoda eficientă `removeTagsFromGroup` în `useItemsStore.js`.
 
 ---
 

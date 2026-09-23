@@ -17,7 +17,7 @@
 //   - Butoane „Salvează" / „Anulează"
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square, ChevronDown, RotateCcw } from 'lucide-react'
+import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square, ChevronDown, RotateCcw, Trash } from 'lucide-react'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
@@ -34,6 +34,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   const tagGroupMembers = useItemsStore((s) => s.tagGroupMembers)
   const getTagVocabulary = useItemsStore((s) => s.getTagVocabulary)
   const associateTagsToGroups = useItemsStore((s) => s.associateTagsToGroups)
+  const removeTagsFromGroup = useItemsStore((s) => s.removeTagsFromGroup)
   const createGroupWithTags = useItemsStore((s) => s.createGroupWithTags)
   const items = useItemsStore((s) => s.items)
 
@@ -178,15 +179,23 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
     })
   }
 
-  // ─── Salvare asociere ─────────────────────────────────────────────────────
+  // ─── Salvare asociere / eliminare ─────────────────────────────────────────
   const handleSave = () => {
     if (selectedTagValues.size === 0) return
-    if (selectedGroupIds.size > 0) {
-      associateTagsToGroups({
-        targetGroupIds: [...selectedGroupIds],
-        tagValues: [...selectedTagValues],
-      })
+
+    if (organizeMode === 'add') {
+      if (selectedGroupIds.size > 0) {
+        associateTagsToGroups({
+          targetGroupIds: [...selectedGroupIds],
+          tagValues: [...selectedTagValues],
+        })
+      }
+    } else if (organizeMode === 'remove') {
+      if (activeGroupId !== ALL_GROUP.id) {
+        removeTagsFromGroup(activeGroupId, [...selectedTagValues])
+      }
     }
+    
     exitOrganizeMode()
   }
 
@@ -219,22 +228,23 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
   const renderTag = (tag) => {
     const isTagSelected = organizeMode && selectedTagValues.has(tag.value)
     const belongsToCount = (tagToGroups[tag.value] ?? []).length
+    const showCheckbox = organizeMode === 'add' || (organizeMode === 'remove' && activeGroupId !== ALL_GROUP.id)
 
     return (
       <button
         key={tag.value}
         onClick={() => {
-          if (organizeMode) toggleTagSelect(tag.value)
+          if (showCheckbox) toggleTagSelect(tag.value)
         }}
         className={[
           'w-full flex items-center gap-2 px-4 py-3 text-left border-b border-zinc-800/50 last:border-b-0 transition-colors',
-          isTagSelected ? 'bg-blue-900/20' : organizeMode ? 'active:bg-zinc-800/40' : '',
+          isTagSelected ? (organizeMode === 'remove' ? 'bg-red-900/20' : 'bg-blue-900/20') : organizeMode ? 'active:bg-zinc-800/40' : '',
         ].join(' ')}
       >
-        {organizeMode && (
+        {showCheckbox && (
           <span className="shrink-0">
             {isTagSelected
-              ? <CheckSquare size={15} className="text-blue-400" />
+              ? <CheckSquare size={15} className={organizeMode === 'remove' ? 'text-red-400' : 'text-blue-400'} />
               : <Square size={15} className="text-zinc-600" />}
           </span>
         )}
@@ -280,7 +290,7 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
       <div className="flex flex-1 min-h-0">
         {/* Coloana stângă — Foldere */}
         <div className="w-[42%] border-r border-zinc-800 flex flex-col min-h-0 relative">
-          {organizeMode && hasTagsSelected && !isSearching && (
+          {organizeMode === 'add' && hasTagsSelected && !isSearching && (
             <button
               onClick={() => setNewFolderMode(true)}
               className="absolute bottom-16 right-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.4)] active:bg-blue-700 hover:bg-blue-500 transition-colors z-30"
@@ -300,9 +310,10 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
             )}
             {visibleGroups.map((group) => {
               const isVirtual = group.isVirtual
-              const isActive = activeGroupId === group.id && !isSearching && !organizeMode
+              const isActive = activeGroupId === group.id && !isSearching && (!organizeMode || organizeMode === 'remove')
               const count = isVirtual ? vocabulary.length : groupCount(group.id)
-              const isGroupSelected = organizeMode && !isVirtual && selectedGroupIds.has(group.id)
+              const isSelectable = organizeMode === 'add' && !isVirtual
+              const isGroupSelected = isSelectable && selectedGroupIds.has(group.id)
               // Număr de tag-uri relevante pentru căutare (în modul search)
               const searchCount = isSearching && !isVirtual
                 ? (tagGroupMembers[group.id] ?? []).filter(
@@ -314,10 +325,10 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
                 <button
                   key={group.id}
                   onClick={() => {
-                    if (organizeMode && !isVirtual) {
-                      // În modul organizare: tap pe folder → toggle selecție folder
+                    if (isSelectable) {
+                      // În modul organizare 'add': tap pe folder → toggle selecție folder
                       toggleGroupSelect(group.id)
-                    } else if (!isSearching && !organizeMode) {
+                    } else if (!isSearching) {
                       setActiveGroupId(group.id)
                     }
                   }}
@@ -330,8 +341,8 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
                       : 'text-zinc-400 active:bg-zinc-800/50',
                   ].join(' ')}
                 >
-                  {/* Checkbox selecție grup (modul organizare, non-virtual) */}
-                  {organizeMode && !isVirtual && (
+                  {/* Checkbox selecție grup (doar în modul add, non-virtual) */}
+                  {isSelectable && (
                     <span className="shrink-0">
                       {isGroupSelected
                         ? <CheckSquare size={15} className="text-blue-400" />
@@ -434,19 +445,35 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
           >
             Anulează
           </button>
-          <button
-            onClick={handleSave}
-            disabled={!hasTagsSelected || !hasGroupsSelected}
-            className={[
-              'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-colors',
-              hasTagsSelected && hasGroupsSelected
-                ? 'bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
-            ].join(' ')}
-          >
-            <Check size={16} className="shrink-0" />
-            <span>Salvează asocierile</span>
-          </button>
+          {organizeMode === 'add' ? (
+            <button
+              onClick={handleSave}
+              disabled={!hasTagsSelected || !hasGroupsSelected}
+              className={[
+                'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-colors',
+                hasTagsSelected && hasGroupsSelected
+                  ? 'bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700'
+                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
+              ].join(' ')}
+            >
+              <Check size={16} className="shrink-0" />
+              <span>Salvează asocierile</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleSave}
+              disabled={!hasTagsSelected || activeGroupId === ALL_GROUP.id}
+              className={[
+                'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-colors',
+                hasTagsSelected && activeGroupId !== ALL_GROUP.id
+                  ? 'bg-red-600 text-white hover:bg-red-500 active:bg-red-700'
+                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
+              ].join(' ')}
+            >
+              <Trash size={16} className="shrink-0" />
+              <span>Aplică eliminarea</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -457,22 +484,32 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
       >
         <div className="pb-6">
           <h3 className="px-4 pt-2 pb-3 text-sm font-medium text-zinc-400 text-center border-b border-zinc-800/50 mb-2">
-            Acțiuni Tags
+            Organizare
           </h3>
           <button
             onClick={() => {
               setActionsSheetOpen(false)
-              if (organizeMode) {
-                exitOrganizeMode()
-              } else {
-                setOrganizeMode(true)
-              }
+              if (organizeMode === 'add') exitOrganizeMode()
+              else setOrganizeMode('add')
             }}
             className="w-full flex items-center gap-4 px-6 py-4 active:bg-zinc-800 transition-colors"
           >
-            <CheckSquare size={20} className="text-blue-400 shrink-0" />
-            <span className="text-sm font-medium text-blue-400">
-              {organizeMode ? 'Anulează selecția' : 'Selectează'}
+            <Plus size={20} className={organizeMode === 'add' ? 'text-blue-400 shrink-0' : 'text-zinc-400 shrink-0'} />
+            <span className={`text-sm font-medium ${organizeMode === 'add' ? 'text-blue-400' : 'text-zinc-200'}`}>
+              {organizeMode === 'add' ? 'Anulează adăugarea' : 'Adaugă'}
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              setActionsSheetOpen(false)
+              if (organizeMode === 'remove') exitOrganizeMode()
+              else setOrganizeMode('remove')
+            }}
+            className="w-full flex items-center gap-4 px-6 py-4 active:bg-zinc-800 transition-colors"
+          >
+            <Trash size={20} className={organizeMode === 'remove' ? 'text-red-400 shrink-0' : 'text-zinc-400 shrink-0'} />
+            <span className={`text-sm font-medium ${organizeMode === 'remove' ? 'text-red-400' : 'text-zinc-200'}`}>
+              {organizeMode === 'remove' ? 'Anulează eliminarea' : 'Scoate'}
             </span>
           </button>
         </div>

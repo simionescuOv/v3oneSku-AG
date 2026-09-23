@@ -158,6 +158,18 @@ export const useItemsStore = create(
         })
       },
 
+      // Eliminare: șterge tagValues dintr-un grup specific
+      removeTagsFromGroup: (groupId, tagValues) => {
+        set((s) => {
+          const updated = { ...s.tagGroupMembers }
+          if (updated[groupId]) {
+            const toRemove = new Set(tagValues)
+            updated[groupId] = updated[groupId].filter(t => !toRemove.has(t))
+          }
+          return { tagGroupMembers: updated }
+        })
+      },
+
       // Creează un folder nou și îi asociază direct tagValues — combină addTagGroup + associate
       createGroupWithTags: ({ groupName, tagValues }) => {
         const groups = get().tagGroups
