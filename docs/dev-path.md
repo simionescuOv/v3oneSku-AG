@@ -4,13 +4,29 @@
 > - `git commit` se ruleazÄƒ **EXCLUSIV la cererea expresÄƒ a utilizatorului** (ex: â€salveazÄƒ Ã®n gitâ€, â€fÄƒ commitâ€).
 
 ### [Commit Pending]
-- **MultiTag: Auto-Expand si Stilizare Contor**:
-  - Implementat \searchOverride\ în \MultiTagSheet.jsx\ pentru a expanda automat folderul 'Fixate' în timpul cãutãrii, fãrã a suprascrie preferin?a salvatã a utilizatorului.
-  - Actualizat UI-ul pentru numãrul de tag-uri de pe fiecare rând (aplicat font alb, îngro?at) pentru a cre?te lizibilitatea.
+_(gol â€” urmÄƒtoarea sarcinÄƒ va adÄƒuga un bullet point aici)_
 
 ---
 
-### [Commit fe49cfc] — build: abanos | commit: papadie - Corectare vizibilitate Taguri Selectate in Editare MultiTag
+### [Commit e442068] â€” build: harpa | commit: trofeu - Repozitionare buton creare folder in footer intre Anuleaza si Salveaza
+- **Ramura**: rec-value
+- **Data**: 2026-09-26
+- **Descriere Detaliata**:
+  - `src/components/items/TagGroupsPicker.jsx` - eliminat butonul plutitor (rotund albastru cu Plus) din coloana stanga de foldere care bloca interactiunea cu elementele din lista.
+  - Repozitionat butonul de creare folder direct in footer-ul fix de actiuni (`organizeMode === 'add'`), asezat compact si aliniat intre butonul de â€Anuleazaâ€ si â€Salveaza asocierileâ€.
+
+---
+
+### [Commit 073c0fe] â€” build: vulcan | commit: salcam - MultiTag: Auto-expand Pinned la cautare si Badge luminos pt count
+- **Ramura**: rec-value
+- **Data**: 2026-09-26
+- **Descriere Detaliata**:
+  - Implementat mecanism local derivat (`searchOverride`) in `MultiTagSheet.jsx` care forteaza deschiderea folderului de 'Fixate' cat timp exista text in bara de cautare. La stergerea cautarii, containerul revine instant la starea salvata global in Store.
+  - Modificat stilizarea count-ului de taguri per multitag: cifra este acum font-bold si text-white pentru un contrast excelent.
+
+---
+
+### [Commit fe49cfc] ï¿½ build: abanos | commit: papadie - Corectare vizibilitate Taguri Selectate in Editare MultiTag
 - **Ramura**: rec-value
 - **Data**: 2026-09-26
 - **Descriere Detaliata**:
@@ -18,7 +34,7 @@
 
 ---
 
-### [Commit 8ec16fb] — build: elefant | commit: chibrit - MultiTag: editare nume, sistem Pinning cu sectiune persistenta si navigare lista back
+### [Commit 8ec16fb] ï¿½ build: elefant | commit: chibrit - MultiTag: editare nume, sistem Pinning cu sectiune persistenta si navigare lista back
 - **Ramura**: rec-value
 - **Data**: 2026-09-26
 - **Descriere Detaliata**:
@@ -28,7 +44,7 @@
 
 ---
 
-### [Commit db04471] — build: macara | commit: radar - implementare MultiTag v1 (manager)
+### [Commit db04471] ï¿½ build: macara | commit: radar - implementare MultiTag v1 (manager)
 - **Ramura**: rec-value
 - **Data**: 2026-09-26
 - **Descriere Detaliata**:

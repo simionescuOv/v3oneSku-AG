@@ -322,16 +322,7 @@ export default function TagGroupsPicker({
       <div className="flex flex-1 min-h-0">
         {/* Coloana stângă — Foldere */}
         <div className="w-[42%] border-r border-zinc-800 flex flex-col min-h-0 relative">
-          {organizeMode === 'add' && hasTagsSelected && !isSearching && (
-            <button
-              onClick={() => setNewFolderMode(true)}
-              className="absolute bottom-16 right-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.4)] active:bg-blue-700 hover:bg-blue-500 transition-colors z-30"
-              aria-label="Creează folder nou"
-            >
-              <Plus size={24} />
-            </button>
-          )}
-          <div className="flex-1 overflow-y-auto pb-32">
+          <div className="flex-1 overflow-y-auto pb-16">
 
 
             {visibleGroups.length === 0 && isSearching && (
@@ -473,10 +464,20 @@ export default function TagGroupsPicker({
         <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2.5 px-4 py-2 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-md">
           <button
             onClick={exitOrganizeMode}
-            className="px-4 py-1.5 rounded-lg text-sm text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 transition-colors"
+            className="px-4 py-1.5 rounded-lg text-sm text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 transition-colors shrink-0"
           >
             Anulează
           </button>
+          {organizeMode === 'add' && hasTagsSelected && !isSearching && (
+            <button
+              onClick={() => setNewFolderMode(true)}
+              className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 active:bg-blue-700 transition-colors shrink-0 shadow-sm"
+              aria-label="Creează folder nou"
+              title="Folder nou"
+            >
+              <Plus size={18} />
+            </button>
+          )}
           {organizeMode === 'add' ? (
             <button
               onClick={handleSave}
