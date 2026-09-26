@@ -162,9 +162,9 @@ export default function TagGroupsPicker({
   }, [isSearching, filteredTags, activeGroupId, vocabulary, tagGroupMembers])
 
   const pinnedTags = useMemo(() => {
-    if (!organizeMode) return []
-    return visibleTags.filter(t => selectedTagValues.has(t.value))
-  }, [visibleTags, organizeMode, selectedTagValues])
+    if (!organizeMode && !selectionMode) return []
+    return vocabulary.filter(t => selectedTagValues.has(t.value))
+  }, [vocabulary, organizeMode, selectionMode, selectedTagValues])
 
 
 

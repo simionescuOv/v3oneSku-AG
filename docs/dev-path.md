@@ -8,6 +8,14 @@ _(gol — urmatoarea sarcina va adauga un bullet point aici)_
 
 ---
 
+### [Commit fe49cfc] — build: abanos | commit: papadie - Corectare vizibilitate Taguri Selectate in Editare MultiTag
+- **Ramura**: rec-value
+- **Data**: 2026-09-26
+- **Descriere Detaliata**:
+  - **TagGroupsPicker**: Corectat bug-ul care ascundea containerul de taguri selectate (pinned header) in \selectionMode\ (modul folosit de MultiTag). \n  - Actualizat calculul pentru \pinnedTags\ pentru a returna mereu TOATE tagurile bifate din intregul \ocabulary\ (global), in loc sa fie limitate la folderul activ. Astfel utilizatorul are o viziune de ansamblu perfecta a intregii sale selectii, chiar si atunci cand schimba folderele.
+
+---
+
 ### [Commit 8ec16fb] — build: elefant | commit: chibrit - MultiTag: editare nume, sistem Pinning cu sectiune persistenta si navigare lista back
 - **Ramura**: rec-value
 - **Data**: 2026-09-26
