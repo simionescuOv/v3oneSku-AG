@@ -4,7 +4,9 @@
 > - `git commit` se ruleazÄƒ **EXCLUSIV la cererea expresÄƒ a utilizatorului** (ex: â€salveazÄƒ Ã®n gitâ€, â€fÄƒ commitâ€).
 
 ### [Commit Pending]
-_(gol — urmatoarea sarcina va adauga un bullet point aici)_
+- **MultiTag: Auto-Expand si Stilizare Contor**:
+  - Implementat \searchOverride\ în \MultiTagSheet.jsx\ pentru a expanda automat folderul 'Fixate' în timpul cãutãrii, fãrã a suprascrie preferin?a salvatã a utilizatorului.
+  - Actualizat UI-ul pentru numãrul de tag-uri de pe fiecare rând (aplicat font alb, îngro?at) pentru a cre?te lizibilitatea.
 
 ---
 

@@ -47,6 +47,7 @@ export default function MultiTagSheet({ isOpen, onClose }) {
   const [pendingName, setPendingName] = useState('')
   const [editingMtId, setEditingMtId] = useState(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState(null)
+  const [searchOverride, setSearchOverride] = useState(null)
 
   // ─── BottomBar context (activ doar în step LIST) ───────────────────────────
   useEffect(() => {
@@ -82,6 +83,26 @@ export default function MultiTagSheet({ isOpen, onClose }) {
   const trimmedQuery = query.trim()
   const zeroMatches = isFiltering && filteredMultiTags.length === 0
   const showAddCTA = zeroMatches && trimmedQuery.length > 0
+
+  const isSearchActive = trimmedQuery.length > 0
+  
+  useEffect(() => {
+    if (isSearchActive) {
+      setSearchOverride(true)
+    } else {
+      setSearchOverride(null)
+    }
+  }, [isSearchActive])
+
+  const effectivelyExpanded = searchOverride !== null ? searchOverride : multiTagsPinnedExpanded
+
+  const handleTogglePinned = () => {
+    if (searchOverride !== null) {
+      setSearchOverride(!searchOverride)
+    } else {
+      toggleMultiTagsPinnedExpanded()
+    }
+  }
 
   // ─── Secțiuni Listă ────────────────────────────────────────────────────────
   const pinnedList = useMemo(() => filteredMultiTags.filter(mt => mt.isPinned), [filteredMultiTags])
@@ -155,7 +176,7 @@ export default function MultiTagSheet({ isOpen, onClose }) {
           {/* Contor + Trash */}
           <div className="flex items-center pr-4 shrink-0 gap-3">
             <span className="text-xs text-zinc-600 tabular-nums">
-              {mt.tags.length} tag{mt.tags.length !== 1 ? 'uri' : ''}
+              <span className="font-bold text-white">{mt.tags.length}</span> tag{mt.tags.length !== 1 ? 'uri' : ''}
             </span>
             <button
               onClick={(e) => handleDeleteRequest(e, mt.id)}
@@ -293,19 +314,19 @@ export default function MultiTagSheet({ isOpen, onClose }) {
           {pinnedList.length > 0 && (
             <div className="mb-2">
               <button
-                onClick={toggleMultiTagsPinnedExpanded}
+                onClick={handleTogglePinned}
                 className="w-full flex items-center gap-2 px-4 py-2 text-left bg-zinc-900/50 active:bg-zinc-800/50 transition-colors"
               >
                 <ChevronDown
                   size={14}
-                  className={`text-zinc-500 transition-transform ${!multiTagsPinnedExpanded ? '-rotate-90' : ''}`}
+                  className={`text-zinc-500 transition-transform ${!effectivelyExpanded ? '-rotate-90' : ''}`}
                 />
                 <span className="text-xs font-semibold text-zinc-400 tracking-wide uppercase">
-                  {!multiTagsPinnedExpanded ? `${pinnedList.length} fixate` : 'Fixate'}
+                  {!effectivelyExpanded ? `${pinnedList.length} fixate` : 'Fixate'}
                 </span>
               </button>
               
-              {multiTagsPinnedExpanded && (
+              {effectivelyExpanded && (
                 <div className="border-b border-zinc-800/50">
                   {pinnedList.map(renderMultiTagRow)}
                 </div>
