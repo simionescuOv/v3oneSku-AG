@@ -228,6 +228,53 @@ export const useItemsStore = create(
           .map(([value, count]) => ({ value, count }))
           .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
       },
+
+      // ─────────────────────────────────────────────────────────────────────
+      // MULTI-TAGS — Preset-uri reutilizabile de etichete
+      // Distinct de tagGroups (care e pentru organizare vizuală în TagGroupsPicker).
+      // Schema:
+      //   multiTags: [{ id, name, tags: string[], createdAt, usageCount, lastUsedAt }]
+      // Sortare: usageCount DESC → createdAt DESC (newest-first la egalitate)
+      // ─────────────────────────────────────────────────────────────────────
+
+      multiTags: [],
+
+      addMultiTag: ({ name, tags }) => {
+        const now = new Date().toISOString()
+        const newMT = {
+          id: 'mt_' + generateId(),
+          name: name.trim(),
+          tags: [...tags],
+          createdAt: now,
+          usageCount: 0,
+          lastUsedAt: null,
+        }
+        set((s) => ({ multiTags: [newMT, ...s.multiTags] }))
+        return newMT
+      },
+
+      deleteMultiTag: (id) => {
+        set((s) => ({ multiTags: s.multiTags.filter((mt) => mt.id !== id) }))
+      },
+
+      // Apelat la fiecare consultare (expand/tap) — ridică MultiTag-ul în clasament
+      incrementMultiTagUsage: (id) => {
+        set((s) => ({
+          multiTags: s.multiTags.map((mt) =>
+            mt.id === id
+              ? { ...mt, usageCount: mt.usageCount + 1, lastUsedAt: new Date().toISOString() }
+              : mt
+          ),
+        }))
+      },
+
+      // Selector pur — returnează lista sortată fără a modifica starea
+      getMultiTagsSorted: () => {
+        return [...get().multiTags].sort((a, b) => {
+          if (b.usageCount !== a.usageCount) return b.usageCount - a.usageCount
+          return new Date(b.createdAt) - new Date(a.createdAt)
+        })
+      },
     }),
     {
       name: 'onesku-items',

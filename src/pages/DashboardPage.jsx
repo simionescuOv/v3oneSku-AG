@@ -1,12 +1,14 @@
 // [ITEMS FEATURE] — importul de mai jos se șterge odată cu funcționalitatea
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { List, MoreVertical, Archive } from 'lucide-react'
+import { List, MoreVertical, Archive, Tags } from 'lucide-react'
 import BottomSheet from '../components/catalog/BottomSheet'
+import MultiTagSheet from '../components/items/MultiTagSheet'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
   const [itemsMenuOpen, setItemsMenuOpen] = useState(false)
+  const [multiTagOpen, setMultiTagOpen] = useState(false)
 
   return (
     <div className="p-6">
@@ -36,6 +38,20 @@ export default function DashboardPage() {
             <MoreVertical size={18} />
           </button>
         </div>
+
+        {/* Card MultiTag — separat de cardul ITEMS */}
+        <button
+          onClick={() => setMultiTagOpen(true)}
+          className="flex items-center gap-3 w-full bg-zinc-800 rounded-2xl px-5 py-4 mt-3 hover:bg-zinc-700 active:bg-zinc-700 transition-colors text-left"
+        >
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 shrink-0">
+            <Tags size={20} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-zinc-100">MULTITAG</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Preset-uri reutilizabile de etichete</p>
+          </div>
+        </button>
       </div>
       {/* [ITEMS FEATURE] — sfârșit bloc */}
 
@@ -52,6 +68,12 @@ export default function DashboardPage() {
           </button>
         </div>
       </BottomSheet>
+
+      {/* MultiTag Sheet */}
+      <MultiTagSheet
+        isOpen={multiTagOpen}
+        onClose={() => setMultiTagOpen(false)}
+      />
     </div>
   )
 }

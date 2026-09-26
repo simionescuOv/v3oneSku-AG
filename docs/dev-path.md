@@ -2,6 +2,23 @@
 
 > **REGULĂ OBLIGATORIE PENTRU TOȚI AGENȚII DE COD / VIBECODING:**
 > - `git commit` se rulează **EXCLUSIV la cererea expresă a utilizatorului** (ex: „salvează în git”, „fă commit”).
+
+### [Commit Pending]
+_(gol � urmatoarea sarcina va adauga un bullet point aici)_
+
+---
+
+### [Commit db04471] � build: macara | commit: radar - implementare MultiTag v1 (manager)
+- **Ramura**: rec-value
+- **Data**: 2026-09-26
+- **Descriere Detaliata**:
+  - `src/store/useItemsStore.js` - slice nou `multiTags[]` cu actiuni `addMultiTag`, `deleteMultiTag`, `incrementMultiTagUsage`, selector `getMultiTagsSorted` (frecventa DESC + newest-first).
+  - `src/components/items/TagGroupsPicker.jsx` - prop nou `selectionMode`: checkboxes direct + footer Inapoi/Salveaza(N).
+  - `src/components/items/MultiTagSheet.jsx` - componenta noua: step LIST (BottomSearch + lista + expand/vizualizare + delete confirmare + CTA); step PICK_TAGS (SWAP cu TagGroupsPicker selectionMode).
+  - `src/pages/DashboardPage.jsx` - card separat MULTITAG (purple) + MultiTagSheet.
+  - `src/pages/HomePage.jsx` - BUILD_WORD: macara, COMMIT_WORD: radar.
+
+---
 > - La fiecare sarcină măruntă/ajustare, agentul modifică codul și adaugă direct un nou bullet point în secțiunea de sus `### [Commit c0c914b] — build: tramvai | commit: ciocan - implementare arhiva, mod selectie, etc
 - **Ramură**: rec-value
 - **Data**: 2026-09-20

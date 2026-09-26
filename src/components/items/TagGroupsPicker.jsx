@@ -29,7 +29,7 @@ const SEARCH_CONTEXT_ID = 'tag-groups-picker'
 // ─── Folderul virtual „Toate" ─────────────────────────────────────────────────
 const ALL_GROUP = { id: '__all__', name: 'Toate', isVirtual: true }
 
-export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
+export default function TagGroupsPicker({ allowOrganize = false, onClose, selectionMode = false, onConfirm, onBack }) {
   const tagGroups = useItemsStore((s) => s.tagGroups)
   const tagGroupMembers = useItemsStore((s) => s.tagGroupMembers)
   const getTagVocabulary = useItemsStore((s) => s.getTagVocabulary)
@@ -226,9 +226,12 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
 
   // ─── Helper render tag ───────────────────────────────────────────────────
   const renderTag = (tag) => {
-    const isTagSelected = organizeMode && selectedTagValues.has(tag.value)
+    // selectionMode: checkboxes active direct; organizeMode: doar în modul add/remove existent
+    const isTagSelected = selectionMode
+      ? selectedTagValues.has(tag.value)
+      : organizeMode && selectedTagValues.has(tag.value)
     const belongsToCount = (tagToGroups[tag.value] ?? []).length
-    const showCheckbox = organizeMode === 'add' || (organizeMode === 'remove' && activeGroupId !== ALL_GROUP.id)
+    const showCheckbox = selectionMode || organizeMode === 'add' || (organizeMode === 'remove' && activeGroupId !== ALL_GROUP.id)
 
     return (
       <button
@@ -238,13 +241,17 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
         }}
         className={[
           'w-full flex items-center gap-2 px-4 py-3 text-left border-b border-zinc-800/50 last:border-b-0 transition-colors',
-          isTagSelected ? (organizeMode === 'remove' ? 'bg-red-900/20' : 'bg-blue-900/20') : organizeMode ? 'active:bg-zinc-800/40' : '',
+          isTagSelected
+            ? selectionMode
+              ? 'bg-blue-900/20'
+              : organizeMode === 'remove' ? 'bg-red-900/20' : 'bg-blue-900/20'
+            : (organizeMode || selectionMode) ? 'active:bg-zinc-800/40' : '',
         ].join(' ')}
       >
         {showCheckbox && (
           <span className="shrink-0">
             {isTagSelected
-              ? <CheckSquare size={15} className={organizeMode === 'remove' ? 'text-red-400' : 'text-blue-400'} />
+              ? <CheckSquare size={15} className={!selectionMode && organizeMode === 'remove' ? 'text-red-400' : 'text-blue-400'} />
               : <Square size={15} className="text-zinc-600" />}
           </span>
         )}
@@ -474,6 +481,33 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose }) {
               <span>Aplică eliminarea</span>
             </button>
           )}
+        </div>
+      )}
+
+      {/* ── Footer fix de acțiune (selectionMode — MultiTag) ─────────────── */}
+      {selectionMode && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2.5 px-4 py-2 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-md">
+          <button
+            onClick={onBack}
+            className="px-4 py-1.5 rounded-lg text-sm text-zinc-300 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 transition-colors"
+          >
+            Înapoi
+          </button>
+          <button
+            onClick={() => onConfirm?.([...selectedTagValues])}
+            disabled={selectedTagValues.size === 0}
+            className={[
+              'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-colors',
+              selectedTagValues.size > 0
+                ? 'bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700'
+                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
+            ].join(' ')}
+          >
+            <Check size={16} className="shrink-0" />
+            <span>
+              Salvează{selectedTagValues.size > 0 ? ` (${selectedTagValues.size})` : ''}
+            </span>
+          </button>
         </div>
       )}
 
