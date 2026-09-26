@@ -8,6 +8,16 @@ _(gol — urmatoarea sarcina va adauga un bullet point aici)_
 
 ---
 
+### [Commit 8ec16fb] — build: elefant | commit: chibrit - MultiTag: editare nume, sistem Pinning cu sectiune persistenta si navigare lista back
+- **Ramura**: rec-value
+- **Data**: 2026-09-26
+- **Descriere Detaliata**:
+  - `src/store/useItemsStore.js` - inlocuit sistemul vechi (usageCount) cu sistem de Pinning (`isPinned`). Modificata functia de sortare pentru a returna cronologic invers. Adaugata persistenta `multiTagsPinnedExpanded` pentru folderele fixate.
+  - `src/components/items/TagGroupsPicker.jsx` - header-ul suporta un camp input editabil daca `editableTitle=true`. Functia de onConfirm returneaza array de taguri plus noul nume.
+  - `src/components/items/MultiTagSheet.jsx` - redesenat layout-ul listei pentru a acomoda sectiunea expandabila (Foldere Pinned) cu salvare de state, adaugat buton de Pin pe rand. Eliminat extinderea inline in favoarea navigarii catre modul Edit la click pe un multitag. Corectat behavior-ul de onConfirm pentru a reveni mereu la step LIST.
+
+---
+
 ### [Commit db04471] — build: macara | commit: radar - implementare MultiTag v1 (manager)
 - **Ramura**: rec-value
 - **Data**: 2026-09-26

@@ -231,13 +231,14 @@ export const useItemsStore = create(
 
       // ─────────────────────────────────────────────────────────────────────
       // MULTI-TAGS — Preset-uri reutilizabile de etichete
-      // Distinct de tagGroups (care e pentru organizare vizuală în TagGroupsPicker).
       // Schema:
-      //   multiTags: [{ id, name, tags: string[], createdAt, usageCount, lastUsedAt }]
-      // Sortare: usageCount DESC → createdAt DESC (newest-first la egalitate)
+      //   multiTags: [{ id, name, tags: string[], createdAt, isPinned }]
       // ─────────────────────────────────────────────────────────────────────
 
       multiTags: [],
+      multiTagsPinnedExpanded: true,
+
+      toggleMultiTagsPinnedExpanded: () => set((s) => ({ multiTagsPinnedExpanded: !s.multiTagsPinnedExpanded })),
 
       addMultiTag: ({ name, tags }) => {
         const now = new Date().toISOString()
@@ -246,34 +247,35 @@ export const useItemsStore = create(
           name: name.trim(),
           tags: [...tags],
           createdAt: now,
-          usageCount: 0,
-          lastUsedAt: null,
+          isPinned: false,
         }
         set((s) => ({ multiTags: [newMT, ...s.multiTags] }))
         return newMT
+      },
+
+      updateMultiTag: (id, updates) => {
+        set((s) => ({
+          multiTags: s.multiTags.map((mt) =>
+            mt.id === id ? { ...mt, ...updates } : mt
+          ),
+        }))
       },
 
       deleteMultiTag: (id) => {
         set((s) => ({ multiTags: s.multiTags.filter((mt) => mt.id !== id) }))
       },
 
-      // Apelat la fiecare consultare (expand/tap) — ridică MultiTag-ul în clasament
-      incrementMultiTagUsage: (id) => {
+      toggleMultiTagPin: (id) => {
         set((s) => ({
           multiTags: s.multiTags.map((mt) =>
-            mt.id === id
-              ? { ...mt, usageCount: mt.usageCount + 1, lastUsedAt: new Date().toISOString() }
-              : mt
+            mt.id === id ? { ...mt, isPinned: !mt.isPinned } : mt
           ),
         }))
       },
 
-      // Selector pur — returnează lista sortată fără a modifica starea
+      // Returnează lista sortată cronologic (cel mai nou primul). Separarea pin se face în UI.
       getMultiTagsSorted: () => {
-        return [...get().multiTags].sort((a, b) => {
-          if (b.usageCount !== a.usageCount) return b.usageCount - a.usageCount
-          return new Date(b.createdAt) - new Date(a.createdAt)
-        })
+        return [...get().multiTags].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       },
     }),
     {

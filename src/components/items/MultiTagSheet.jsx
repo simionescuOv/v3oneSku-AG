@@ -7,19 +7,17 @@
 //
 // Flux:
 //   1. Step LIST: lista MultiTag-uri existente, filtrată prin BottomBar.
-//      - tap pe un MultiTag → expand/collapse vizualizare taguri conținute
-//        (incrementează usageCount → ridică în clasament)
+//      - Secțiune "Pinned" (elemente fixate) și secțiune "Unpinned".
+//      - tap pe un MultiTag → deschide mod EDIT_TAGS
 //      - zero rezultate în căutare → CTA „Adaugă MultiTag <denumire>"
-//   2. Step PICK_TAGS: SWAP cu TagGroupsPicker în selectionMode
-//      - Utilizatorul bifează taguri din layout-ul cu două coloane
-//      - Salvează → addMultiTag({ name: pendingName, tags }) → close
-//      - Înapoi → revine la step LIST
+//   2. Step PICK_TAGS (CRARE) / EDIT_TAGS (EDITARE): SWAP cu TagGroupsPicker
+//      - Utilizatorul bifează taguri / modifică numele
+//      - Salvează → addMultiTag / updateMultiTag → revine la LIST
 //
 // v2 (viitor): se va adăuga prop onApply(tags) pentru aplicare pe înregistrări
-// din dialogul de creare/editare, montat din ItemFormSheet sau similar.
 
 import { useState, useEffect, useMemo } from 'react'
-import { Tags, ChevronDown, ChevronRight, Plus, Trash2, X } from 'lucide-react'
+import { Tags, ChevronDown, ChevronRight, Plus, Trash2, X, Pin } from 'lucide-react'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { useBottomSearch } from '../../hooks/useBottomSearch'
@@ -30,9 +28,13 @@ const SEARCH_CTX = 'multitag_sheet'
 
 export default function MultiTagSheet({ isOpen, onClose }) {
   const multiTags = useItemsStore((s) => s.multiTags)
+  const multiTagsPinnedExpanded = useItemsStore((s) => s.multiTagsPinnedExpanded)
+  const toggleMultiTagsPinnedExpanded = useItemsStore((s) => s.toggleMultiTagsPinnedExpanded)
+  
   const addMultiTag = useItemsStore((s) => s.addMultiTag)
+  const updateMultiTag = useItemsStore((s) => s.updateMultiTag)
   const deleteMultiTag = useItemsStore((s) => s.deleteMultiTag)
-  const incrementMultiTagUsage = useItemsStore((s) => s.incrementMultiTagUsage)
+  const toggleMultiTagPin = useItemsStore((s) => s.toggleMultiTagPin)
   const getMultiTagsSorted = useItemsStore((s) => s.getMultiTagsSorted)
 
   const pushSearchContext = useAppStore((s) => s.pushSearchContext)
@@ -41,9 +43,9 @@ export default function MultiTagSheet({ isOpen, onClose }) {
   const searchQuery = useAppStore((s) => s.searchQuery)
 
   // ─── State intern ──────────────────────────────────────────────────────────
-  const [step, setStep] = useState('LIST') // 'LIST' | 'PICK_TAGS'
+  const [step, setStep] = useState('LIST') // 'LIST' | 'PICK_TAGS' | 'EDIT_TAGS'
   const [pendingName, setPendingName] = useState('')
-  const [expandedId, setExpandedId] = useState(null)
+  const [editingMtId, setEditingMtId] = useState(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState(null)
 
   // ─── BottomBar context (activ doar în step LIST) ───────────────────────────
@@ -62,7 +64,7 @@ export default function MultiTagSheet({ isOpen, onClose }) {
     if (!isOpen) {
       setStep('LIST')
       setPendingName('')
-      setExpandedId(null)
+      setEditingMtId(null)
       setDeleteConfirmId(null)
     }
   }, [isOpen])
@@ -81,18 +83,21 @@ export default function MultiTagSheet({ isOpen, onClose }) {
   const zeroMatches = isFiltering && filteredMultiTags.length === 0
   const showAddCTA = zeroMatches && trimmedQuery.length > 0
 
-  // ─── Handler expand/collapse (incrementează usage) ─────────────────────────
-  const handleToggleExpand = (id) => {
-    if (expandedId === id) {
-      setExpandedId(null)
-    } else {
-      setExpandedId(id)
-      incrementMultiTagUsage(id)
-    }
-    setDeleteConfirmId(null)
+  // ─── Secțiuni Listă ────────────────────────────────────────────────────────
+  const pinnedList = useMemo(() => filteredMultiTags.filter(mt => mt.isPinned), [filteredMultiTags])
+  const unpinnedList = useMemo(() => filteredMultiTags.filter(mt => !mt.isPinned), [filteredMultiTags])
+
+  // ─── Handlers ──────────────────────────────────────────────────────────────
+  const handleCreateRequest = () => {
+    setPendingName(trimmedQuery)
+    setStep('PICK_TAGS')
   }
 
-  // ─── Handler delete ────────────────────────────────────────────────────────
+  const handleEditRequest = (mt) => {
+    setEditingMtId(mt.id)
+    setStep('EDIT_TAGS')
+  }
+
   const handleDeleteRequest = (e, id) => {
     e.stopPropagation()
     setDeleteConfirmId(id === deleteConfirmId ? null : id)
@@ -101,51 +106,163 @@ export default function MultiTagSheet({ isOpen, onClose }) {
   const handleDeleteConfirm = (e, id) => {
     e.stopPropagation()
     deleteMultiTag(id)
-    if (expandedId === id) setExpandedId(null)
     setDeleteConfirmId(null)
   }
 
-  // ─── Handler CTA creare ────────────────────────────────────────────────────
-  const handleAddCTA = () => {
-    setPendingName(trimmedQuery)
-    setStep('PICK_TAGS')
+  const handleTogglePin = (e, id) => {
+    e.stopPropagation()
+    toggleMultiTagPin(id)
   }
 
-  // ─── SWAP: step PICK_TAGS ──────────────────────────────────────────────────
+  // ─── Renders ───────────────────────────────────────────────────────────────
+
+  const renderMultiTagRow = (mt) => {
+    const isDeletePending = deleteConfirmId === mt.id
+
+    return (
+      <div key={mt.id} className="border-b border-zinc-800/50 last:border-b-0">
+        <div className="flex items-stretch w-full active:bg-zinc-800/40 transition-colors">
+          {/* Pin Button */}
+          <button
+            onClick={(e) => handleTogglePin(e, mt.id)}
+            className="px-4 py-3.5 flex items-center justify-center shrink-0"
+            aria-label="Fixează/Defixează"
+          >
+            <Pin
+              size={16}
+              className={`transition-colors ${mt.isPinned ? 'text-blue-500 fill-blue-500/20' : 'text-zinc-600'}`}
+            />
+          </button>
+
+          {/* Nume & Tags (apăsare pt Edit) */}
+          <button
+            onClick={() => handleEditRequest(mt)}
+            className="flex-1 flex items-center py-3.5 pr-2 text-left min-w-0"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-zinc-100 truncate">
+                {mt.name}
+              </p>
+              {mt.tags.length > 0 && (
+                <p className="text-xs text-zinc-500 mt-0.5 truncate">
+                  {mt.tags.slice(0, 4).join(', ')}
+                  {mt.tags.length > 4 && ` +${mt.tags.length - 4}`}
+                </p>
+              )}
+            </div>
+          </button>
+
+          {/* Contor + Trash */}
+          <div className="flex items-center pr-4 shrink-0 gap-3">
+            <span className="text-xs text-zinc-600 tabular-nums">
+              {mt.tags.length} tag{mt.tags.length !== 1 ? 'uri' : ''}
+            </span>
+            <button
+              onClick={(e) => handleDeleteRequest(e, mt.id)}
+              className={
+                'w-8 h-8 flex items-center justify-center rounded-lg transition-colors shrink-0 ' +
+                (isDeletePending
+                  ? 'bg-red-600/20 text-red-400'
+                  : 'text-zinc-600 active:bg-zinc-700 active:text-zinc-300')
+              }
+              aria-label="Șterge MultiTag"
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Confirmare delete */}
+        {isDeletePending && (
+          <div className="mx-4 mb-3 flex items-center gap-2 px-3 py-2.5 bg-red-950/40 border border-red-800/40 rounded-xl">
+            <p className="flex-1 text-xs text-red-300">Ștergi „{mt.name}"?</p>
+            <button
+              onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null) }}
+              className="px-3 py-1 rounded-lg text-xs text-zinc-400 bg-zinc-800 active:bg-zinc-700"
+            >
+              Nu
+            </button>
+            <button
+              onClick={(e) => handleDeleteConfirm(e, mt.id)}
+              className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-red-600 active:bg-red-700"
+            >
+              Șterge
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SWAP: 'PICK_TAGS' (Creare nou)
+  // ─────────────────────────────────────────────────────────────────────────
   if (step === 'PICK_TAGS') {
     return (
       <BottomSheet open={isOpen} onClose={onClose} aboveBottomBar>
         <TagGroupsPicker
-          selectionMode
-          onConfirm={(selectedTags) => {
+          selectionMode={true}
+          initialTitle={pendingName}
+          editableTitle={true}
+          onConfirm={(selectedTags, newName) => {
             if (selectedTags.length > 0) {
-              addMultiTag({ name: pendingName, tags: selectedTags })
+              addMultiTag({ name: newName || pendingName, tags: selectedTags })
             }
-            onClose()
-          }}
-          onBack={() => {
             setStep('LIST')
           }}
+          onBack={() => setStep('LIST')}
+          onClose={onClose}
         />
       </BottomSheet>
     )
   }
 
-  // ─── Render step LIST ──────────────────────────────────────────────────────
-  if (!isOpen) return null
+  // ─────────────────────────────────────────────────────────────────────────
+  // SWAP: 'EDIT_TAGS' (Editare existent)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (step === 'EDIT_TAGS') {
+    const editingMt = multiTags.find(mt => mt.id === editingMtId)
+    if (!editingMt) {
+      setStep('LIST')
+      return null
+    }
 
+    return (
+      <BottomSheet open={isOpen} onClose={onClose} aboveBottomBar>
+        <TagGroupsPicker
+          selectionMode={true}
+          initialSelectedTags={editingMt.tags}
+          initialTitle={editingMt.name}
+          editableTitle={true}
+          onConfirm={(selectedTags, newName) => {
+            if (selectedTags.length > 0) {
+              updateMultiTag(editingMt.id, { name: newName || editingMt.name, tags: selectedTags })
+            } else {
+              // Daca lasa 0 taguri, dezactivat oricum in TagGroupsPicker
+            }
+            setStep('LIST')
+          }}
+          onBack={() => setStep('LIST')}
+          onClose={onClose}
+        />
+      </BottomSheet>
+    )
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SWAP: 'LIST' (Consultare/Manager MultiTag-uri)
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <BottomSheet open={isOpen} onClose={onClose} aboveBottomBar>
-      <div className="flex flex-col min-h-0 max-h-[75dvh]">
-
-        {/* ── Header ────────────────────────────────────────────────────── */}
-        <div className="px-4 pt-4 pb-3 shrink-0 flex items-center justify-between border-b border-zinc-800">
+      <div className="flex flex-col flex-1 min-h-0 relative">
+        {/* ── Header ───────────────────────────────────────────────────────── */}
+        <div className="px-4 pt-4 pb-2 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Tags size={18} className="text-purple-400" />
-            <h2 className="text-base font-bold text-zinc-100">MultiTag</h2>
-            {sortedMultiTags.length > 0 && (
-              <span className="text-xs text-zinc-500 tabular-nums">
-                {sortedMultiTags.length}
+            <h2 className="text-lg font-bold text-zinc-100">MultiTag</h2>
+            {isFiltering && !zeroMatches && (
+              <span className="ml-2 px-2 py-0.5 rounded-md bg-zinc-800 text-[10px] font-semibold text-zinc-400">
+                {filteredMultiTags.length} rezultate
               </span>
             )}
           </div>
@@ -172,126 +289,56 @@ export default function MultiTagSheet({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* Lista filtrată */}
-          {filteredMultiTags.map((mt) => {
-            const isExpanded = expandedId === mt.id
-            const isDeletePending = deleteConfirmId === mt.id
-
-            return (
-              <div key={mt.id} className="border-b border-zinc-800/50 last:border-b-0">
-                {/* Rândul principal */}
-                <button
-                  onClick={() => handleToggleExpand(mt.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-zinc-800/40 transition-colors"
-                >
-                  {/* Chevron expand */}
-                  <span className="shrink-0 text-zinc-600">
-                    {isExpanded
-                      ? <ChevronDown size={16} />
-                      : <ChevronRight size={16} />
-                    }
-                  </span>
-
-                  {/* Denumire + contor taguri */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-zinc-100 truncate">
-                      {mt.name}
-                    </p>
-                    {!isExpanded && mt.tags.length > 0 && (
-                      <p className="text-xs text-zinc-500 mt-0.5 truncate">
-                        {mt.tags.slice(0, 4).join(', ')}
-                        {mt.tags.length > 4 && ` +${mt.tags.length - 4}`}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Contor */}
-                  <span className="shrink-0 text-xs text-zinc-600 tabular-nums">
-                    {mt.tags.length} tag{mt.tags.length !== 1 ? 'uri' : ''}
-                  </span>
-
-                  {/* Buton delete */}
-                  <button
-                    onClick={(e) => handleDeleteRequest(e, mt.id)}
-                    className={[
-                      'shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors',
-                      isDeletePending
-                        ? 'bg-red-600/20 text-red-400'
-                        : 'text-zinc-600 active:bg-zinc-700 active:text-zinc-300',
-                    ].join(' ')}
-                    aria-label="Șterge MultiTag"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </button>
-
-                {/* Confirmare delete */}
-                {isDeletePending && (
-                  <div className="mx-4 mb-3 flex items-center gap-2 px-3 py-2.5 bg-red-950/40 border border-red-800/40 rounded-xl">
-                    <p className="flex-1 text-xs text-red-300">Ștergi „{mt.name}"?</p>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null) }}
-                      className="px-3 py-1 rounded-lg text-xs text-zinc-400 bg-zinc-800 active:bg-zinc-700"
-                    >
-                      Nu
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteConfirm(e, mt.id)}
-                      className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-red-600 active:bg-red-700"
-                    >
-                      Șterge
-                    </button>
-                  </div>
-                )}
-
-                {/* Taguri expandate */}
-                {isExpanded && (
-                  <div className="px-4 pb-3">
-                    {mt.tags.length === 0 ? (
-                      <p className="text-xs text-zinc-600 italic py-1">Niciun tag în acest preset</p>
-                    ) : (
-                      <div className="flex flex-wrap gap-1.5">
-                        {mt.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center px-2.5 py-1 rounded-lg bg-zinc-800 text-xs text-zinc-200 font-medium"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-
-          {/* Zero matches în căutare — dar NU showAddCTA (niciun rezultat, fără denumire tastată) */}
-          {isFiltering && filteredMultiTags.length === 0 && !showAddCTA && (
-            <div className="px-4 py-8 text-center">
-              <p className="text-sm text-zinc-500">Niciun rezultat</p>
+          {/* Secțiunea Pinned */}
+          {pinnedList.length > 0 && (
+            <div className="mb-2">
+              <button
+                onClick={toggleMultiTagsPinnedExpanded}
+                className="w-full flex items-center gap-2 px-4 py-2 text-left bg-zinc-900/50 active:bg-zinc-800/50 transition-colors"
+              >
+                <ChevronDown
+                  size={14}
+                  className={`text-zinc-500 transition-transform ${!multiTagsPinnedExpanded ? '-rotate-90' : ''}`}
+                />
+                <span className="text-xs font-semibold text-zinc-400 tracking-wide uppercase">
+                  {!multiTagsPinnedExpanded ? `${pinnedList.length} fixate` : 'Fixate'}
+                </span>
+              </button>
+              
+              {multiTagsPinnedExpanded && (
+                <div className="border-b border-zinc-800/50">
+                  {pinnedList.map(renderMultiTagRow)}
+                </div>
+              )}
             </div>
           )}
 
-          {/* CTA Adaugă MultiTag — apare când zero rezultate și există query */}
+          {/* Header Unpinned (dacă avem ambele) */}
+          {pinnedList.length > 0 && unpinnedList.length > 0 && (
+            <div className="px-4 py-2 mt-2">
+              <span className="text-xs font-semibold text-zinc-600 tracking-wide uppercase">Toate</span>
+            </div>
+          )}
+
+          {/* Lista Unpinned (sau simplă) */}
+          {unpinnedList.map(renderMultiTagRow)}
+
+          {/* CTA Creare la 0 potriviri de căutare */}
           {showAddCTA && (
-            <button
-              onClick={handleAddCTA}
-              className="w-full flex items-center gap-3 px-4 py-4 text-left active:bg-zinc-800/50 transition-colors"
-            >
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-600/20 text-purple-400 shrink-0">
-                <Plus size={18} />
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-purple-400">
+            <div className="px-4 pt-4 pb-2">
+              <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-dashed text-center">
+                <p className="text-sm text-zinc-400 mb-3">
+                  Nu există niciun MultiTag cu numele „<span className="font-semibold text-zinc-200">{trimmedQuery}</span>”
+                </p>
+                <button
+                  onClick={handleCreateRequest}
+                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Plus size={18} />
                   Adaugă MultiTag
-                </p>
-                <p className="text-xs text-zinc-400 truncate mt-0.5">
-                  „{trimmedQuery}"
-                </p>
+                </button>
               </div>
-            </button>
+            </div>
           )}
         </div>
       </div>

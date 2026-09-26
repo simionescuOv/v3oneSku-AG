@@ -29,7 +29,16 @@ const SEARCH_CONTEXT_ID = 'tag-groups-picker'
 // ─── Folderul virtual „Toate" ─────────────────────────────────────────────────
 const ALL_GROUP = { id: '__all__', name: 'Toate', isVirtual: true }
 
-export default function TagGroupsPicker({ allowOrganize = false, onClose, selectionMode = false, onConfirm, onBack }) {
+export default function TagGroupsPicker({
+  allowOrganize = false,
+  onClose,
+  selectionMode = false,
+  onConfirm,
+  onBack,
+  initialSelectedTags = [],
+  initialTitle = 'Tags',
+  editableTitle = false,
+}) {
   const tagGroups = useItemsStore((s) => s.tagGroups)
   const tagGroupMembers = useItemsStore((s) => s.tagGroupMembers)
   const getTagVocabulary = useItemsStore((s) => s.getTagVocabulary)
@@ -48,12 +57,18 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose, select
   // ─── State local ──────────────────────────────────────────────────────────
   const [activeGroupId, setActiveGroupId] = useState(ALL_GROUP.id)
   const [organizeMode, setOrganizeMode] = useState(false)
-  const [selectedTagValues, setSelectedTagValues] = useState(new Set())
+  const [selectedTagValues, setSelectedTagValues] = useState(() => new Set(initialSelectedTags))
   const [selectedGroupIds, setSelectedGroupIds] = useState(new Set())
   const [newFolderMode, setNewFolderMode] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [actionsSheetOpen, setActionsSheetOpen] = useState(false)
   const [isPinnedCollapsed, setIsPinnedCollapsed] = useState(false)
+  const [titleValue, setTitleValue] = useState(initialTitle)
+
+  // Sincronizare la schimbarea prop-ului initialTitle
+  useEffect(() => {
+    setTitleValue(initialTitle)
+  }, [initialTitle])
 
   // ─── BottomBar search context ────────────────────────────────────────────
   useEffect(() => {
@@ -277,13 +292,23 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose, select
     <div className="flex flex-col flex-1 min-h-0 relative">
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="px-4 pt-4 pb-2 shrink-0 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Tag size={18} className="text-zinc-400" />
-          <h2 className="text-lg font-bold text-zinc-100">Tags</h2>
+        <div className="flex items-center gap-2 flex-1 mr-3">
+          <Tag size={18} className="text-zinc-400 shrink-0" />
+          {editableTitle ? (
+            <input
+              type="text"
+              value={titleValue}
+              onChange={(e) => setTitleValue(e.target.value)}
+              className="text-lg font-bold text-zinc-100 bg-transparent outline-none w-full border-b border-transparent focus:border-zinc-700 transition-colors"
+              placeholder="Nume MultiTag"
+            />
+          ) : (
+            <h2 className="text-lg font-bold text-zinc-100 truncate">{titleValue}</h2>
+          )}
         </div>
         <button
-          onClick={onClose}
-          className="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 active:bg-zinc-800 active:text-zinc-100"
+          onClick={onClose || onBack}
+          className="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 active:bg-zinc-800 active:text-zinc-100 shrink-0"
           aria-label="Închide"
         >
           <X size={18} />
@@ -494,11 +519,11 @@ export default function TagGroupsPicker({ allowOrganize = false, onClose, select
             Înapoi
           </button>
           <button
-            onClick={() => onConfirm?.([...selectedTagValues])}
-            disabled={selectedTagValues.size === 0}
+            onClick={() => onConfirm?.([...selectedTagValues], titleValue)}
+            disabled={selectedTagValues.size === 0 || titleValue.trim().length === 0}
             className={[
               'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-colors',
-              selectedTagValues.size > 0
+              selectedTagValues.size > 0 && titleValue.trim().length > 0
                 ? 'bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700'
                 : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
             ].join(' ')}
