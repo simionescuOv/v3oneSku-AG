@@ -8,7 +8,20 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
-### [Commit Pending] — build: busola | commit: morcov - Dezactivare bara sugestii autofill si euristic mobile pe toate inputurile
+### [Commit Pending] — build: ceainic | commit: umbrela - Configurare PWA Standalone complet (manifest, pictograme, service worker)
+- **Ramura**: rec-value
+- **Data**: 2026-09-27
+- **Descriere Detaliata**:
+  - `public/manifest.webmanifest` - configurat manifestul oficial Web App cu `display: "standalone"`, `display_override: ["standalone", "minimal-ui"]`, orientare portret, temă `#09090b` și definirea setului de iconițe (192, 512, maskable, SVG).
+  - `public/icon.svg`, `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-512.png` - create pictogramele de brand oneSku optimizate pentru instalabilitate nativă WebAPK pe Android și ecran de pornire iOS.
+  - `public/sw.js` - creat Service Worker-ul cu lifecycle skipWaiting/claim și passthrough fetch handler pentru compatibilitate maximă cu arhitectura Local-First și validarea cerințelor de instalabilitate PWA Chromium.
+  - `index.html` - adăugate tag-urile `<link rel="manifest">`, iconițele, apple-touch-icon și meta tag-urile de aplicație autonomă (`mobile-web-app-capable`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`).
+  - `src/main.jsx` - înregistrare automată a Service Worker-ului pe protocol HTTPS și localhost.
+  - `src/pages/HomePage.jsx` - actualizat `BUILD_WORD` la `ceainic` și `COMMIT_WORD` la `umbrela`.
+
+---
+
+### [Commit 1972f28] — build: busola | commit: morcov - Dezactivare bara sugestii autofill si euristic mobile pe toate inputurile
 - **Ramura**: rec-value
 - **Data**: 2026-09-27
 - **Descriere Detaliata**:
