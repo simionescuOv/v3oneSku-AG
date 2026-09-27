@@ -8,7 +8,19 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
-### [Commit Pending] — build: ceainic | commit: umbrela - Configurare PWA Standalone complet (manifest, pictograme, service worker)
+### [Commit Pending] — build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
+- **Ramura**: rec-value
+- **Data**: 2026-09-27
+- **Descriere Detaliata**:
+  - `vercel.json` - corectat regula de rescriere SPA la `/((?!.*\\.[a-zA-Z0-9]+$).*)` pentru a preveni rescrierea fișierelor statice către `index.html`. Adăugate antete HTTP explicite pentru `/manifest.json`, `/(.*)\\.webmanifest` (`application/manifest+json`) și `/sw.js` (`application/javascript`, `Service-Worker-Allowed: /`, `no-cache`).
+  - `public/manifest.json` - adăugată copie directă `manifest.json` pentru compatibilitate 100% cu motoarele Chromium de pe Android.
+  - `index.html` - actualizat link-ul de manifest principal la `/manifest.json`.
+  - `src/main.jsx` - eliminat blocajul cauzat de ascultătorul evenimentului `load`, înregistrând Service Worker-ul imediat ce DOM-ul este gata.
+  - `src/pages/HomePage.jsx` - actualizat `BUILD_WORD` la `migdala` și `COMMIT_WORD` la `clopot`.
+
+---
+
+### [Commit 4935739] — build: ceainic | commit: umbrela - Configurare PWA Standalone complet (manifest, pictograme, service worker)
 - **Ramura**: rec-value
 - **Data**: 2026-09-27
 - **Descriere Detaliata**:
