@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import BottomSheet from './BottomSheet'
 import { useAppStore } from '../../store/useAppStore'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
 // SPEC_MutareCrossFolder §3.5 — bottom-sheet FĂRĂ căutare (BottomBar se
 // ascunde). Două stări vizuale în ACELAȘI sheet, fără tranziție de navigare:
@@ -59,11 +60,12 @@ export default function SubgroupSheet({ open, onClose, onConfirmNo, onConfirmYes
             <input
               ref={inputRef}
               type="text"
+              name="subgroup-folder-title"
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && trimmed) onConfirmYes(trimmed) }}
               placeholder="Nume subfolder..."
-              autoComplete="off"
+              {...NO_AUTOFILL_PROPS}
               enterKeyHint="done"
               className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
             />

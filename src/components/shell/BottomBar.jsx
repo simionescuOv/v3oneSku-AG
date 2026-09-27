@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../../store/useAppStore'
 import { NAV_ITEMS } from '../../lib/navItems'
 import { normalize } from '../../lib/search'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
 export default function BottomBar({ hidden, autocompleteLabel = 'autocomplete' }) {
   const { t } = useTranslation()
@@ -192,9 +193,8 @@ export default function BottomBar({ hidden, autocompleteLabel = 'autocomplete' }
             name="bottom-bar-search"
             id="bottom-bar-search"
             placeholder={globalNameIdSearch ? t('search.name_id') : searchPlaceholder}
-            autoComplete="off"
+            {...NO_AUTOFILL_PROPS}
             enterKeyHint="search"
-            data-lpignore="true"
             data-1p-ignore="true"
             value={searchQuery}
             onFocus={() => {

@@ -9,6 +9,7 @@ import { usePicker } from '../hooks/usePicker'
 import BottomSheet from '../components/catalog/BottomSheet'
 import ContextMenu from '../components/shell/ContextMenu'
 import { filterAndSort, buildSearchTree, sortTreeFolders } from '../lib/search'
+import { NO_AUTOFILL_PROPS } from '../utils/formProps'
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, source, sourceLocked, setSource, destination, setDestination, clearCart, restoreCart } = useCartStore()
@@ -252,8 +253,10 @@ export default function CartPage() {
         <input
           type="number"
           inputMode="numeric"
+          name={`cart-qty-${item.product.id}`}
           value={item.quantity || ''}
           onChange={(e) => updateQuantity(item.product.id, e.target.value)}
+          {...NO_AUTOFILL_PROPS}
           className="w-10 h-8 bg-transparent text-center text-sm font-semibold text-zinc-100 outline-none hide-arrows"
           onFocus={(e) => e.target.select()}
         />

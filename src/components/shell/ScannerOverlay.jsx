@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { X, Keyboard, Search, Camera } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import { useBarcodeScanner } from '../../hooks/useBarcodeScanner'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
 /**
  * ScannerOverlay — ecran fullscreen de scanare coduri de bare.
@@ -138,8 +139,10 @@ export default function ScannerOverlay() {
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
+              name="scanner-manual-code"
               placeholder="ex: 1234567890123"
               autoFocus
+              {...NO_AUTOFILL_PROPS}
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value.replace(/\D/g, ''))}
               onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}

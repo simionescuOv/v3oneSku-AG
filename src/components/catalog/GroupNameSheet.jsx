@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import BottomSheet from './BottomSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
 // Bottom-sheet FĂRĂ căutare → BottomBar se ascunde.
 // Câmpul de nume nu e căutare (e ca un input de redenumire), deci poate sta în sheet.
@@ -53,11 +54,12 @@ export default function GroupNameSheet({ open, onClose, showToast, suppressSucce
         <input
           ref={inputRef}
           type="text"
+          name="group-folder-title"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
           placeholder="Numele folderului nou"
-          autoComplete="off"
+          {...NO_AUTOFILL_PROPS}
           enterKeyHint="done"
           className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
         />

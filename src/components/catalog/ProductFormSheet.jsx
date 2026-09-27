@@ -10,6 +10,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
 import { generateRandomNameId, isNameIdAvailable } from '../../lib/nameIdGenerator'
 import { generateRandomBarcode, isBarcodeAvailable } from '../../lib/barcodeGenerator'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
 // Formular unificat de adăugare / editare produs — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
 // Primul câmp este Name ID (preluat din căutare sau generat aleatoriu la cerere pe client, local-first).
@@ -404,10 +405,11 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
           ) : (
             <input
               type="text"
+              name="sku-nid"
               value={nameId}
               onChange={(e) => setNameId(e.target.value)}
               placeholder="ex: pantofi-sport sau generează aleatoriu"
-              autoComplete="off"
+              {...NO_AUTOFILL_PROPS}
               className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
             />
           )}
@@ -443,12 +445,13 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
 
           <div className="relative flex items-center bg-zinc-800 rounded-xl px-3 h-11 focus-within:ring-1 focus-within:ring-blue-500">
             <input
-              type="tel"
+              type="text"
               inputMode="numeric"
+              name="sku-ean"
               value={barcode}
               onChange={(e) => setBarcode(e.target.value)}
               placeholder="Barcode scan"
-              autoComplete="off"
+              {...NO_AUTOFILL_PROPS}
               className="w-full h-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
             />
             {barcode.length > 0 && (
@@ -471,9 +474,10 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
               <div className="relative flex items-center bg-zinc-800 rounded-xl px-3 h-11 focus-within:ring-1 focus-within:ring-blue-500">
                 <input
                   type="text"
+                  name={`sku-attr-${a.id}`}
                   value={values[a.id] ?? ''}
                   onChange={(e) => setValue(a.id, e.target.value)}
-                  autoComplete="off"
+                  {...NO_AUTOFILL_PROPS}
                   className="w-full h-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
                 />
                 {Boolean(values[a.id]) && (
@@ -550,10 +554,11 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
         <input
           type="number"
           inputMode="decimal"
+          name="sku-price-val"
           value={listPrice}
           onChange={(e) => setListPrice(e.target.value)}
           placeholder="ex: 249"
-          autoComplete="off"
+          {...NO_AUTOFILL_PROPS}
           className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
         />
 

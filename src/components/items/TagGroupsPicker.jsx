@@ -18,6 +18,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square, ChevronDown, RotateCcw, Trash } from 'lucide-react'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
@@ -297,8 +298,10 @@ export default function TagGroupsPicker({
           {editableTitle ? (
             <input
               type="text"
+              name="multitag-title"
               value={titleValue}
               onChange={(e) => setTitleValue(e.target.value)}
+              {...NO_AUTOFILL_PROPS}
               className="text-lg font-bold text-zinc-100 bg-transparent outline-none w-full border-b border-transparent focus:border-zinc-700 transition-colors"
               placeholder="Nume MultiTag"
             />
@@ -589,8 +592,10 @@ export default function TagGroupsPicker({
               <input
                 autoFocus
                 type="text"
+                name="tag-folder-title"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
+                {...NO_AUTOFILL_PROPS}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleCreateFolder()
                   if (e.key === 'Escape') setNewFolderMode(false)

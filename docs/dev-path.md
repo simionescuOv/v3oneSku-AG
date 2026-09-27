@@ -8,7 +8,24 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
-### [Commit e442068] — build: harpa | commit: trofeu - Repozitionare buton creare folder in footer intre Anuleaza si Salveaza
+### [Commit Pending] — build: busola | commit: morcov - Dezactivare bara sugestii autofill si euristic mobile pe toate inputurile
+- **Ramura**: rec-value
+- **Data**: 2026-09-27
+- **Descriere Detaliata**:
+  - `src/utils/formProps.js` - creat utilitarul `NO_AUTOFILL_PROPS` cu `autoComplete="off"`, `autoCorrect="off"`, `autoCapitalize="off"`, `spellCheck={false}`, `data-lpignore="true"` si `data-form-type="other"`.
+  - `src/components/shell/BottomBar.jsx` - adaugat `NO_AUTOFILL_PROPS` pe inputul universal de cautare, pastrand referintele DOM si ignorarea 1Password.
+  - `src/components/catalog/ProductFormSheet.jsx` - aplicat `NO_AUTOFILL_PROPS` si nume tehnice neutre (`sku-nid`, `sku-attr-*`, `sku-price-val`); inlocuit critic `type="tel"` cu `type="text" inputMode="numeric"` pe barcode (`sku-ean`) pentru a elimina promptul Android de numere de telefon din contacte.
+  - `src/components/items/ItemFormSheet.jsx` - adaugat `NO_AUTOFILL_PROPS` si denumiri tehnice neutre pe campurile de valoare (`flux-item-val`), descriere (`flux-item-desc`) si moment (`flux-item-moment`).
+  - `src/components/items/TagGroupsPicker.jsx` - adaugat `NO_AUTOFILL_PROPS` si atribute neutre pe titlu MultiTag (`multitag-title`) si folder nou (`tag-folder-title`).
+  - `src/pages/CartPage.jsx` - adaugat `NO_AUTOFILL_PROPS` si atribut neutru pe inputul numeric de cantitate (`cart-qty-*`).
+  - `src/components/catalog/GroupNameSheet.jsx` & `src/components/catalog/SubgroupSheet.jsx` - adaugat `NO_AUTOFILL_PROPS` si denumiri neutre (`group-folder-title`, `subgroup-folder-title`).
+  - `src/components/catalog/SchemaSheet.jsx` - adaugat `NO_AUTOFILL_PROPS` si denumiri neutre pe campurile de creare atribut (`schema-attr-new`), editare (`schema-attr-edit`) si valoare optiune (`schema-opt-val`).
+  - `src/components/shell/ScannerOverlay.jsx` - adaugat `NO_AUTOFILL_PROPS` si atribut neutru pe inputul manual de barcode (`scanner-manual-code`).
+  - `src/pages/HomePage.jsx` - actualizat `BUILD_WORD` la `busola` si `COMMIT_WORD` la `morcov`.
+
+---
+
+### [Commit 069440b] — build: harpa | commit: trofeu - Repozitionare buton creare folder in footer intre Anuleaza si Salveaza
 - **Ramura**: rec-value
 - **Data**: 2026-09-26
 - **Descriere Detaliata**:

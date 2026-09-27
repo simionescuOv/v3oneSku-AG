@@ -4,6 +4,7 @@ import BottomSheet from './BottomSheet'
 import { useCatalogStore } from '../../store/useCatalogStore'
 import { useAppStore } from '../../store/useAppStore'
 import { getAllAttributeTypes } from '../../lib/attributeTypes'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
 // Schema de atribute a categoriei — bottom-sheet FĂRĂ căutare (BottomBar ascuns).
 // Vizualizări: listă atribute → adăugare atribut → editare atribut / opțiunile unui atribut single_choice.
@@ -212,10 +213,11 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
             </div>
             <input
               type="text"
+              name="schema-attr-new"
               value={attrName}
               onChange={(e) => setAttrName(e.target.value)}
               placeholder="Numele atributului (ex: Culoare)"
-              autoComplete="off"
+              {...NO_AUTOFILL_PROPS}
               className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
             />
             <div className="flex gap-3 mt-3">
@@ -291,10 +293,11 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
             </div>
             <input
               type="text"
+              name="schema-attr-edit"
               value={attrName}
               onChange={(e) => setAttrName(e.target.value)}
               placeholder="Numele atributului"
-              autoComplete="off"
+              {...NO_AUTOFILL_PROPS}
               className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
             />
 
@@ -375,11 +378,12 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
             <div className="flex gap-3 mt-4">
               <input
                 type="text"
+                name="schema-opt-val"
                 value={optionValue}
                 onChange={(e) => setOptionValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && optionValue.trim()) handleAddOption() }}
                 placeholder="Valoare nouă..."
-                autoComplete="off"
+                {...NO_AUTOFILL_PROPS}
                 className="flex-1 bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500"
               />
               <button

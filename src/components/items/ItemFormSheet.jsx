@@ -5,6 +5,7 @@ import BottomSheet from '../catalog/BottomSheet'
 import PickerSheet from '../catalog/PickerSheet'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
+import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
 // Bottom sheet pentru adăugarea unui item nou.
 // Câmpuri: valoare (number), descriere (text), tags (PickerSheet SWAP), moment (datetime-local).
@@ -144,10 +145,11 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
           <input
             type="number"
             inputMode="numeric"
+            name="flux-item-val"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="ex: 42"
-            autoComplete="off"
+            {...NO_AUTOFILL_PROPS}
             autoFocus
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -165,10 +167,11 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
           <input
             ref={descRef}
             type="text"
+            name="flux-item-desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Scrie o descriere..."
-            autoComplete="off"
+            {...NO_AUTOFILL_PROPS}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault()
@@ -222,8 +225,10 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
           <input
             ref={momentRef}
             type="datetime-local"
+            name="flux-item-moment"
             value={moment}
             onChange={(e) => setMoment(e.target.value)}
+            {...NO_AUTOFILL_PROPS}
             className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]"
           />
         </div>
