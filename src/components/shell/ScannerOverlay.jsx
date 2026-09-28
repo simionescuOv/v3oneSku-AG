@@ -136,7 +136,7 @@ export default function ScannerOverlay() {
           <div className="w-full max-w-sm px-6 flex flex-col gap-4">
             <p className="text-center text-zinc-300 text-sm">Introdu codul de bare manual</p>
             <input
-              type="text"
+              type="search"
               inputMode="numeric"
               pattern="[0-9]*"
               name="scanner-manual-code"

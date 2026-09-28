@@ -59,7 +59,7 @@ export default function SubgroupSheet({ open, onClose, onConfirmNo, onConfirmYes
           <>
             <input
               ref={inputRef}
-              type="text"
+              type="search"
               name="subgroup-folder-title"
               value={name}
               onChange={(e) => setName(e.target.value)}

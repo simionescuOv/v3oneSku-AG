@@ -20,3 +20,10 @@ html, body, #root {
 .animate-scan-line {
   animation: scan-line 1.8s ease-in-out infinite;
 }
+
+/* Ascunde butonul nativ de clear (X) din inputurile de tip search (folosite ca truc anti-autofill) */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}

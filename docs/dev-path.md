@@ -7,6 +7,16 @@
 _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
+### [Commit dd7078d] — build: ciocan | commit: fluviu - Aplicare agresiva tip search pe toate inputurile pentru blocare Autofill Chromium
+- **Ramura**: rec-value
+- **Data**: 2026-09-28
+- **Descriere Detaliata**:
+  - `src/utils/formProps.js` - modificat `autoComplete` la o valoare invalida (`nope-do-not-autofill`) in loc de `off` (care este ignorat de Chromium pe Android), si adaugat `role="presentation"` pentru a prabusi euristica de sugerare carduri si parole.
+  - `src/index.css` - adaugata regula CSS globala `::-webkit-search-cancel-button { display: none; }` pentru a ascunde iconita nativa "X" din interiorul inputurilor de tip search.
+  - `src/components/items/ItemFormSheet.jsx`, `src/components/catalog/ProductFormSheet.jsx`, `src/components/catalog/GroupNameSheet.jsx`, `src/components/catalog/SubgroupSheet.jsx`, `src/components/catalog/SchemaSheet.jsx`, `src/components/items/TagGroupsPicker.jsx`, `src/components/shell/ScannerOverlay.jsx` - convertite toate inputurile cu clasa anti-autofill din `type="text"` si `type="number"` in `type="search"`, pastrand suportul numeric via `inputMode="numeric"`, ocolind total declansatoarele autofill de Chromium.
+  - `src/pages/HomePage.jsx` - actualizat `BUILD_WORD` la `ciocan` si `COMMIT_WORD` la `fluviu`.
+
+---
 
 ### [Commit Pending] — build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
 - **Ramura**: rec-value

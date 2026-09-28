@@ -143,7 +143,7 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
         <div className="mt-2">
           <label className="block text-xs text-zinc-400 font-medium mb-1">Valoare</label>
           <input
-            type="number"
+            type="search"
             inputMode="numeric"
             name="flux-item-val"
             value={value}
@@ -166,7 +166,7 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
           <label className="block text-xs text-zinc-400 font-medium mb-1">Descriere</label>
           <input
             ref={descRef}
-            type="text"
+            type="search"
             name="flux-item-desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}

@@ -404,7 +404,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
             </div>
           ) : (
             <input
-              type="text"
+              type="search"
               name="sku-nid"
               value={nameId}
               onChange={(e) => setNameId(e.target.value)}
@@ -445,7 +445,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
 
           <div className="relative flex items-center bg-zinc-800 rounded-xl px-3 h-11 focus-within:ring-1 focus-within:ring-blue-500">
             <input
-              type="text"
+              type="search"
               inputMode="numeric"
               name="sku-ean"
               value={barcode}
@@ -473,7 +473,7 @@ export default function ProductFormSheet({ open, onClose, categoryId, product = 
             {a.type === 'text' ? (
               <div className="relative flex items-center bg-zinc-800 rounded-xl px-3 h-11 focus-within:ring-1 focus-within:ring-blue-500">
                 <input
-                  type="text"
+                  type="search"
                   name={`sku-attr-${a.id}`}
                   value={values[a.id] ?? ''}
                   onChange={(e) => setValue(a.id, e.target.value)}

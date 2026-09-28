@@ -4,10 +4,11 @@
  * în browsere mobile (Chromium, Brave pe Android) și servicii Android Autofill.
  */
 export const NO_AUTOFILL_PROPS = {
-  autoComplete: 'off',
+  autoComplete: 'nope-do-not-autofill',
   autoCorrect: 'off',
   autoCapitalize: 'off',
   spellCheck: false,
+  role: 'presentation',
   'data-lpignore': 'true',
   'data-form-type': 'other',
 }

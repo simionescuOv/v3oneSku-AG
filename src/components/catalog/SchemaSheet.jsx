@@ -212,7 +212,7 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
               <h2 className="flex-1 text-sm font-medium text-zinc-200 text-center pr-5">Atribut nou</h2>
             </div>
             <input
-              type="text"
+              type="search"
               name="schema-attr-new"
               value={attrName}
               onChange={(e) => setAttrName(e.target.value)}
@@ -292,7 +292,7 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
               </h2>
             </div>
             <input
-              type="text"
+              type="search"
               name="schema-attr-edit"
               value={attrName}
               onChange={(e) => setAttrName(e.target.value)}
@@ -377,7 +377,7 @@ export default function SchemaSheet({ open, onClose, categoryId, showToast }) {
             </div>
             <div className="flex gap-3 mt-4">
               <input
-                type="text"
+                type="search"
                 name="schema-opt-val"
                 value={optionValue}
                 onChange={(e) => setOptionValue(e.target.value)}

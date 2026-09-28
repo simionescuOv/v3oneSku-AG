@@ -297,7 +297,7 @@ export default function TagGroupsPicker({
           <Tag size={18} className="text-zinc-400 shrink-0" />
           {editableTitle ? (
             <input
-              type="text"
+              type="search"
               name="multitag-title"
               value={titleValue}
               onChange={(e) => setTitleValue(e.target.value)}
@@ -591,7 +591,7 @@ export default function TagGroupsPicker({
             <div className="p-5">
               <input
                 autoFocus
-                type="text"
+                type="search"
                 name="tag-folder-title"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}

@@ -53,7 +53,7 @@ export default function GroupNameSheet({ open, onClose, showToast, suppressSucce
         <h2 className="text-sm font-medium text-zinc-200 mb-3">Folder nou</h2>
         <input
           ref={inputRef}
-          type="text"
+          type="search"
           name="group-folder-title"
           value={name}
           onChange={(e) => setName(e.target.value)}
