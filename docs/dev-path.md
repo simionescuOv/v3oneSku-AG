@@ -19,7 +19,15 @@
 
 ---
 
+### [Commit 322cb6f] - build: abanos | commit: harpa - redesign card Items cu data sticky WhatsApp-style
+- Reconfigurat layout card: suma (stanga), descriere pe 2 randuri (centru), ora izolata (dreapta sus).
+- Sters afisarea tag-urilor direct din lista pentru curatenie vizuala.
+- Implementat separator date sticky top, care face fade-out cand utilizatorul nu mai face scroll, exact ca in chats-urile WhatsApp.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -53,7 +61,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 322cb6f] - build: abanos | commit: harpa - redesign card Items cu data sticky WhatsApp-style
+- Reconfigurat layout card: suma (stanga), descriere pe 2 randuri (centru), ora izolata (dreapta sus).
+- Sters afisarea tag-urilor direct din lista pentru curatenie vizuala.
+- Implementat separator date sticky top, care face fade-out cand utilizatorul nu mai face scroll, exact ca in chats-urile WhatsApp.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 -  — build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
@@ -259,7 +275,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 322cb6f] - build: abanos | commit: harpa - redesign card Items cu data sticky WhatsApp-style
+- Reconfigurat layout card: suma (stanga), descriere pe 2 randuri (centru), ora izolata (dreapta sus).
+- Sters afisarea tag-urilor direct din lista pentru curatenie vizuala.
+- Implementat separator date sticky top, care face fade-out cand utilizatorul nu mai face scroll, exact ca in chats-urile WhatsApp.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 

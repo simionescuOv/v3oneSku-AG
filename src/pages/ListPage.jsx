@@ -1,5 +1,5 @@
 // [ITEMS FEATURE] — Pagină izolată, removable. Șterge din App.jsx și DashboardPage pentru a elimina.
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react'
 import { Plus, X, ArrowLeft, CheckSquare, Square, Archive, Tag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
@@ -58,6 +58,22 @@ export default function ListPage() {
 
 
   const vocabulary = useMemo(() => getTagVocabulary(), [items, getTagVocabulary])
+
+  // Scroll detection pentru sticky date
+  const [isScrolling, setIsScrolling] = useState(false)
+  const scrollTimeout = useRef(null)
+
+  const handleScroll = useCallback(() => {
+    if (!isScrolling) setIsScrolling(true)
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current)
+    scrollTimeout.current = setTimeout(() => {
+      setIsScrolling(false)
+    }, 1200)
+  }, [isScrolling])
+
+  useEffect(() => {
+    return () => clearTimeout(scrollTimeout.current)
+  }, [])
 
   useEffect(() => {
     clearSearch()
@@ -205,7 +221,10 @@ export default function ListPage() {
       )}
 
       {/* Lista sau empty state */}
-      <div className="flex-1 overflow-y-auto min-h-0 relative">
+      <div 
+        className="flex-1 overflow-y-auto min-h-0 relative"
+        onScroll={handleScroll}
+      >
         {visibleItems.length === 0 ? (
           <div className="p-8 text-center text-zinc-500">
             <p>Niciun element găsit.</p>
@@ -219,7 +238,7 @@ export default function ListPage() {
             )}
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800/60">
+          <div className="pb-24">
             {visibleItems.map((item, index) => {
               const curr = parseDateStrings(item.moment)
               const prev = index > 0 ? parseDateStrings(visibleItems[index - 1].moment) : null
@@ -228,54 +247,50 @@ export default function ListPage() {
               const isSelected = selectedIds.has(item.id)
 
               return (
-                <button
-                  key={item.id}
-                  onClick={() => inSelectionMode ? toggleSelect(item.id) : setDetailItem(item)}
-                  className={[
-                    'w-full flex items-start gap-3 py-3.5 text-left transition-colors px-4',
-                    isSelected ? 'bg-blue-900/20 active:bg-blue-900/30' : 'active:bg-zinc-800/40',
-                  ].join(' ')}
-                >
-                  {/* Checkbox selecție */}
-                  {inSelectionMode && (
-                    <span className="shrink-0 pt-0.5">
-                      {isSelected
-                        ? <CheckSquare size={20} className="text-blue-400" />
-                        : <Square size={20} className="text-zinc-600" />}
-                    </span>
+                <Fragment key={item.id}>
+                  {dateDisplay && (
+                    <div className={`sticky top-2 z-10 flex justify-center py-2 pointer-events-none transition-opacity duration-500 ${isScrolling ? 'opacity-100' : 'opacity-0'}`}>
+                      <span className="text-xs font-semibold text-zinc-300 bg-zinc-800/90 backdrop-blur-sm px-3 py-1 rounded-full border border-zinc-700/50 shadow-sm">
+                        {dateDisplay}
+                      </span>
+                    </div>
                   )}
-
-                  {/* Valoare — proeminentă */}
-                  <span className="text-2xl font-bold text-zinc-100 tabular-nums leading-none pt-0.5 shrink-0 min-w-[60px] text-right">
-                    {item.value}
-                  </span>
-
-                  {/* Corp card */}
-                  <div className="flex-1 min-w-0">
-                    {item.description ? (
-                      <p className="text-sm text-zinc-300 truncate leading-snug">{item.description}</p>
-                    ) : (
-                      <p className="text-sm text-zinc-600 italic leading-snug">fără descriere</p>
+                  <button
+                    onClick={() => inSelectionMode ? toggleSelect(item.id) : setDetailItem(item)}
+                    className={[
+                      'w-full flex items-start gap-3 py-3.5 text-left transition-colors px-4 border-b border-zinc-800/60 last:border-b-0',
+                      isSelected ? 'bg-blue-900/20 active:bg-blue-900/30' : 'active:bg-zinc-800/40',
+                    ].join(' ')}
+                  >
+                    {/* Checkbox selecție */}
+                    {inSelectionMode && (
+                      <span className="shrink-0 pt-0.5">
+                        {isSelected
+                          ? <CheckSquare size={20} className="text-blue-400" />
+                          : <Square size={20} className="text-zinc-600" />}
+                      </span>
                     )}
-                    {item.tags?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        {item.tags.map((t) => (
-                          <span key={t} className="px-2 py-0.5 rounded-md bg-zinc-800/80 text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Data / Ora */}
-                  <div className="flex flex-col items-end shrink-0 pt-0.5">
-                    {dateDisplay && (
-                      <span className="text-xs text-zinc-400 font-medium mb-0.5">{dateDisplay}</span>
-                    )}
-                    <span className="text-xs text-zinc-500 tabular-nums">{curr.timeStr}</span>
-                  </div>
-                </button>
+                    {/* Valoare — proeminentă stânga */}
+                    <span className="text-2xl font-bold text-zinc-100 tabular-nums leading-none pt-0.5 shrink-0 min-w-[60px] text-right">
+                      {item.value}
+                    </span>
+
+                    {/* Corp card (Descriere) */}
+                    <div className="flex-1 min-w-0 pr-1">
+                      {item.description ? (
+                        <p className="text-sm text-zinc-300 leading-snug line-clamp-2">{item.description}</p>
+                      ) : (
+                        <p className="text-sm text-zinc-600 italic leading-snug">fără descriere</p>
+                      )}
+                    </div>
+
+                    {/* Ora — Dreapta sus */}
+                    <div className="flex flex-col items-end shrink-0 pt-0.5">
+                      <span className="text-xs font-semibold text-zinc-300 tabular-nums">{curr.timeStr}</span>
+                    </div>
+                  </button>
+                </Fragment>
               )
             })}
           </div>
