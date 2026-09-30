@@ -8,7 +8,14 @@
 
 ---
 
+### [Commit 5b23ff1] - build: corabie | commit: pat - adaugare butoane MultiTag in ItemFormSheet
+- Adaugat buton MultiTag manager pe linia etichetei Tags.
+- Adaugat buton de aplicare MultiTag (PickerSheet cu single-select) in dreapta inputului de tags.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
@@ -29,7 +36,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 5b23ff1] - build: corabie | commit: pat - adaugare butoane MultiTag in ItemFormSheet
+- Adaugat buton MultiTag manager pe linia etichetei Tags.
+- Adaugat buton de aplicare MultiTag (PickerSheet cu single-select) in dreapta inputului de tags.
+
+---
+
 ### [Commit Pending]
+- 
 -  — build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
 - **Ramura**: rec-value
 - **Data**: 2026-09-27
@@ -222,7 +236,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 5b23ff1] - build: corabie | commit: pat - adaugare butoane MultiTag in ItemFormSheet
+- Adaugat buton MultiTag manager pe linia etichetei Tags.
+- Adaugat buton de aplicare MultiTag (PickerSheet cu single-select) in dreapta inputului de tags.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 
 *(Not� pentru agent: Adaug� urm�torul commit deasupra acestei linii)*

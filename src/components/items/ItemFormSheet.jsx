@@ -1,8 +1,9 @@
 // [ITEMS FEATURE] — ComponentA izolată, removable.
 import { useEffect, useState, useRef } from 'react'
-import { Tag } from 'lucide-react'
+import { Tag, ChevronRight } from 'lucide-react'
 import BottomSheet from '../catalog/BottomSheet'
 import PickerSheet from '../catalog/PickerSheet'
+import MultiTagSheet from './MultiTagSheet'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
@@ -14,6 +15,7 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
   const addItem = useItemsStore((s) => s.addItem)
   const updateItem = useItemsStore((s) => s.updateItem)
   const getTagVocabulary = useItemsStore((s) => s.getTagVocabulary)
+  const multiTags = useItemsStore((s) => s.multiTags)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
 
   const [value, setValue] = useState('')
@@ -29,9 +31,9 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
   const momentRef = useRef(null)
   const prevOpenRef = useRef(false)
 
-  // BottomBar ascuns când formularul e deschis (dar vizibil când e picker-ul de tags)
+  // BottomBar ascuns când formularul e deschis (dar vizibil când e picker-ul de tags sau multitag)
   useEffect(() => {
-    setBottomBarHidden(open && picker !== 'tags')
+    setBottomBarHidden(open && picker !== 'tags' && picker !== 'multitag_apply' && picker !== 'multitag_manager')
   }, [open, picker, setBottomBarHidden])
 
   // Reset la deschidere, curăță la închidere
@@ -72,6 +74,48 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
   useEffect(() => () => setBottomBarHidden(false), [setBottomBarHidden])
 
   if (!open) return null
+
+  // SWAP: multitag manager
+  if (picker === 'multitag_manager') {
+    return (
+      <MultiTagSheet 
+        isOpen={true} 
+        onClose={() => setPicker(null)} 
+      />
+    )
+  }
+
+  // SWAP: multitag apply (picker)
+  if (picker === 'multitag_apply') {
+    const items = multiTags.map(mt => ({
+      value: mt.name,
+      count: mt.tags.length
+    }))
+
+    return (
+      <PickerSheet
+        open
+        title="Aplică MultiTag"
+        items={items}
+        selected={[]}
+        multiSelect={false}
+        allowCreate={false}
+        searchPlaceholder="Caută MultiTag..."
+        emptyLabel="Niciun MultiTag salvat"
+        onConfirm={({ selected }) => {
+          if (selected.length > 0) {
+            const mtName = selected[0]
+            const mt = multiTags.find((m) => m.name === mtName)
+            if (mt) {
+              setTags((prev) => [...new Set([...prev, ...mt.tags])])
+            }
+          }
+          setPicker(null)
+        }}
+        onClose={() => setPicker(null)}
+      />
+    )
+  }
 
   // SWAP: tags picker
   if (picker === 'tags') {
@@ -185,28 +229,44 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
 
         {/* Tags */}
         <div className="mt-4">
-          <label className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium mb-1">
-            <Tag size={12} /> Tags
-          </label>
-          <div
-            onClick={() => {
-              setTagVocab(null)
-              setPicker('tags')
-            }}
-            className="w-full flex items-center gap-2 flex-wrap bg-zinc-800 rounded-xl px-3 min-h-11 py-1.5 cursor-pointer active:bg-zinc-700"
-          >
-            {tags.length === 0 ? (
-              <span className="flex-1 text-sm text-zinc-500">Adaugă tag-uri</span>
-            ) : (
-              tags.map((t) => (
-                <span
-                  key={t}
-                  className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-zinc-700 text-sm text-zinc-100"
-                >
-                  {t}
-                </span>
-              ))
-            )}
+          <div className="flex items-center justify-between mb-1">
+            <label className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
+              <Tag size={12} /> Tags
+            </label>
+            <button
+              onClick={() => setPicker('multitag_manager')}
+              className="text-xs text-purple-400 font-semibold bg-purple-500/10 px-2 py-0.5 rounded active:bg-purple-500/20"
+            >
+              MultiTag
+            </button>
+          </div>
+          <div className="flex gap-2 items-stretch mt-1">
+            <div
+              onClick={() => {
+                setTagVocab(null)
+                setPicker('tags')
+              }}
+              className="flex-1 flex items-center gap-2 flex-wrap bg-zinc-800 rounded-xl px-3 min-h-11 py-1.5 cursor-pointer active:bg-zinc-700"
+            >
+              {tags.length === 0 ? (
+                <span className="flex-1 text-sm text-zinc-500">Adaugă tag-uri</span>
+              ) : (
+                tags.map((t) => (
+                  <span
+                    key={t}
+                    className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-zinc-700 text-sm text-zinc-100"
+                  >
+                    {t}
+                  </span>
+                ))
+              )}
+            </div>
+            <button
+               onClick={() => setPicker('multitag_apply')}
+               className="w-11 flex-shrink-0 flex items-center justify-center bg-zinc-800 rounded-xl active:bg-zinc-700 text-zinc-400"
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         </div>
 
