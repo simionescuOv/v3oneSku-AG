@@ -246,19 +246,14 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
                 setTagVocab(null)
                 setPicker('tags')
               }}
-              className="flex-1 flex items-center gap-2 flex-wrap bg-zinc-800 rounded-xl px-3 min-h-11 py-1.5 cursor-pointer active:bg-zinc-700"
+              className="flex-1 flex items-center bg-zinc-800 rounded-xl px-3 h-11 cursor-pointer active:bg-zinc-700"
             >
               {tags.length === 0 ? (
-                <span className="flex-1 text-sm text-zinc-500">Adaugă tag-uri</span>
+                <span className="text-sm text-zinc-500">Adaugă tag-uri</span>
               ) : (
-                tags.map((t) => (
-                  <span
-                    key={t}
-                    className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-zinc-700 text-sm text-zinc-100"
-                  >
-                    {t}
-                  </span>
-                ))
+                <span className="text-sm text-zinc-100 font-medium">
+                  {tags.length} tag{tags.length !== 1 ? 'uri' : ''}
+                </span>
               )}
             </div>
             <button
