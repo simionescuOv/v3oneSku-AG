@@ -91,6 +91,7 @@ export default function ListPage() {
   const handleTagSelect = useCallback((tagValue) => {
     setActiveTags((prev) => prev.includes(tagValue) ? prev : [...prev, tagValue])
     setSearchQuery('')
+    document.activeElement?.blur()
   }, [setSearchQuery])
 
   const removeActiveTag = (tagValue) => {

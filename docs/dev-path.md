@@ -31,7 +31,13 @@
 
 ---
 
+### [Commit 6859aa9] - build: ciocan | commit: caiet - blurare tastatura la selectia de tag-uri in lista
+- Adaugat document.activeElement?.blur() in functia handleTagSelect din ListPage pentru a forta ascunderea tastaturii cand utilizatorul alege un tag (prin tap sau autocomplete).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -79,7 +85,13 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 6859aa9] - build: ciocan | commit: caiet - blurare tastatura la selectia de tag-uri in lista
+- Adaugat document.activeElement?.blur() in functia handleTagSelect din ListPage pentru a forta ascunderea tastaturii cand utilizatorul alege un tag (prin tap sau autocomplete).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -299,7 +311,13 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 6859aa9] - build: ciocan | commit: caiet - blurare tastatura la selectia de tag-uri in lista
+- Adaugat document.activeElement?.blur() in functia handleTagSelect din ListPage pentru a forta ascunderea tastaturii cand utilizatorul alege un tag (prin tap sau autocomplete).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
