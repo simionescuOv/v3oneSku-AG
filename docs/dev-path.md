@@ -3,7 +3,13 @@
 > **REGULĂ OBLIGATORIE PENTRU TOȚI AGENȚII DE COD / VIBECODING:**
 > - `git commit` se rulează **EXCLUSIV la cererea expresă a utilizatorului** (ex: „salvează în git”, „fă commit”).
 
+### [Commit bd22e8c] - build: vapor | commit: scaun - remove tags cancel button
+- Eliminat butonul x (cancel) de pe tag-urile din Items, astfel incat modificarea lor se face doar prin dialogul dedicat.
+
+---
+
 ### [Commit Pending]
+- 
 _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
@@ -18,7 +24,13 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
-### [Commit Pending] — build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
+### [Commit bd22e8c] - build: vapor | commit: scaun - remove tags cancel button
+- Eliminat butonul x (cancel) de pe tag-urile din Items, astfel incat modificarea lor se face doar prin dialogul dedicat.
+
+---
+
+### [Commit Pending]
+-  — build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
 - **Ramura**: rec-value
 - **Data**: 2026-09-27
 - **Descriere Detaliata**:
@@ -203,7 +215,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit bd22e8c] - build: vapor | commit: scaun - remove tags cancel button
+- Eliminat butonul x (cancel) de pe tag-urile din Items, astfel incat modificarea lor se face doar prin dialogul dedicat.
+
+---
+
+---
+
 ### [Commit Pending]
 - 
 
-*(Notă pentru agent: Adaugă următorul commit deasupra acestei linii)*
+*(Not� pentru agent: Adaug� urm�torul commit deasupra acestei linii)*

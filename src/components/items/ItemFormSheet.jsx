@@ -1,6 +1,6 @@
 // [ITEMS FEATURE] — ComponentA izolată, removable.
 import { useEffect, useState, useRef } from 'react'
-import { X, Tag } from 'lucide-react'
+import { Tag } from 'lucide-react'
 import BottomSheet from '../catalog/BottomSheet'
 import PickerSheet from '../catalog/PickerSheet'
 import { useItemsStore } from '../../store/useItemsStore'
@@ -204,15 +204,6 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
                   className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg bg-zinc-700 text-sm text-zinc-100"
                 >
                   {t}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setTags((prev) => prev.filter((x) => x !== t))
-                    }}
-                    className="flex items-center justify-center -mr-1 w-5 h-5 rounded-full active:bg-zinc-600"
-                  >
-                    <X size={13} />
-                  </button>
                 </span>
               ))
             )}
