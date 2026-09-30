@@ -249,11 +249,21 @@ export default function ListPage() {
               return (
                 <Fragment key={item.id}>
                   {dateDisplay && (
-                    <div className={`sticky top-2 z-10 flex justify-center py-2 pointer-events-none transition-opacity duration-500 ${isScrolling ? 'opacity-100' : 'opacity-0'}`}>
-                      <span className="text-xs font-semibold text-zinc-300 bg-zinc-800/90 backdrop-blur-sm px-3 py-1 rounded-full border border-zinc-700/50 shadow-sm">
-                        {dateDisplay}
-                      </span>
-                    </div>
+                    <>
+                      {/* Date plutitoare (Sticky) - apare doar la scroll */}
+                      <div className={`sticky top-2 z-10 -mb-10 flex justify-center py-2 pointer-events-none transition-opacity ${isScrolling ? 'opacity-100 duration-150' : 'opacity-0 duration-700'}`}>
+                        <span className="text-xs font-semibold text-blue-100 bg-blue-900/90 backdrop-blur-sm px-3 py-1 rounded-full border border-blue-800/50 shadow-sm">
+                          {dateDisplay}
+                        </span>
+                      </div>
+                      
+                      {/* Date statică (Inline) - rămâne vizibilă între elemente */}
+                      <div className="flex justify-center py-3 border-b border-zinc-800/60 relative z-0">
+                        <span className="text-xs font-medium text-blue-200 bg-blue-950/80 px-3 py-1 rounded-full">
+                          {dateDisplay}
+                        </span>
+                      </div>
+                    </>
                   )}
                   <button
                     onClick={() => inSelectionMode ? toggleSelect(item.id) : setDetailItem(item)}

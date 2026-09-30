@@ -26,7 +26,13 @@
 
 ---
 
+### [Commit f1cfbac] - build: vulcan | commit: lac - fixare sticky date dual
+- S-a separat badge-ul de date in doua elemente diferite: unul inline static care separa vizual grupurile (pe un fundal albastru inchis), si unul plutitor (sticky) care se suprapune fix peste cel static si devine vizibil doar la scroll.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -68,7 +74,13 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit f1cfbac] - build: vulcan | commit: lac - fixare sticky date dual
+- S-a separat badge-ul de date in doua elemente diferite: unul inline static care separa vizual grupurile (pe un fundal albastru inchis), si unul plutitor (sticky) care se suprapune fix peste cel static si devine vizibil doar la scroll.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -282,7 +294,13 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit f1cfbac] - build: vulcan | commit: lac - fixare sticky date dual
+- S-a separat badge-ul de date in doua elemente diferite: unul inline static care separa vizual grupurile (pe un fundal albastru inchis), si unul plutitor (sticky) care se suprapune fix peste cel static si devine vizibil doar la scroll.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
