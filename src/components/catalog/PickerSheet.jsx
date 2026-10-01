@@ -254,19 +254,19 @@ export default function PickerSheet({
 
         {multiSelect && (
           <div 
-            className={`absolute bottom-0 left-0 right-0 z-20 flex gap-3 px-4 py-3 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 transition-all duration-300 ${isScrolling ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+            className={`absolute bottom-0 left-0 right-0 z-20 flex gap-2.5 px-4 py-2 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 transition-all duration-300 ${isScrolling ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
           >
             <button
               onClick={onClose}
-              className="flex-1 h-11 rounded-xl bg-zinc-800 text-sm text-zinc-300 active:bg-zinc-700"
+              className="flex-1 h-9 rounded-lg bg-zinc-800 text-sm text-zinc-300 active:bg-zinc-700"
             >
               Anulează
             </button>
             <button
               onClick={() => confirm(tempSelected)}
-              className={`flex-1 h-11 rounded-xl text-sm font-medium text-white flex items-center justify-center gap-2 ${saveButtonClass}`}
+              className={`flex-1 h-9 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-1.5 ${saveButtonClass}`}
             >
-              {SaveIcon && <SaveIcon size={18} className="text-white shrink-0" />}
+              {SaveIcon && <SaveIcon size={16} className="text-white shrink-0" />}
               {saveButtonLabel}
             </button>
           </div>

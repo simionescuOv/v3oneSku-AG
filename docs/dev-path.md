@@ -86,7 +86,14 @@
 
 ---
 
+### [Commit 68db3ae] - build: banca | commit: telefon - slim footer in pickersheet
+- Micsorat inaltimea butoanelor din footer (de la h-11 la h-9) si padding-ul containerului (de la py-3 la py-2).
+- Redusa dimensiunea iconitei Save (de la 18px la 16px) pentru a se potrivi cu noile butoane compacte (70% din marimea initiala).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -198,7 +205,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 68db3ae] - build: banca | commit: telefon - slim footer in pickersheet
+- Micsorat inaltimea butoanelor din footer (de la h-11 la h-9) si padding-ul containerului (de la py-3 la py-2).
+- Redusa dimensiunea iconitei Save (de la 18px la 16px) pentru a se potrivi cu noile butoane compacte (70% din marimea initiala).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -482,7 +496,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 68db3ae] - build: banca | commit: telefon - slim footer in pickersheet
+- Micsorat inaltimea butoanelor din footer (de la h-11 la h-9) si padding-ul containerului (de la py-3 la py-2).
+- Redusa dimensiunea iconitei Save (de la 18px la 16px) pentru a se potrivi cu noile butoane compacte (70% din marimea initiala).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
