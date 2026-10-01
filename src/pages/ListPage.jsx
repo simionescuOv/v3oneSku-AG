@@ -283,7 +283,7 @@ export default function ListPage() {
                     )}
 
                     {/* Valoare — proeminentă stânga */}
-                    <span className="text-2xl font-bold text-zinc-100 tabular-nums leading-none pt-0.5 shrink-0 min-w-[60px] text-right">
+                    <span className={`text-2xl font-bold tabular-nums leading-none pt-0.5 shrink-0 min-w-[60px] text-right ${item.isIncomplete ? 'text-orange-400' : 'text-zinc-100'}`}>
                       {item.value}
                     </span>
 

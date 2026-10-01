@@ -22,7 +22,7 @@ export default function ItemDetailSheet({ open, onClose, item, onEdit }) {
       <div className="px-4 pb-8 overflow-y-auto max-h-[80dvh]">
         {/* Valoare */}
         <div className="mt-4 text-center">
-          <span className="text-5xl font-bold text-zinc-100 tabular-nums">
+          <span className={`text-5xl font-bold tabular-nums ${item.isIncomplete ? 'text-orange-400' : 'text-zinc-100'}`}>
             {item.value}
           </span>
         </div>

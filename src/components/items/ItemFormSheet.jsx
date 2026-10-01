@@ -1,6 +1,6 @@
 // [ITEMS FEATURE] — ComponentA izolată, removable.
 import { useEffect, useState, useRef } from 'react'
-import { Tag, ChevronRight } from 'lucide-react'
+import { Tag, ChevronRight, Save, MoreHorizontal } from 'lucide-react'
 import BottomSheet from '../catalog/BottomSheet'
 import PickerSheet from '../catalog/PickerSheet'
 import MultiTagSheet from './MultiTagSheet'
@@ -8,9 +8,6 @@ import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 
-// Bottom sheet pentru adăugarea unui item nou.
-// Câmpuri: valoare (number), descriere (text), tags (PickerSheet SWAP), moment (datetime-local).
-// Flux: Enter pe valoare → focus descriere → Enter → focus moment → tags se deschide manual.
 export default function ItemFormSheet({ open, onClose, showToast, initialData }) {
   const addItem = useItemsStore((s) => s.addItem)
   const updateItem = useItemsStore((s) => s.updateItem)
@@ -22,8 +19,8 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState([])
   const [moment, setMoment] = useState('')
+  const [isIncomplete, setIsIncomplete] = useState(false)
   const [saving, setSaving] = useState(false)
-  // SWAP pattern: null | 'tags'
   const [picker, setPicker] = useState(null)
   const [tagVocab, setTagVocab] = useState(null)
 
@@ -31,26 +28,23 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
   const momentRef = useRef(null)
   const prevOpenRef = useRef(false)
 
-  // BottomBar ascuns când formularul e deschis (dar vizibil când e picker-ul de tags sau multitag)
   useEffect(() => {
     setBottomBarHidden(open && picker !== 'tags' && picker !== 'multitag_apply' && picker !== 'multitag_manager')
   }, [open, picker, setBottomBarHidden])
 
-  // Reset la deschidere, curăță la închidere
   useEffect(() => {
     if (open && !prevOpenRef.current) {
       if (initialData) {
         setValue(initialData.value.toString())
         setDescription(initialData.description || '')
         setTags(initialData.tags || [])
-        // initialData.moment este ISO 8601 (ex: "2023-10-14T15:30:00.000Z")
-        // Trebuie trunchiat pentru input datetime-local
+        setIsIncomplete(initialData.isIncomplete || false)
         setMoment(initialData.moment ? initialData.moment.slice(0, 16) : '')
       } else {
         setValue('')
         setDescription('')
         setTags([])
-        // Pre-completează momentul cu data/ora curentă în format datetime-local
+        setIsIncomplete(false)
         const now = new Date()
         const pad = (n) => String(n).padStart(2, '0')
         const local = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`
@@ -63,6 +57,7 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
       setValue('')
       setDescription('')
       setTags([])
+      setIsIncomplete(false)
       setMoment('')
       setSaving(false)
       setPicker(null)
@@ -166,10 +161,10 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
     }
     setSaving(true)
     if (initialData) {
-      updateItem(initialData.id, { value, description, tags, moment })
+      updateItem(initialData.id, { value, description, tags, moment, isIncomplete })
       showToast?.('Element actualizat')
     } else {
-      addItem({ value, description, tags, moment })
+      addItem({ value, description, tags, moment, isIncomplete })
       showToast?.('Element adăugat')
     }
     setSaving(false)
@@ -186,23 +181,40 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
         {/* Valoare */}
         <div className="mt-2">
           <label className="block text-xs text-zinc-400 font-medium mb-1">Valoare</label>
-          <input
-            type="search"
-            inputMode="numeric"
-            name="flux-item-val"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="ex: 42"
-            {...NO_AUTOFILL_PROPS}
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                descRef.current?.focus()
-              }
-            }}
-            className="w-full bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          />
+          <div className="flex gap-2 items-stretch">
+            <input
+              type="search"
+              inputMode="numeric"
+              name="flux-item-val"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="ex: 42"
+              {...NO_AUTOFILL_PROPS}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  descRef.current?.focus()
+                }
+              }}
+              className="flex-1 min-w-0 bg-zinc-800 rounded-xl px-3 h-11 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button 
+              type="button"
+              onClick={() => setIsIncomplete(!isIncomplete)}
+              className={`w-11 flex-shrink-0 flex items-center justify-center rounded-xl font-bold transition-colors ${isIncomplete ? 'bg-orange-500 text-white active:bg-orange-600' : 'bg-orange-500/20 text-orange-400 active:bg-orange-500/30'}`}
+            >
+              <MoreHorizontal size={20} />
+            </button>
+            <button 
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="w-11 flex-shrink-0 flex items-center justify-center bg-blue-600 rounded-xl text-white active:bg-blue-700 disabled:opacity-50"
+            >
+              <Save size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Descriere */}

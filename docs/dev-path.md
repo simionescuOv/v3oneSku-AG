@@ -36,7 +36,14 @@
 
 ---
 
+### [Commit 34fac80] - build: biscuit | commit: lemn - stare incomplet items
+- Adaugat buton portocaliu cu puncte de suspensie si buton discheta in formularul items pentru marcarea rapida ca nefinalizat / salvare instanta.
+- Valorile elementelor incomplete sunt afisate cu portocaliu strident in lista si detalii.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -90,7 +97,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 34fac80] - build: biscuit | commit: lemn - stare incomplet items
+- Adaugat buton portocaliu cu puncte de suspensie si buton discheta in formularul items pentru marcarea rapida ca nefinalizat / salvare instanta.
+- Valorile elementelor incomplete sunt afisate cu portocaliu strident in lista si detalii.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -316,7 +330,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 34fac80] - build: biscuit | commit: lemn - stare incomplet items
+- Adaugat buton portocaliu cu puncte de suspensie si buton discheta in formularul items pentru marcarea rapida ca nefinalizat / salvare instanta.
+- Valorile elementelor incomplete sunt afisate cu portocaliu strident in lista si detalii.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
