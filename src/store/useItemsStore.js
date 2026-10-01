@@ -22,7 +22,7 @@ export const useItemsStore = create(
       items: [],
       archivedItems: [],
 
-      addItem: ({ value, description, tags, moment }) => {
+      addItem: ({ value, description, tags, moment, isIncomplete }) => {
         const now = new Date().toISOString()
         const newItem = {
           id: generateId(),
@@ -31,12 +31,13 @@ export const useItemsStore = create(
           tags: tags ?? [],
           moment: moment || now,
           createdAt: now,
+          isIncomplete: isIncomplete || false,
         }
         set((s) => ({ items: [newItem, ...s.items] }))
         return newItem
       },
 
-      updateItem: (id, { value, description, tags, moment }) => {
+      updateItem: (id, { value, description, tags, moment, isIncomplete }) => {
         set((s) => ({
           items: s.items.map((it) =>
             it.id === id
@@ -46,6 +47,7 @@ export const useItemsStore = create(
                   description: description !== undefined ? description.trim() : it.description,
                   tags: tags !== undefined ? tags : it.tags,
                   moment: moment !== undefined ? moment : it.moment,
+                  isIncomplete: isIncomplete !== undefined ? isIncomplete : it.isIncomplete,
                 }
               : it
           ),

@@ -48,7 +48,13 @@
 
 ---
 
+### [Commit 9deb146] - build: foarfece | commit: lampa - fix salvare isIncomplete in useItemsStore
+- Am reparat bug-ul prin care starea de isIncomplete era aruncata (discarded) la nivelul stocarii (Zustand store). Acum campul este salvat corect in DB-ul local, ceea ce activeaza corect culoarea portocalie pe carduri si pastreaza memoria starii pentru formular.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -116,7 +122,13 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 9deb146] - build: foarfece | commit: lampa - fix salvare isIncomplete in useItemsStore
+- Am reparat bug-ul prin care starea de isIncomplete era aruncata (discarded) la nivelul stocarii (Zustand store). Acum campul este salvat corect in DB-ul local, ceea ce activeaza corect culoarea portocalie pe carduri si pastreaza memoria starii pentru formular.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -356,7 +368,13 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 9deb146] - build: foarfece | commit: lampa - fix salvare isIncomplete in useItemsStore
+- Am reparat bug-ul prin care starea de isIncomplete era aruncata (discarded) la nivelul stocarii (Zustand store). Acum campul este salvat corect in DB-ul local, ceea ce activeaza corect culoarea portocalie pe carduri si pastreaza memoria starii pentru formular.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
