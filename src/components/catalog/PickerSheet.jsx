@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Square, CheckSquare, Check, X } from 'lucide-react'
+import { Plus, Square, CheckSquare, Check, X, ChevronDown } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { usePicker } from '../../hooks/usePicker'
 import { useAppStore, useActiveSearchQuery } from '../../store/useAppStore'
@@ -29,6 +29,7 @@ export default function PickerSheet({
 
   const [tempSelected, setTempSelected] = useState([])
   const [created, setCreated] = useState([])
+  const [isPinnedExpanded, setIsPinnedExpanded] = useState(true)
 
 
   // 1. Inițializare stare la deschidere
@@ -132,23 +133,40 @@ export default function PickerSheet({
 
         {/* Panou tag-uri active (se aplică doar la multiSelect) */}
         {multiSelect && tempSelected.length > 0 && (
-          <div className="px-4 mb-3 shrink-0 transition-all">
-            <div className="flex flex-wrap gap-2 p-2 bg-zinc-800/60 rounded-xl border border-zinc-700/50 min-h-[44px]">
-              {tempSelected.map(tag => (
-                <span 
-                  key={tag} 
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-900/60 border border-blue-700/50 text-sm text-blue-200"
-                >
-                  {tag}
-                  <button 
-                    onClick={() => setTempSelected(prev => prev.filter(t => t !== tag))} 
-                    className="flex items-center justify-center w-4 h-4 rounded-full active:bg-blue-700/50"
+          <div className="px-4 mb-3 shrink-0">
+            <button
+              onClick={() => setIsPinnedExpanded(!isPinnedExpanded)}
+              className="w-full flex items-center justify-between py-2"
+            >
+              <span className="text-xs font-medium text-zinc-400">
+                {tempSelected.length} {tempSelected.length === 1 ? 'tag activ' : 'tag-uri active'}
+              </span>
+              <ChevronDown
+                size={16}
+                className={`text-zinc-500 transition-transform ${isPinnedExpanded ? 'rotate-180' : ''}`}
+              />
+            </button>
+            {isPinnedExpanded && (
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pb-1 mt-1">
+                {tempSelected.map(tag => (
+                  <span 
+                    key={tag} 
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-900/60 border border-blue-700/50 text-sm text-blue-200"
                   >
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-            </div>
+                    {tag}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setTempSelected(prev => prev.filter(t => t !== tag))
+                      }} 
+                      className="flex items-center justify-center w-4 h-4 rounded-full active:bg-blue-700/50"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

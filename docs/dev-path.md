@@ -60,7 +60,14 @@
 
 ---
 
+### [Commit 2c33e65] - build: plasa | commit: cravata - active tags collapsible in pickersheet
+- Transformare panou tag-uri active din PickerSheet in modul extensibil/colapsibil cu toggle button (Chevron).
+- Setat max-height cu overflow-y-auto pentru a permite scroll-ul cand sunt selectate foarte multe etichete fara a bloca restul continutului.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -142,7 +149,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 2c33e65] - build: plasa | commit: cravata - active tags collapsible in pickersheet
+- Transformare panou tag-uri active din PickerSheet in modul extensibil/colapsibil cu toggle button (Chevron).
+- Setat max-height cu overflow-y-auto pentru a permite scroll-ul cand sunt selectate foarte multe etichete fara a bloca restul continutului.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -396,7 +410,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 2c33e65] - build: plasa | commit: cravata - active tags collapsible in pickersheet
+- Transformare panou tag-uri active din PickerSheet in modul extensibil/colapsibil cu toggle button (Chevron).
+- Setat max-height cu overflow-y-auto pentru a permite scroll-ul cand sunt selectate foarte multe etichete fara a bloca restul continutului.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
