@@ -129,22 +129,26 @@ export default function PickerSheet({
   return (
     <BottomSheet open={open} onClose={onClose} aboveBottomBar>
       <div className="pb-6">
-        <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2 text-center">{title}</h2>
-
-        {/* Panou tag-uri active (se aplică doar la multiSelect) */}
-        {multiSelect && tempSelected.length > 0 && (
+        {/* Header inteligent cu Toggle */}
+        {multiSelect && tempSelected.length > 0 ? (
           <div className="px-4 mb-3 shrink-0">
             <button
               onClick={() => setIsPinnedExpanded(!isPinnedExpanded)}
-              className="w-full flex items-center justify-between py-2"
+              className="w-full flex items-center justify-between py-2 mb-1"
             >
-              <span className="text-xs font-medium text-zinc-400">
-                {tempSelected.length} {tempSelected.length === 1 ? 'tag activ' : 'tag-uri active'}
-              </span>
-              <ChevronDown
-                size={16}
-                className={`text-zinc-500 transition-transform ${isPinnedExpanded ? 'rotate-180' : ''}`}
-              />
+              <span className="text-sm font-medium text-zinc-200">{title}</span>
+              <div className="flex items-center gap-1.5">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-base font-bold text-white">{tempSelected.length}</span>
+                  <span className="text-xs text-zinc-400">
+                    {tempSelected.length === 1 ? 'tag activ' : 'tag-uri active'}
+                  </span>
+                </div>
+                <ChevronDown
+                  size={18}
+                  className={`text-zinc-500 transition-transform ml-1 ${isPinnedExpanded ? 'rotate-180' : ''}`}
+                />
+              </div>
             </button>
             {isPinnedExpanded && (
               <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pb-1 mt-1">
@@ -168,6 +172,8 @@ export default function PickerSheet({
               </div>
             )}
           </div>
+        ) : (
+          <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2 text-center">{title}</h2>
         )}
 
         <div className="max-h-[55dvh] overflow-y-auto divide-y divide-zinc-800">

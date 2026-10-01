@@ -66,7 +66,15 @@
 
 ---
 
+### [Commit 098e33b] - build: baterie | commit: covor - smart header active tags
+- Unificat titlul formularului PickerSheet cu numaratorul de tag-uri active intr-un singur buton header.
+- Numarul de tag-uri active este acum mult mai vizibil (font mai mare, bold, alb puternic).
+- Daca nu sunt tag-uri selectate, se afiseaza doar titlul simplu.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -155,7 +163,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 098e33b] - build: baterie | commit: covor - smart header active tags
+- Unificat titlul formularului PickerSheet cu numaratorul de tag-uri active intr-un singur buton header.
+- Numarul de tag-uri active este acum mult mai vizibil (font mai mare, bold, alb puternic).
+- Daca nu sunt tag-uri selectate, se afiseaza doar titlul simplu.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -416,7 +432,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 098e33b] - build: baterie | commit: covor - smart header active tags
+- Unificat titlul formularului PickerSheet cu numaratorul de tag-uri active intr-un singur buton header.
+- Numarul de tag-uri active este acum mult mai vizibil (font mai mare, bold, alb puternic).
+- Daca nu sunt tag-uri selectate, se afiseaza doar titlul simplu.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
