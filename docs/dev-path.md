@@ -42,7 +42,14 @@
 
 ---
 
+### [Commit 7f2f4d4] - build: balon | commit: creion - fast save logic formular items
+- Schimbat comportamentul butonului portocaliu din simplu toggle intr-un buton de save fast (salveaza ca incomplet si inchide).
+- Butonul de langa el (si cel de jos) salveaza elementul ca finalizat si inchid.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -103,7 +110,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 7f2f4d4] - build: balon | commit: creion - fast save logic formular items
+- Schimbat comportamentul butonului portocaliu din simplu toggle intr-un buton de save fast (salveaza ca incomplet si inchide).
+- Butonul de langa el (si cel de jos) salveaza elementul ca finalizat si inchid.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -336,7 +350,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 7f2f4d4] - build: balon | commit: creion - fast save logic formular items
+- Schimbat comportamentul butonului portocaliu din simplu toggle intr-un buton de save fast (salveaza ca incomplet si inchide).
+- Butonul de langa el (si cel de jos) salveaza elementul ca finalizat si inchid.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 

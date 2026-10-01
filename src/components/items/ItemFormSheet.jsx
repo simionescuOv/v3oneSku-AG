@@ -154,17 +154,17 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
     )
   }
 
-  const handleSave = () => {
+  const handleSave = (forcedIncomplete = false) => {
     if (!value.trim()) {
       showToast?.('Introduceți o valoare numerică')
       return
     }
     setSaving(true)
     if (initialData) {
-      updateItem(initialData.id, { value, description, tags, moment, isIncomplete })
+      updateItem(initialData.id, { value, description, tags, moment, isIncomplete: forcedIncomplete })
       showToast?.('Element actualizat')
     } else {
-      addItem({ value, description, tags, moment, isIncomplete })
+      addItem({ value, description, tags, moment, isIncomplete: forcedIncomplete })
       showToast?.('Element adăugat')
     }
     setSaving(false)
@@ -201,14 +201,14 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
             />
             <button 
               type="button"
-              onClick={() => setIsIncomplete(!isIncomplete)}
+              onClick={() => handleSave(true)}
               className={`w-11 flex-shrink-0 flex items-center justify-center rounded-xl font-bold transition-colors ${isIncomplete ? 'bg-orange-500 text-white active:bg-orange-600' : 'bg-orange-500/20 text-orange-400 active:bg-orange-500/30'}`}
             >
               <MoreHorizontal size={20} />
             </button>
             <button 
               type="button"
-              onClick={handleSave}
+              onClick={() => handleSave(false)}
               disabled={saving}
               className="w-11 flex-shrink-0 flex items-center justify-center bg-blue-600 rounded-xl text-white active:bg-blue-700 disabled:opacity-50"
             >
@@ -300,7 +300,7 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
             Anulează
           </button>
           <button
-            onClick={handleSave}
+            onClick={() => handleSave(false)}
             disabled={saving}
             className={[
               'flex-1 h-11 rounded-xl text-sm font-medium',
