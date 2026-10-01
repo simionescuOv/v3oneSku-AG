@@ -79,7 +79,15 @@
 
 ---
 
+### [Commit 53d4199] - build: pahar | commit: sertar - floating scroll footer tags picker
+- Transformare layout intern PickerSheet in flex-1 min-h-0 pentru a nu mai impinge footer-ul in afara ecranului la rezolutii mici/zoom.
+- Footer-ul (Anuleaza / Salveaza) pozitionat absolut la baza Bottom Sheet-ului (lipit cu background semitransparent).
+- Adaugat comportament WhatsApp: footer-ul se ascunde fluid in timpul derularii listei de optiuni, eliberand ecranul, si reapare automat cand scroll-ul se opreste.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -183,7 +191,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 53d4199] - build: pahar | commit: sertar - floating scroll footer tags picker
+- Transformare layout intern PickerSheet in flex-1 min-h-0 pentru a nu mai impinge footer-ul in afara ecranului la rezolutii mici/zoom.
+- Footer-ul (Anuleaza / Salveaza) pozitionat absolut la baza Bottom Sheet-ului (lipit cu background semitransparent).
+- Adaugat comportament WhatsApp: footer-ul se ascunde fluid in timpul derularii listei de optiuni, eliberand ecranul, si reapare automat cand scroll-ul se opreste.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -459,7 +475,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 53d4199] - build: pahar | commit: sertar - floating scroll footer tags picker
+- Transformare layout intern PickerSheet in flex-1 min-h-0 pentru a nu mai impinge footer-ul in afara ecranului la rezolutii mici/zoom.
+- Footer-ul (Anuleaza / Salveaza) pozitionat absolut la baza Bottom Sheet-ului (lipit cu background semitransparent).
+- Adaugat comportament WhatsApp: footer-ul se ascunde fluid in timpul derularii listei de optiuni, eliberand ecranul, si reapare automat cand scroll-ul se opreste.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 

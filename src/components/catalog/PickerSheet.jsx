@@ -137,12 +137,23 @@ export default function PickerSheet({
     clearSearch()
   }
 
+  const scrollTimeoutRef = useRef(null)
+  const [isScrolling, setIsScrolling] = useState(false)
+
+  const handleScroll = () => {
+    setIsScrolling(true)
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false)
+    }, 400)
+  }
+
   return (
     <BottomSheet open={open} onClose={onClose} aboveBottomBar>
-      <div className="pb-6">
+      <div className="flex flex-col flex-1 min-h-0 relative">
         {/* Header inteligent cu Toggle */}
         {multiSelect && tempSelected.length > 0 ? (
-          <div className="px-4 mb-3 shrink-0">
+          <div className="px-4 mb-2 shrink-0 pt-1">
             <button
               onClick={() => setIsPinnedExpanded(!isPinnedExpanded)}
               className="w-full flex items-center justify-between py-2 mb-1"
@@ -187,10 +198,13 @@ export default function PickerSheet({
             )}
           </div>
         ) : (
-          <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2 text-center">{title}</h2>
+          <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2 mt-1 shrink-0 text-center">{title}</h2>
         )}
 
-        <div className="max-h-[55dvh] overflow-y-auto divide-y divide-zinc-800">
+        <div 
+          className="flex-1 overflow-y-auto divide-y divide-zinc-800 pb-20"
+          onScroll={handleScroll}
+        >
           {filteredItems.map((it) => {
             // multiSelect: checkbox reflectă selecția temporară (tags).
             // single-select: bifă simplă pe valoarea deja aleasă în formular
@@ -239,7 +253,9 @@ export default function PickerSheet({
         </div>
 
         {multiSelect && (
-          <div className="flex gap-3 px-4 mt-4">
+          <div 
+            className={`absolute bottom-0 left-0 right-0 z-20 flex gap-3 px-4 py-3 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 transition-all duration-300 ${isScrolling ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+          >
             <button
               onClick={onClose}
               className="flex-1 h-11 rounded-xl bg-zinc-800 text-sm text-zinc-300 active:bg-zinc-700"
