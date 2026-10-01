@@ -57,6 +57,10 @@ export const useAppStore = create((set) => ({
   bottomBarSearchFocusAction: null,
   setBottomBarSearchFocusAction: (action) => set({ bottomBarSearchFocusAction: action }),
 
+  // Buton secundar (ex: Salvare) injectat in BottomBar (langa butonul Menu/Override)
+  bottomBarSecondaryAction: null,
+  setBottomBarSecondaryAction: (action) => set({ bottomBarSecondaryAction: action }),
+
   // Context Menu override pentru butonul Menu din dreapta BottomBar
   bottomBarMenuOverride: null,
   setBottomBarMenuOverride: (action) => set({ bottomBarMenuOverride: action }),

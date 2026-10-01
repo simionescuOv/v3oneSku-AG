@@ -25,6 +25,7 @@ export default function BottomBar({ hidden, autocompleteLabel = 'autocomplete' }
   const bottomBarFilterAction = useAppStore((s) => s.bottomBarFilterAction)
   const bottomBarSearchFocusAction = useAppStore((s) => s.bottomBarSearchFocusAction)
   const bottomBarAcceptAction = useAppStore((s) => s.bottomBarAcceptAction)
+  const bottomBarSecondaryAction = useAppStore((s) => s.bottomBarSecondaryAction)
 
   const { pathname } = useLocation()
   // „Familia Catalog\" = pagina Catalog + pagina categoriei (/catalog/category/:id) + pagina produsului (/catalog/product/:nameId);
@@ -268,11 +269,27 @@ export default function BottomBar({ hidden, autocompleteLabel = 'autocomplete' }
         </button>
       )}
 
+      {bottomBarSecondaryAction && (
+        <button
+          onClick={(e) => { e.stopPropagation(); bottomBarSecondaryAction.onClick(); }}
+          className="shrink-0 flex items-center justify-center px-3 h-10 rounded-xl bg-blue-600 text-white active:bg-blue-700 transition-colors shadow-sm"
+          title="Salvează"
+        >
+          {(() => {
+            const SecIcon = bottomBarSecondaryAction.icon
+            return SecIcon ? <SecIcon size={20} /> : null
+          })()}
+        </button>
+      )}
+
       <button
         onClick={handleMenuPress}
-        className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-800 text-zinc-300 active:bg-zinc-700 transition-all duration-200"
+        className={[
+          "shrink-0 flex items-center justify-center h-10 rounded-xl bg-zinc-800 text-zinc-300 active:bg-zinc-700 transition-all duration-200",
+          currentOverride ? "w-8" : "w-10"
+        ].join(' ')}
       >
-        <FinalIcon size={20} className={currentOverride ? "text-red-400" : ""} />
+        <FinalIcon size={currentOverride ? 18 : 20} className={currentOverride ? "text-red-400" : ""} />
       </button>
     </footer>
   )

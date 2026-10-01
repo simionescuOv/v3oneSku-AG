@@ -137,16 +137,20 @@ export default function PickerSheet({
     clearSearch()
   }
 
-  const scrollTimeoutRef = useRef(null)
-  const [isScrolling, setIsScrolling] = useState(false)
 
-  const handleScroll = () => {
-    setIsScrolling(true)
-    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrolling(false)
-    }, 400)
-  }
+
+  useEffect(() => {
+    if (!open || !multiSelect) return
+    const action = {
+      icon: SaveIcon || Check,
+      onClick: () => confirm(tempSelected),
+      title: saveButtonLabel
+    }
+    useAppStore.getState().setBottomBarSecondaryAction(action)
+    return () => {
+      useAppStore.getState().setBottomBarSecondaryAction(null)
+    }
+  }, [open, multiSelect, tempSelected, confirm, SaveIcon, saveButtonLabel])
 
   return (
     <BottomSheet open={open} onClose={onClose} aboveBottomBar>
@@ -201,76 +205,71 @@ export default function PickerSheet({
           <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2 mt-1 shrink-0 text-center">{title}</h2>
         )}
 
-        <div 
-          className="flex-1 overflow-y-auto divide-y divide-zinc-800 pb-20"
-          onScroll={handleScroll}
-        >
-          {filteredItems.map((it) => {
-            // multiSelect: checkbox reflectă selecția temporară (tags).
-            // single-select: bifă simplă pe valoarea deja aleasă în formular
-            // (fără checkbox — tap pe orice rând confirmă imediat).
-            const isSelected = multiSelect
-              ? tempSelected.includes(it.value)
-              : selected.includes(it.value)
-            return (
+        <div className="flex-1 overflow-y-auto pb-4">
+          <div className="divide-y divide-zinc-800">
+            {filteredItems.map((it) => {
+              const isSelected = multiSelect
+                ? tempSelected.includes(it.value)
+                : selected.includes(it.value)
+              return (
+                <button
+                  key={it.value}
+                  onClick={() => handleTap(it.value)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-zinc-800"
+                >
+                  {multiSelect &&
+                    (isSelected
+                      ? <CheckSquare size={18} className="text-blue-400 shrink-0" />
+                      : <Square size={18} className="text-zinc-600 shrink-0" />)}
+                  <span className="flex-1 text-sm text-zinc-100 truncate">{it.value}</span>
+                  {it.count > 0 && (
+                    <span className="text-xs text-zinc-500 shrink-0">{it.count}</span>
+                  )}
+                  {!multiSelect && isSelected && (
+                    <Check size={16} className="text-blue-400 shrink-0" />
+                  )}
+                </button>
+              )
+            })}
+
+            {showCreate && (
               <button
-                key={it.value}
-                onClick={() => handleTap(it.value)}
+                onClick={handleAddNew}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-zinc-800"
               >
-                {multiSelect &&
-                  (isSelected
-                    ? <CheckSquare size={18} className="text-blue-400 shrink-0" />
-                    : <Square size={18} className="text-zinc-600 shrink-0" />)}
-                <span className="flex-1 text-sm text-zinc-100 truncate">{it.value}</span>
-                {it.count > 0 && (
-                  <span className="text-xs text-zinc-500 shrink-0">{it.count}</span>
-                )}
-                {!multiSelect && isSelected && (
-                  <Check size={16} className="text-blue-400 shrink-0" />
-                )}
+                <Plus size={18} className="text-blue-400 shrink-0" />
+                <span className="flex-1 text-sm text-blue-400 truncate">
+                  Adaugă „{searchQuery.trim()}"
+                </span>
               </button>
-            )
-          })}
+            )}
 
-          {showCreate && (
-            <button
-              onClick={handleAddNew}
-              className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-zinc-800"
-            >
-              <Plus size={18} className="text-blue-400 shrink-0" />
-              <span className="flex-1 text-sm text-blue-400 truncate">
-                Adaugă „{searchQuery.trim()}"
-              </span>
-            </button>
-          )}
+            {filteredItems.length === 0 && !showCreate && (
+              <div className="px-4 py-6 text-center text-sm text-zinc-500">
+                {searchQuery.trim() ? 'Niciun rezultat' : emptyLabel}
+              </div>
+            )}
+          </div>
 
-          {filteredItems.length === 0 && !showCreate && (
-            <div className="px-4 py-6 text-center text-sm text-zinc-500">
-              {searchQuery.trim() ? 'Niciun rezultat' : emptyLabel}
+          {/* Footer mutat ca ultimul element din lista scrollabila */}
+          {multiSelect && (
+            <div className="flex gap-2.5 px-4 mt-6">
+              <button
+                onClick={onClose}
+                className="flex-1 h-9 rounded-lg bg-zinc-800 text-sm text-zinc-300 active:bg-zinc-700"
+              >
+                Anulează
+              </button>
+              <button
+                onClick={() => confirm(tempSelected)}
+                className={`flex-1 h-9 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-1.5 ${saveButtonClass}`}
+              >
+                {SaveIcon && <SaveIcon size={16} className="text-white shrink-0" />}
+                {saveButtonLabel}
+              </button>
             </div>
           )}
         </div>
-
-        {multiSelect && (
-          <div 
-            className={`absolute bottom-0 left-0 right-0 z-20 flex gap-2.5 px-4 py-2 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 transition-all duration-300 ${isScrolling ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
-          >
-            <button
-              onClick={onClose}
-              className="flex-1 h-9 rounded-lg bg-zinc-800 text-sm text-zinc-300 active:bg-zinc-700"
-            >
-              Anulează
-            </button>
-            <button
-              onClick={() => confirm(tempSelected)}
-              className={`flex-1 h-9 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-1.5 ${saveButtonClass}`}
-            >
-              {SaveIcon && <SaveIcon size={16} className="text-white shrink-0" />}
-              {saveButtonLabel}
-            </button>
-          </div>
-        )}
       </div>
     </BottomSheet>
   )

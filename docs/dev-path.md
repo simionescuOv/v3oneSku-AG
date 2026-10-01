@@ -92,7 +92,16 @@
 
 ---
 
+### [Commit 13391ca] - build: strugure | commit: fereastra - bottombar secondary action save
+- Arhitectura hibrida: eliminat complet footer-ul absolut plutitor din PickerSheet (acoperind ecranul).
+- Butoanele de Salvare/Anulare au fost mutate ca ultimul element in lista, derulandu-se firesc (fara a bloca spatiul vizual).
+- Creat mecanismul 'bottomBarSecondaryAction' in useAppStore pentru a injecta un buton de fast-save (Discheta albastra) direct in BottomBar, langa X.
+- Ingustat usor butonul de 'Menu Override' (X) din dreapta in BottomBar (de la w-10 la w-8) pentru a optimiza spatiul pentru noul buton de Salvare.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -211,7 +220,16 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 13391ca] - build: strugure | commit: fereastra - bottombar secondary action save
+- Arhitectura hibrida: eliminat complet footer-ul absolut plutitor din PickerSheet (acoperind ecranul).
+- Butoanele de Salvare/Anulare au fost mutate ca ultimul element in lista, derulandu-se firesc (fara a bloca spatiul vizual).
+- Creat mecanismul 'bottomBarSecondaryAction' in useAppStore pentru a injecta un buton de fast-save (Discheta albastra) direct in BottomBar, langa X.
+- Ingustat usor butonul de 'Menu Override' (X) din dreapta in BottomBar (de la w-10 la w-8) pentru a optimiza spatiul pentru noul buton de Salvare.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -502,7 +520,16 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 13391ca] - build: strugure | commit: fereastra - bottombar secondary action save
+- Arhitectura hibrida: eliminat complet footer-ul absolut plutitor din PickerSheet (acoperind ecranul).
+- Butoanele de Salvare/Anulare au fost mutate ca ultimul element in lista, derulandu-se firesc (fara a bloca spatiul vizual).
+- Creat mecanismul 'bottomBarSecondaryAction' in useAppStore pentru a injecta un buton de fast-save (Discheta albastra) direct in BottomBar, langa X.
+- Ingustat usor butonul de 'Menu Override' (X) din dreapta in BottomBar (de la w-10 la w-8) pentru a optimiza spatiul pentru noul buton de Salvare.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
