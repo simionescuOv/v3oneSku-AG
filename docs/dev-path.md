@@ -73,7 +73,14 @@
 
 ---
 
+### [Commit 85f6f5c] - build: cleste | commit: ghiozdan - auto scroll taguri active
+- Limitare inaltime modul tag-uri active la max 110px (~3 randuri).
+- Implementat logica de auto-scroll (smooth) la ultimul rand adaugat folosind useRef, astfel incat vizibilitatea sa ramana perfecta indiferent de numarul tag-urilor.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -170,7 +177,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 85f6f5c] - build: cleste | commit: ghiozdan - auto scroll taguri active
+- Limitare inaltime modul tag-uri active la max 110px (~3 randuri).
+- Implementat logica de auto-scroll (smooth) la ultimul rand adaugat folosind useRef, astfel incat vizibilitatea sa ramana perfecta indiferent de numarul tag-urilor.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -439,7 +453,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit 85f6f5c] - build: cleste | commit: ghiozdan - auto scroll taguri active
+- Limitare inaltime modul tag-uri active la max 110px (~3 randuri).
+- Implementat logica de auto-scroll (smooth) la ultimul rand adaugat folosind useRef, astfel incat vizibilitatea sa ramana perfecta indiferent de numarul tag-urilor.
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 

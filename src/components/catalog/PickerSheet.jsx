@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { Plus, Square, CheckSquare, Check, X, ChevronDown } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { usePicker } from '../../hooks/usePicker'
@@ -30,6 +30,17 @@ export default function PickerSheet({
   const [tempSelected, setTempSelected] = useState([])
   const [created, setCreated] = useState([])
   const [isPinnedExpanded, setIsPinnedExpanded] = useState(true)
+  const activeTagsRef = React.useRef(null)
+
+  // Auto-scroll la ultimul tag adăugat
+  useEffect(() => {
+    if (activeTagsRef.current && isPinnedExpanded) {
+      activeTagsRef.current.scrollTo({
+        top: activeTagsRef.current.scrollHeight,
+        behavior: 'smooth',
+      })
+    }
+  }, [tempSelected, isPinnedExpanded])
 
 
   // 1. Inițializare stare la deschidere
@@ -151,7 +162,10 @@ export default function PickerSheet({
               </div>
             </button>
             {isPinnedExpanded && (
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pb-1 mt-1">
+              <div 
+                ref={activeTagsRef}
+                className="flex flex-wrap gap-2 max-h-[110px] overflow-y-auto pb-1 mt-1 scroll-smooth"
+              >
                 {tempSelected.map(tag => (
                   <span 
                     key={tag} 
