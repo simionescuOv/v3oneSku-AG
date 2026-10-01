@@ -53,7 +53,15 @@
 
 ---
 
+### [Commit b832cda] - build: cascada | commit: strugure - ui active tags in pickersheet
+- Adaugat modul vizual (pills) pentru tag-uri active in header-ul de la PickerSheet.
+- Permite eliminarea rapida a tag-urilor bifate direct din panoul superior, fara a le mai cauta in lista.
+- Modificat design-ul butonului de Salvare pentru cazul selec?iei de tag-uri (albastru inchis, icon Save, text Tags).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -127,7 +135,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit b832cda] - build: cascada | commit: strugure - ui active tags in pickersheet
+- Adaugat modul vizual (pills) pentru tag-uri active in header-ul de la PickerSheet.
+- Permite eliminarea rapida a tag-urilor bifate direct din panoul superior, fara a le mai cauta in lista.
+- Modificat design-ul butonului de Salvare pentru cazul selec?iei de tag-uri (albastru inchis, icon Save, text Tags).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -373,7 +389,15 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit b832cda] - build: cascada | commit: strugure - ui active tags in pickersheet
+- Adaugat modul vizual (pills) pentru tag-uri active in header-ul de la PickerSheet.
+- Permite eliminarea rapida a tag-urilor bifate direct din panoul superior, fara a le mai cauta in lista.
+- Modificat design-ul butonului de Salvare pentru cazul selec?iei de tag-uri (albastru inchis, icon Save, text Tags).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 

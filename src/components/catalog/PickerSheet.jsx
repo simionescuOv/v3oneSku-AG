@@ -1,21 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Square, CheckSquare, Check } from 'lucide-react'
+import { Plus, Square, CheckSquare, Check, X } from 'lucide-react'
 import BottomSheet from './BottomSheet'
 import { usePicker } from '../../hooks/usePicker'
 import { useAppStore, useActiveSearchQuery } from '../../store/useAppStore'
 import { useTranslation } from 'react-i18next'
 
-// Picker generic în modul „cu căutare" (SPEC_Picker_v2 §4.5, SPEC_Tags §4):
-// BottomBar rămâne vizibil și inputul lui filtrează lista — fără input propriu
-// de căutare în sheet. Se deschide prin SWAP din sheet-ul părinte (SPEC_Tags §5):
-// părintele se ascunde vizual, picker-ul îi ia locul, la confirmare/anulare
-// părintele revine cu starea intactă.
-//
-// multiSelect: checkbox + selecție temporară + „Salvează" (tags).
-// single-select: tap pe rând confirmă imediat (single_choice).
-// allowCreate: rând „+ Adaugă «query»" pe potrivire inexactă normalizată —
-// elementul nou intră doar în lista locală a picker-ului; persistența e
-// responsabilitatea părintelui (onConfirm primește și lista `created`).
 export default function PickerSheet({
   open,
   title,
@@ -25,6 +14,9 @@ export default function PickerSheet({
   allowCreate = false,
   searchPlaceholder = null,
   emptyLabel = 'Nicio valoare încă',
+  saveButtonLabel = 'Salvează',
+  saveButtonIcon: SaveIcon,
+  saveButtonClass = 'bg-blue-600 active:bg-blue-700',
   onConfirm,                  // ({ selected: string[], created: string[] }) => void
   onClose,
 }) {
@@ -138,6 +130,28 @@ export default function PickerSheet({
       <div className="pb-6">
         <h2 className="px-4 text-sm font-medium text-zinc-200 mb-2 text-center">{title}</h2>
 
+        {/* Panou tag-uri active (se aplică doar la multiSelect) */}
+        {multiSelect && tempSelected.length > 0 && (
+          <div className="px-4 mb-3 shrink-0 transition-all">
+            <div className="flex flex-wrap gap-2 p-2 bg-zinc-800/60 rounded-xl border border-zinc-700/50 min-h-[44px]">
+              {tempSelected.map(tag => (
+                <span 
+                  key={tag} 
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-900/60 border border-blue-700/50 text-sm text-blue-200"
+                >
+                  {tag}
+                  <button 
+                    onClick={() => setTempSelected(prev => prev.filter(t => t !== tag))} 
+                    className="flex items-center justify-center w-4 h-4 rounded-full active:bg-blue-700/50"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="max-h-[55dvh] overflow-y-auto divide-y divide-zinc-800">
           {filteredItems.map((it) => {
             // multiSelect: checkbox reflectă selecția temporară (tags).
@@ -196,9 +210,10 @@ export default function PickerSheet({
             </button>
             <button
               onClick={() => confirm(tempSelected)}
-              className="flex-1 h-11 rounded-xl bg-blue-600 text-sm font-medium text-white active:bg-blue-700"
+              className={`flex-1 h-11 rounded-xl text-sm font-medium text-white flex items-center justify-center gap-2 ${saveButtonClass}`}
             >
-              Salvează
+              {SaveIcon && <SaveIcon size={18} className="text-white shrink-0" />}
+              {saveButtonLabel}
             </button>
           </div>
         )}

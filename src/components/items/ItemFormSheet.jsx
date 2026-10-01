@@ -144,6 +144,9 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
         allowCreate
         searchPlaceholder="Caută sau adaugă tag..."
         emptyLabel="Niciun tag încă — scrie pentru a adăuga"
+        saveButtonLabel="Tags"
+        saveButtonIcon={Save}
+        saveButtonClass="bg-blue-800 active:bg-blue-900"
         onConfirm={({ selected }) => {
           setTags(selected)
           setTagVocab(null) // invalidăm cache-ul vocab după modificare
