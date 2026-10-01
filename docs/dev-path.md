@@ -100,7 +100,14 @@
 
 ---
 
+### [Commit dc342e5] - build: soare | commit: castel - click direct pe editare item incomplet
+- Cand un element din lista globala este incomplet (isIncomplete = true, text portocaliu), un click pe el deschide direct formularul de editare (ItemFormSheet), sarind peste modul de vizionare (ItemDetailSheet).
+- Elementele finalizate raman cu comportamentul curent (deschid intai ItemDetailSheet).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -228,7 +235,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit dc342e5] - build: soare | commit: castel - click direct pe editare item incomplet
+- Cand un element din lista globala este incomplet (isIncomplete = true, text portocaliu), un click pe el deschide direct formularul de editare (ItemFormSheet), sarind peste modul de vizionare (ItemDetailSheet).
+- Elementele finalizate raman cu comportamentul curent (deschid intai ItemDetailSheet).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 
@@ -528,7 +542,14 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit dc342e5] - build: soare | commit: castel - click direct pe editare item incomplet
+- Cand un element din lista globala este incomplet (isIncomplete = true, text portocaliu), un click pe el deschide direct formularul de editare (ItemFormSheet), sarind peste modul de vizionare (ItemDetailSheet).
+- Elementele finalizate raman cu comportamentul curent (deschid intai ItemDetailSheet).
+
+---
+
 ### [Commit Pending]
+- 
 - 
 - 
 - 

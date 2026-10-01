@@ -267,7 +267,15 @@ export default function ListPage() {
                     </>
                   )}
                   <button
-                    onClick={() => inSelectionMode ? toggleSelect(item.id) : setDetailItem(item)}
+                    onClick={() => {
+                      if (inSelectionMode) {
+                        toggleSelect(item.id)
+                      } else if (item.isIncomplete) {
+                        setEditItem(item)
+                      } else {
+                        setDetailItem(item)
+                      }
+                    }}
                     className={[
                       'w-full flex items-start gap-3 py-3.5 text-left transition-colors px-4 border-b border-zinc-800/60 last:border-b-0',
                       isSelected ? 'bg-blue-900/20 active:bg-blue-900/30' : 'active:bg-zinc-800/40',
