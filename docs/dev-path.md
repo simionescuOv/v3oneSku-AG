@@ -1,7 +1,17 @@
-# oneSku — Parcursul Dezvoltării & Jurnal Tehnic (`dev-path.md`)
+﻿# oneSku — Parcursul Dezvoltării & Jurnal Tehnic (`dev-path.md`)
 
 > **REGULĂ OBLIGATORIE PENTRU TOȚI AGENȚII DE COD / VIBECODING:**
 > - `git commit` se rulează **EXCLUSIV la cererea expresă a utilizatorului** (ex: „salvează în git”, „fă commit”).
+
+### [Commit Pending]
+
+---
+
+### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
+- Adăugat modul de Import / Export pentru items și tags în `DashboardPage.jsx`.
+- Adăugată metoda `importBackup` în `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
+
+---
 
 ### [Commit bd22e8c] - build: vapor | commit: scaun - remove tags cancel button
 - Eliminat butonul x (cancel) de pe tag-urile din Items, astfel incat modificarea lor se face doar prin dialogul dedicat.
@@ -107,6 +117,10 @@
 ---
 
 ### [Commit Pending]
+
+---
+
+### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
 - 
 - 
 - 
@@ -138,6 +152,16 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit Pending]
+
+---
+
+### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
+- Adăugat modul de Import / Export pentru items și tags în `DashboardPage.jsx`.
+- Adăugată metoda `importBackup` în `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
+
+---
+
 ### [Commit bd22e8c] - build: vapor | commit: scaun - remove tags cancel button
 - Eliminat butonul x (cancel) de pe tag-urile din Items, astfel incat modificarea lor se face doar prin dialogul dedicat.
 
@@ -242,6 +266,10 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 ---
 
 ### [Commit Pending]
+
+---
+
+### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
 - 
 - 
 - 
@@ -443,6 +471,16 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 
 ---
 
+### [Commit Pending]
+
+---
+
+### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
+- Adăugat modul de Import / Export pentru items și tags în `DashboardPage.jsx`.
+- Adăugată metoda `importBackup` în `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
+
+---
+
 ### [Commit bd22e8c] - build: vapor | commit: scaun - remove tags cancel button
 - Eliminat butonul x (cancel) de pe tag-urile din Items, astfel incat modificarea lor se face doar prin dialogul dedicat.
 
@@ -549,6 +587,10 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 ---
 
 ### [Commit Pending]
+
+---
+
+### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
 - 
 - 
 - 
@@ -567,4 +609,6 @@ _(gol — următoarea sarcină va adăuga un bullet point aici)_
 - 
 - 
 
-*(Not� pentru agent: Adaug� urm�torul commit deasupra acestei linii)*
+*(Not� pentru agent: Adaug� urm�torul commit deasupra acestei linii)*
+
+

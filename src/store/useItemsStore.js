@@ -275,6 +275,25 @@ export const useItemsStore = create(
         }))
       },
 
+      // Import global pentru items, tags, multitag
+      importBackup: (parsedData) => {
+        if (!parsedData || typeof parsedData !== 'object') return false
+        
+        const { items, archivedItems, tagGroups, tagGroupMembers, multiTags } = parsedData
+        
+        if (!Array.isArray(items)) return false
+
+        set({
+          items: items || [],
+          archivedItems: archivedItems || [],
+          tagGroups: tagGroups || [],
+          tagGroupMembers: tagGroupMembers || {},
+          multiTags: multiTags || []
+        })
+        
+        return true
+      },
+
       // Returnează lista sortată cronologic (cel mai nou primul). Separarea pin se face în UI.
       getMultiTagsSorted: () => {
         return [...get().multiTags].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
