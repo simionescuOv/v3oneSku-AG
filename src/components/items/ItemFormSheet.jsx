@@ -1,6 +1,6 @@
 // [ITEMS FEATURE] — ComponentA izolată, removable.
 import { useEffect, useState, useRef } from 'react'
-import { Tag, ChevronRight, Save, MoreHorizontal } from 'lucide-react'
+import { Tag, ChevronRight, Save, FastForward } from 'lucide-react'
 import BottomSheet from '../catalog/BottomSheet'
 import PickerSheet from '../catalog/PickerSheet'
 import MultiTagSheet from './MultiTagSheet'
@@ -207,7 +207,7 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
               onClick={() => handleSave(true)}
               className={`w-11 flex-shrink-0 flex items-center justify-center rounded-xl font-bold transition-colors ${isIncomplete ? 'bg-orange-500 text-white active:bg-orange-600' : 'bg-orange-500/20 text-orange-400 active:bg-orange-500/30'}`}
             >
-              <MoreHorizontal size={20} />
+              <FastForward size={20} />
             </button>
             <button 
               type="button"
