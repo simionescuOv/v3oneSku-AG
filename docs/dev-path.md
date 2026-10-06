@@ -1,21 +1,31 @@
-# oneSku — Parcursul Dezvoltãrii & Jurnal Tehnic (`dev-path.md`)
+# oneSku â€” Parcursul DezvoltÄƒrii & Jurnal Tehnic (`dev-path.md`)
 
-> **REGULÃ OBLIGATORIE PENTRU TO?I AGEN?II DE COD / VIBECODING:**
-> - `git commit` se ruleazã **EXCLUSIV la cererea expresã a utilizatorului** (ex: „salveazã în git”, „fã commit”).
+> **REGULÄ‚ OBLIGATORIE PENTRU TO?I AGEN?II DE COD / VIBECODING:**
+> - `git commit` se ruleazÄƒ **EXCLUSIV la cererea expresÄƒ a utilizatorului** (ex: â€salveazÄƒ Ã®n gitâ€, â€fÄƒ commitâ€).
 
-### [Commit 21941cc] - build: copac | commit: minge - iconita skip pentru salvare incompleta
+### [Commit 08b2969] - build: copac | commit: minge - iconita skip pentru salvare incompleta
 - Inlocuit iconita 'MoreHorizontal' (...) cu 'FastForward' la butonul de salvare portocaliu (draft/incomplet) pentru a reflecta mai bine intentia utilizatorului de a da skip detaliilor curente.
 
 ---
 
 ### [Commit Pending]
-- 
+
+---
+
+### [Commit Pending] - build: pian | commit: floare - implement typetags OR
+- Modulul de tag-uri active/selectate din TagGroupsPicker este acum implicit restrans/inchis la inceperea selectiei.
+- Eliminare automatÄƒ a folderelor de tag-uri cÃ¢nd devin goale Ã®n urma acÈ›iunii de scoatere din fereastra Tags (TagGroupsPicker) È™i protecÈ›ie fallback pentru selecÈ›ia activÄƒ.
+- Tag-uri de tip AND/OR pe foldere: cÃ¢mp `tagType` pe folder (implicit AND), acÈ›iune `setTagGroupType` Ã®n store, helpere pure Ã®n `src/utils/tagConflicts.js` (conflictele se derivÄƒ dinamic, nu se stocheazÄƒ).
+- TagGroupsPicker: opÈ›iune â€Tags type" Ã®n meniul contextual â†’ `TagTypeSheet` cu comutator AND/OR per folder; la ANDâ†’OR cu Ã®nregistrÄƒri afectate se cere tastarea numÄƒrului lor; badge OR Ã®n lista de foldere.
+- TagGroupsPicker: folder virtual de sistem â€Orfane" (tag-uri fÄƒrÄƒ folder), lÃ¢ngÄƒ â€Toate".
+- ItemFormSheet: tag-uri conflictuale OR afiÈ™ate portocalii cu âš ; tap â†’ sheet de rezolvare (alege unul / â€x"); cu conflicte, salvarea se face doar ca nefinalizat.
+- ListPage: Ã®nregistrÄƒrile cu conflict OR sunt portocalii (+ âš ), se deschid Ã®n editare, iar totalul din header devine portocaliu dacÄƒ lista filtratÄƒ conÈ›ine nefinalizate.
 
 ---
 
 ### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
-- Adãugat modul de Import / Export pentru items ?i tags în `DashboardPage.jsx`.
-- Adãugatã metoda `importBackup` în `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
+- AdÄƒugat modul de Import / Export pentru items ?i tags Ã®n `DashboardPage.jsx`.
+- AdÄƒugatÄƒ metoda `importBackup` Ã®n `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
 
 ---
 
@@ -150,10 +160,10 @@
 - 
 - 
 - 
-_(gol — urmãtoarea sarcinã va adãuga un bullet point aici)_
+_(gol â€” urmÄƒtoarea sarcinÄƒ va adÄƒuga un bullet point aici)_
 
 ---
-### [Commit dd7078d] — build: ciocan | commit: fluviu - Aplicare agresiva tip search pe toate inputurile pentru blocare Autofill Chromium
+### [Commit dd7078d] â€” build: ciocan | commit: fluviu - Aplicare agresiva tip search pe toate inputurile pentru blocare Autofill Chromium
 - **Ramura**: rec-value
 - **Data**: 2026-09-28
 - **Descriere Detaliata**:
@@ -175,8 +185,8 @@ _(gol — urmãtoarea sarcinã va adãuga un bullet point aici)_
 ---
 
 ### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
-- Adãugat modul de Import / Export pentru items ?i tags în `DashboardPage.jsx`.
-- Adãugatã metoda `importBackup` în `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
+- AdÄƒugat modul de Import / Export pentru items ?i tags Ã®n `DashboardPage.jsx`.
+- AdÄƒugatÄƒ metoda `importBackup` Ã®n `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
 
 ---
 
@@ -310,32 +320,32 @@ _(gol — urmãtoarea sarcinã va adãuga un bullet point aici)_
 - 
 - 
 - 
--  — build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
+-  â€” build: migdala | commit: clopot - Corectare antete Vercel si rescrieri SPA pentru activare instalare PWA WebAPK
 - **Ramura**: rec-value
 - **Data**: 2026-09-27
 - **Descriere Detaliata**:
-  - `vercel.json` - corectat regula de rescriere SPA la `/((?!.*\\.[a-zA-Z0-9]+$).*)` pentru a preveni rescrierea fi?ierelor statice cãtre `index.html`. Adãugate antete HTTP explicite pentru `/manifest.json`, `/(.*)\\.webmanifest` (`application/manifest+json`) ?i `/sw.js` (`application/javascript`, `Service-Worker-Allowed: /`, `no-cache`).
-  - `public/manifest.json` - adãugatã copie directã `manifest.json` pentru compatibilitate 100% cu motoarele Chromium de pe Android.
+  - `vercel.json` - corectat regula de rescriere SPA la `/((?!.*\\.[a-zA-Z0-9]+$).*)` pentru a preveni rescrierea fi?ierelor statice cÄƒtre `index.html`. AdÄƒugate antete HTTP explicite pentru `/manifest.json`, `/(.*)\\.webmanifest` (`application/manifest+json`) ?i `/sw.js` (`application/javascript`, `Service-Worker-Allowed: /`, `no-cache`).
+  - `public/manifest.json` - adÄƒugatÄƒ copie directÄƒ `manifest.json` pentru compatibilitate 100% cu motoarele Chromium de pe Android.
   - `index.html` - actualizat link-ul de manifest principal la `/manifest.json`.
-  - `src/main.jsx` - eliminat blocajul cauzat de ascultãtorul evenimentului `load`, înregistrând Service Worker-ul imediat ce DOM-ul este gata.
+  - `src/main.jsx` - eliminat blocajul cauzat de ascultÄƒtorul evenimentului `load`, Ã®nregistrÃ¢nd Service Worker-ul imediat ce DOM-ul este gata.
   - `src/pages/HomePage.jsx` - actualizat `BUILD_WORD` la `migdala` ?i `COMMIT_WORD` la `clopot`.
 
 ---
 
-### [Commit 4935739] — build: ceainic | commit: umbrela - Configurare PWA Standalone complet (manifest, pictograme, service worker)
+### [Commit 4935739] â€” build: ceainic | commit: umbrela - Configurare PWA Standalone complet (manifest, pictograme, service worker)
 - **Ramura**: rec-value
 - **Data**: 2026-09-27
 - **Descriere Detaliata**:
-  - `public/manifest.webmanifest` - configurat manifestul oficial Web App cu `display: "standalone"`, `display_override: ["standalone", "minimal-ui"]`, orientare portret, temã `#09090b` ?i definirea setului de iconi?e (192, 512, maskable, SVG).
-  - `public/icon.svg`, `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-512.png` - create pictogramele de brand oneSku optimizate pentru instalabilitate nativã WebAPK pe Android ?i ecran de pornire iOS.
-  - `public/sw.js` - creat Service Worker-ul cu lifecycle skipWaiting/claim ?i passthrough fetch handler pentru compatibilitate maximã cu arhitectura Local-First ?i validarea cerin?elor de instalabilitate PWA Chromium.
-  - `index.html` - adãugate tag-urile `<link rel="manifest">`, iconi?ele, apple-touch-icon ?i meta tag-urile de aplica?ie autonomã (`mobile-web-app-capable`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`).
-  - `src/main.jsx` - înregistrare automatã a Service Worker-ului pe protocol HTTPS ?i localhost.
+  - `public/manifest.webmanifest` - configurat manifestul oficial Web App cu `display: "standalone"`, `display_override: ["standalone", "minimal-ui"]`, orientare portret, temÄƒ `#09090b` ?i definirea setului de iconi?e (192, 512, maskable, SVG).
+  - `public/icon.svg`, `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-512.png` - create pictogramele de brand oneSku optimizate pentru instalabilitate nativÄƒ WebAPK pe Android ?i ecran de pornire iOS.
+  - `public/sw.js` - creat Service Worker-ul cu lifecycle skipWaiting/claim ?i passthrough fetch handler pentru compatibilitate maximÄƒ cu arhitectura Local-First ?i validarea cerin?elor de instalabilitate PWA Chromium.
+  - `index.html` - adÄƒugate tag-urile `<link rel="manifest">`, iconi?ele, apple-touch-icon ?i meta tag-urile de aplica?ie autonomÄƒ (`mobile-web-app-capable`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`).
+  - `src/main.jsx` - Ã®nregistrare automatÄƒ a Service Worker-ului pe protocol HTTPS ?i localhost.
   - `src/pages/HomePage.jsx` - actualizat `BUILD_WORD` la `ceainic` ?i `COMMIT_WORD` la `umbrela`.
 
 ---
 
-### [Commit 1972f28] — build: busola | commit: morcov - Dezactivare bara sugestii autofill si euristic mobile pe toate inputurile
+### [Commit 1972f28] â€” build: busola | commit: morcov - Dezactivare bara sugestii autofill si euristic mobile pe toate inputurile
 - **Ramura**: rec-value
 - **Data**: 2026-09-27
 - **Descriere Detaliata**:
@@ -352,16 +362,16 @@ _(gol — urmãtoarea sarcinã va adãuga un bullet point aici)_
 
 ---
 
-### [Commit 069440b] — build: harpa | commit: trofeu - Repozitionare buton creare folder in footer intre Anuleaza si Salveaza
+### [Commit 069440b] â€” build: harpa | commit: trofeu - Repozitionare buton creare folder in footer intre Anuleaza si Salveaza
 - **Ramura**: rec-value
 - **Data**: 2026-09-26
 - **Descriere Detaliata**:
   - `src/components/items/TagGroupsPicker.jsx` - eliminat butonul plutitor (rotund albastru cu Plus) din coloana stanga de foldere care bloca interactiunea cu elementele din lista.
-  - Repozitionat butonul de creare folder direct in footer-ul fix de actiuni (`organizeMode === 'add'`), asezat compact si aliniat intre butonul de „Anuleaza” si „Salveaza asocierile”.
+  - Repozitionat butonul de creare folder direct in footer-ul fix de actiuni (`organizeMode === 'add'`), asezat compact si aliniat intre butonul de â€Anuleazaâ€ si â€Salveaza asocierileâ€.
 
 ---
 
-### [Commit 073c0fe] — build: vulcan | commit: salcam - MultiTag: Auto-expand Pinned la cautare si Badge luminos pt count
+### [Commit 073c0fe] â€” build: vulcan | commit: salcam - MultiTag: Auto-expand Pinned la cautare si Badge luminos pt count
 - **Ramura**: rec-value
 - **Data**: 2026-09-26
 - **Descriere Detaliata**:
@@ -399,99 +409,99 @@ _(gol — urmãtoarea sarcinã va adãuga un bullet point aici)_
   - `src/pages/HomePage.jsx` - BUILD_WORD: macara, COMMIT_WORD: radar.
 
 ---
-> - La fiecare sarcinã mãruntã/ajustare, agentul modificã codul ?i adaugã direct un nou bullet point în sec?iunea de sus `### [Commit c0c914b] — build: tramvai | commit: ciocan - implementare arhiva, mod selectie, etc
-- **Ramurã**: rec-value
+> - La fiecare sarcinÄƒ mÄƒruntÄƒ/ajustare, agentul modificÄƒ codul ?i adaugÄƒ direct un nou bullet point Ã®n sec?iunea de sus `### [Commit c0c914b] â€” build: tramvai | commit: ciocan - implementare arhiva, mod selectie, etc
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-20
-- **Descriere Detaliatã**:
-  - **Mod selec?ie ?i Arhivare**: Adãugat flux complet de selec?ie multiplã (cu casete de bifare) în `ListPage.jsx` ?i FAB contextual. Func?ia de arhivare mutã elementele local în `archivedItems`.
-  - **Pagina Arhivã**: Creatã pagina dedicatã `ArchivePage.jsx` cu op?iune de restaurare, accesibilã din meniul 3-dot al cardului Items din Dashboard.
-  - **UI / UX Fixes**: Ajustat alinierea numericã la dreapta. Ajustat comportamentul TagSuggestionsPanel ?i hook-ul useAutocompleteGhost pentru a filtra elementele deja selectate în modul multi-select din PickerSheet.
-  - **Header listã**: Adãugat calcul total (suma tuturor valorilor) în antet, atât pentru lista principalã, cât ?i pentru arhivã.
+- **Descriere DetaliatÄƒ**:
+  - **Mod selec?ie ?i Arhivare**: AdÄƒugat flux complet de selec?ie multiplÄƒ (cu casete de bifare) Ã®n `ListPage.jsx` ?i FAB contextual. Func?ia de arhivare mutÄƒ elementele local Ã®n `archivedItems`.
+  - **Pagina ArhivÄƒ**: CreatÄƒ pagina dedicatÄƒ `ArchivePage.jsx` cu op?iune de restaurare, accesibilÄƒ din meniul 3-dot al cardului Items din Dashboard.
+  - **UI / UX Fixes**: Ajustat alinierea numericÄƒ la dreapta. Ajustat comportamentul TagSuggestionsPanel ?i hook-ul useAutocompleteGhost pentru a filtra elementele deja selectate Ã®n modul multi-select din PickerSheet.
+  - **Header listÄƒ**: AdÄƒugat calcul total (suma tuturor valorilor) Ã®n antet, atÃ¢t pentru lista principalÄƒ, cÃ¢t ?i pentru arhivÄƒ.
 
 ---
 
-### [Commit 530fb49] — build: vulcan | commit: cactus - mutare optiuni selectie in meniu contextual bottombar
-- **Ramurã**: rec-value
+### [Commit 530fb49] â€” build: vulcan | commit: cactus - mutare optiuni selectie in meniu contextual bottombar
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-20
-- **Descriere Detaliatã**:
-  - **Meniu Contextual**: Am eliminat butonul fix de text "Selecteazã" care acoperea `BottomBar`-ul ?i l-am mutat într-un `BottomSheet` nativ.
-  - **Arhitecturã BottomBar**: Am introdus starea `bottomBarMenuOverride` în `useAppStore` pentru a permite paginilor sã preia controlul asupra butonului ? (Menu) din dreapta jos.
-  - La apãsarea pe meniul `BottomBar` în paginile `Items` ?i `Archive`, se deschide un meniu contextual dedicat cu op?iunile "Selecteazã" / "Anuleazã selec?ia" / "Selecteazã & recupereazã".
+- **Descriere DetaliatÄƒ**:
+  - **Meniu Contextual**: Am eliminat butonul fix de text "SelecteazÄƒ" care acoperea `BottomBar`-ul ?i l-am mutat Ã®ntr-un `BottomSheet` nativ.
+  - **ArhitecturÄƒ BottomBar**: Am introdus starea `bottomBarMenuOverride` Ã®n `useAppStore` pentru a permite paginilor sÄƒ preia controlul asupra butonului ? (Menu) din dreapta jos.
+  - La apÄƒsarea pe meniul `BottomBar` Ã®n paginile `Items` ?i `Archive`, se deschide un meniu contextual dedicat cu op?iunile "SelecteazÄƒ" / "AnuleazÄƒ selec?ia" / "SelecteazÄƒ & recupereazÄƒ".
 
 ---
 
-### [Commit 7769a65] — build: castor | commit: busola - tags-grup în items (rec-value).
-- **Ramurã**: rec-value
+### [Commit 7769a65] â€” build: castor | commit: busola - tags-grup Ã®n items (rec-value).
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-22
-- **Descriere Detaliatã**:
+- **Descriere DetaliatÄƒ**:
   - **Implementare modul Tag Groups (v2.3)**:
-    - **`useItemsStore.js`**: Adãugat state `tagGroups` (array de foldere) ?i `tagGroupMembers` (map many-to-many groupId › string[]) cu persisten?ã automatã în localStorage. Metode CRUD: `addTagGroup`, `renameTagGroup`, `deleteTagGroup`, `associateTagsToGroups`, `createGroupWithTags`, `removeTagFromGroup`, `setGroupMembers`, `getGroupsForTag`.
-    - **`TagGroupsPicker.jsx`** (nou): Componentã izolatã cu layout 2 coloane (Foldere stânga / Tag-uri dreapta). Suport dual-mode: `allowOrganize=false` (Read-Only — filtru vizual rapid, nicio muta?ie posibilã) ?i `allowOrganize=true` (modul complet — selec?ie multi-tag+folder, asociere many-to-many, creare folder nou). Cãutare sincronizatã prin BottomBar: la tastare, coloana stângã ascunde folderul „Toate" ?i afi?eazã doar foldere cu rezultate relevante.
-    - **`ListPage.jsx`**: Adãugat import `Tag` din lucide-react + `TagGroupsPicker`. Adãugat state `tagsSheetOpen`. Adãugat butonul „Tags" (cu iconi?ã Tag) în ContextMenu existent. Integrat `TagGroupsPicker` ca `BottomSheet aboveBottomBar` cu `allowOrganize=true`.
-    - **`SideMenu.jsx`**: Fãcut titlul „oneSku" buton interactiv care navigheazã la pagina principalã `/`.
+    - **`useItemsStore.js`**: AdÄƒugat state `tagGroups` (array de foldere) ?i `tagGroupMembers` (map many-to-many groupId â€º string[]) cu persisten?Äƒ automatÄƒ Ã®n localStorage. Metode CRUD: `addTagGroup`, `renameTagGroup`, `deleteTagGroup`, `associateTagsToGroups`, `createGroupWithTags`, `removeTagFromGroup`, `setGroupMembers`, `getGroupsForTag`.
+    - **`TagGroupsPicker.jsx`** (nou): ComponentÄƒ izolatÄƒ cu layout 2 coloane (Foldere stÃ¢nga / Tag-uri dreapta). Suport dual-mode: `allowOrganize=false` (Read-Only â€” filtru vizual rapid, nicio muta?ie posibilÄƒ) ?i `allowOrganize=true` (modul complet â€” selec?ie multi-tag+folder, asociere many-to-many, creare folder nou). CÄƒutare sincronizatÄƒ prin BottomBar: la tastare, coloana stÃ¢ngÄƒ ascunde folderul â€Toate" ?i afi?eazÄƒ doar foldere cu rezultate relevante.
+    - **`ListPage.jsx`**: AdÄƒugat import `Tag` din lucide-react + `TagGroupsPicker`. AdÄƒugat state `tagsSheetOpen`. AdÄƒugat butonul â€Tags" (cu iconi?Äƒ Tag) Ã®n ContextMenu existent. Integrat `TagGroupsPicker` ca `BottomSheet aboveBottomBar` cu `allowOrganize=true`.
+    - **`SideMenu.jsx`**: FÄƒcut titlul â€oneSku" buton interactiv care navigheazÄƒ la pagina principalÄƒ `/`.
 
 ---
 
-### [Commit 2acbc10] — build: pian | commit: fular - ux/layout fixes tag groups (rec-value)
-- **Ramurã**: rec-value
+### [Commit 2acbc10] â€” build: pian | commit: fular - ux/layout fixes tag groups (rec-value)
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-22
-- **Descriere Detaliatã**:
+- **Descriere DetaliatÄƒ**:
   - **UX / Layout Fixes pentru TagGroupsPicker**:
-    - Remediat un bug de CSS Flexbox (`flex-1 min-h-0` aplicat) care bloca posibilitatea de a face scroll în liste.
-    - Convertit afi?area în `ListPage` la full-screen deasupra BottomBar-ului pentru maximizarea spa?iului (`h-[calc(100dvh-4rem)] max-h-none rounded-none`).
-    - Mutatã logica de selec?ie în meniul contextual din BottomBar (`pushBottomBarOverride`) conform conven?iilor aplica?iei, cu un BottomSheet curat de ac?iuni.
-    - Integrate butoanele de "Salveazã" / "Anuleazã" într-un footer fix în partea de jos a ferestrei (precum în `BaseFilterSheet`), eliberând complet header-ul.
-    - Regula 7 (Artefacte cu referin?e la prompt) a fost adãugatã oficial în `GEMINI.md`.
+    - Remediat un bug de CSS Flexbox (`flex-1 min-h-0` aplicat) care bloca posibilitatea de a face scroll Ã®n liste.
+    - Convertit afi?area Ã®n `ListPage` la full-screen deasupra BottomBar-ului pentru maximizarea spa?iului (`h-[calc(100dvh-4rem)] max-h-none rounded-none`).
+    - MutatÄƒ logica de selec?ie Ã®n meniul contextual din BottomBar (`pushBottomBarOverride`) conform conven?iilor aplica?iei, cu un BottomSheet curat de ac?iuni.
+    - Integrate butoanele de "SalveazÄƒ" / "AnuleazÄƒ" Ã®ntr-un footer fix Ã®n partea de jos a ferestrei (precum Ã®n `BaseFilterSheet`), eliberÃ¢nd complet header-ul.
+    - Regula 7 (Artefacte cu referin?e la prompt) a fost adÄƒugatÄƒ oficial Ã®n `GEMINI.md`.
 
 ---
 
-### [Commit 41eebb4] — build: umbrelã | commit: oglindã - bug fixes TagGroupsPicker
-- **Ramurã**: rec-value
+### [Commit 41eebb4] â€” build: umbrelÄƒ | commit: oglindÄƒ - bug fixes TagGroupsPicker
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-22
-- **Descriere Detaliatã**:
+- **Descriere DetaliatÄƒ**:
   - **Bug Fixes la TagGroupsPicker**:
-    - **Meniu contextual**: Am fixat ordinea de aplicare a `pushBottomBarOverride` dintr-un `BottomSheet` imbricat (folosind `setTimeout`), restabilind iconi?a ? care era ascunsã de pãrinte.
-    - **Cãutare Tags**: Schimbat filtrarea tag-urilor din `.includes()` în `.startsWith()` pentru a respecta regula de cãutare pe prefix.
-    - **Autocomplete**: Instan?iat hook-ul `useAutocompleteGhost` în `TagGroupsPicker`, activând afi?area textului gri predictiv din `BottomBar` în timpul cãutãrii.
+    - **Meniu contextual**: Am fixat ordinea de aplicare a `pushBottomBarOverride` dintr-un `BottomSheet` imbricat (folosind `setTimeout`), restabilind iconi?a ? care era ascunsÄƒ de pÄƒrinte.
+    - **CÄƒutare Tags**: Schimbat filtrarea tag-urilor din `.includes()` Ã®n `.startsWith()` pentru a respecta regula de cÄƒutare pe prefix.
+    - **Autocomplete**: Instan?iat hook-ul `useAutocompleteGhost` Ã®n `TagGroupsPicker`, activÃ¢nd afi?area textului gri predictiv din `BottomBar` Ã®n timpul cÄƒutÄƒrii.
 
 ---
 
-### [Commit 41eebb4] — build: cire? | commit: rachetã - ux/ui improvements tag groups
-- **Îmbunãtã?iri UX / UI TagGroupsPicker**:
-  - **Iconi?ã BottomBar**: Trimisã instan?a componentei `AlignLeft` în loc de string, restabilind vizibilitatea iconi?ei Meniu.
-  - **Folder Nou**: Mutat butonul "+ Folder nou" în partea de sus a listei din stânga (sub header), apãrând dinamic când existã tag-uri selectate, pentru a nu mai fi ascuns sub footer.
-  - **Curã?are Header**: ?tearsã linia de text albastru inutilã cu "3 tag-uri selectate" pentru a maximiza spa?iul.
-  - **Tag-uri Pinned**: În coloana din dreapta, elementele bifate sunt grupate acum în partea de sus a listei, separate vizual de celelalte, uniformizând comportamentul cu cel de la filtre.
+### [Commit 41eebb4] â€” build: cire? | commit: rachetÄƒ - ux/ui improvements tag groups
+- **ÃmbunÄƒtÄƒ?iri UX / UI TagGroupsPicker**:
+  - **Iconi?Äƒ BottomBar**: TrimisÄƒ instan?a componentei `AlignLeft` Ã®n loc de string, restabilind vizibilitatea iconi?ei Meniu.
+  - **Folder Nou**: Mutat butonul "+ Folder nou" Ã®n partea de sus a listei din stÃ¢nga (sub header), apÄƒrÃ¢nd dinamic cÃ¢nd existÄƒ tag-uri selectate, pentru a nu mai fi ascuns sub footer.
+  - **CurÄƒ?are Header**: ?tearsÄƒ linia de text albastru inutilÄƒ cu "3 tag-uri selectate" pentru a maximiza spa?iul.
+  - **Tag-uri Pinned**: Ãn coloana din dreapta, elementele bifate sunt grupate acum Ã®n partea de sus a listei, separate vizual de celelalte, uniformizÃ¢nd comportamentul cu cel de la filtre.
 
 ---
 
-### [Commit 7036f71] — build: ocean | commit: baterie - faithful UX refactor tag groups picker
-- **Ramurã**: rec-value
+### [Commit 7036f71] â€” build: ocean | commit: baterie - faithful UX refactor tag groups picker
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-22
-- **Descriere Detaliatã**:
-  - **Refactorizare fidelã UX TagGroupsPicker**:
-    - **Filtre Active (Tag-uri fixate)**: Rescris containerul din coloana dreaptã pentru a replica fidel vizualul ?i comportamentul de acordeon (`isPinnedCollapsed`) din componenta `BaseFilterSheet`, incluzând butonul de debifare rapidã (`RotateCcw`).
-    - **FAB & Modal Folder**: ?ters complet input-ul inline de creare folder. Adãugat un FAB (Floating Action Button) deasupra listei din stânga. La click, se deschide un modal (Dialog) izolat, pe ecran complet (`z-[100]`), clar, cu butoane dedicate Anuleazã/Salveazã.
+- **Descriere DetaliatÄƒ**:
+  - **Refactorizare fidelÄƒ UX TagGroupsPicker**:
+    - **Filtre Active (Tag-uri fixate)**: Rescris containerul din coloana dreaptÄƒ pentru a replica fidel vizualul ?i comportamentul de acordeon (`isPinnedCollapsed`) din componenta `BaseFilterSheet`, incluzÃ¢nd butonul de debifare rapidÄƒ (`RotateCcw`).
+    - **FAB & Modal Folder**: ?ters complet input-ul inline de creare folder. AdÄƒugat un FAB (Floating Action Button) deasupra listei din stÃ¢nga. La click, se deschide un modal (Dialog) izolat, pe ecran complet (`z-[100]`), clar, cu butoane dedicate AnuleazÄƒ/SalveazÄƒ.
 
 ---
 
-### [Commit f911f3d] — build: cernealã | commit: aripã - fix TagGroupsPicker active tags behavior
-- **Ramurã**: rec-value
+### [Commit f911f3d] â€” build: cernealÄƒ | commit: aripÄƒ - fix TagGroupsPicker active tags behavior
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-23
-- **Descriere Detaliatã**:
-  - **TagGroupsPicker Active Filters Fix**: ?tearsã condi?ia de filtrare care ascundea tag-urile din lista principalã atunci când acestea erau bifate. Acum, elementele bifate urcã în panoul de tag-uri fixate din partea de sus, dar rãmân vizibile (?i marcate ca bifate) ?i în pozi?ia lor originalã din listã, men?inând astfel un comportament identic (1:1) cu cel al `BaseFilterSheet` pentru consisten?ã de UX.
-  - **Documenta?ie UI Componente**: Creat fi?ierul `docs/componente.md` care centralizeazã ?i explicã comportamentul vizual ?i interactiv al tuturor componentelor React (Shell, Catalog, StockHub, etc.) din aplica?ie.
-  - **Actualizare reguli AGENT (GEMINI.md)**: Adãugat Regula 8 (`MOD REMOTE ON / OFF PROTOCOL`).
+- **Descriere DetaliatÄƒ**:
+  - **TagGroupsPicker Active Filters Fix**: ?tearsÄƒ condi?ia de filtrare care ascundea tag-urile din lista principalÄƒ atunci cÃ¢nd acestea erau bifate. Acum, elementele bifate urcÄƒ Ã®n panoul de tag-uri fixate din partea de sus, dar rÄƒmÃ¢n vizibile (?i marcate ca bifate) ?i Ã®n pozi?ia lor originalÄƒ din listÄƒ, men?inÃ¢nd astfel un comportament identic (1:1) cu cel al `BaseFilterSheet` pentru consisten?Äƒ de UX.
+  - **Documenta?ie UI Componente**: Creat fi?ierul `docs/componente.md` care centralizeazÄƒ ?i explicÄƒ comportamentul vizual ?i interactiv al tuturor componentelor React (Shell, Catalog, StockHub, etc.) din aplica?ie.
+  - **Actualizare reguli AGENT (GEMINI.md)**: AdÄƒugat Regula 8 (`MOD REMOTE ON / OFF PROTOCOL`).
 
 ---
 
-### [Commit telescop] — build: telescop | commit: bilet - implementare mod scoate in tag groups picker
-- **Ramurã**: rec-value
+### [Commit telescop] â€” build: telescop | commit: bilet - implementare mod scoate in tag groups picker
+- **RamurÄƒ**: rec-value
 - **Data**: 2026-09-23
-- **Descriere Detaliatã**:
-  - **Meniu de Organizare**: Înlocuit butonul simplu „Selecteazã” cu meniul complet „Organizare” având op?iunile „Adaugã” ?i „Scoate”.
-  - **Modul Scoate**: Implementatã o func?ionalitate intuitivã de eliminare a tag-urilor. Când modul „Scoate” este activat, navigarea prin foldere din coloana stângã rãmâne exact ca în varianta Read-Only, dar în coloana dreaptã tag-urile primesc checkbox-uri ro?ii. Utilizatorul navigheazã într-un folder, bifeazã tag-urile pe care vrea sã le elimine ?i apasã „Aplicã eliminarea”. Acestea sunt ?terse imediat din folderul respectiv, fãrã a fi ?terse din vocabularul „Toate” sau din alte foldere.
-  - Adãugatã metoda eficientã `removeTagsFromGroup` în `useItemsStore.js`.
+- **Descriere DetaliatÄƒ**:
+  - **Meniu de Organizare**: Ãnlocuit butonul simplu â€SelecteazÄƒâ€ cu meniul complet â€Organizareâ€ avÃ¢nd op?iunile â€AdaugÄƒâ€ ?i â€Scoateâ€.
+  - **Modul Scoate**: ImplementatÄƒ o func?ionalitate intuitivÄƒ de eliminare a tag-urilor. CÃ¢nd modul â€Scoateâ€ este activat, navigarea prin foldere din coloana stÃ¢ngÄƒ rÄƒmÃ¢ne exact ca Ã®n varianta Read-Only, dar Ã®n coloana dreaptÄƒ tag-urile primesc checkbox-uri ro?ii. Utilizatorul navigheazÄƒ Ã®ntr-un folder, bifeazÄƒ tag-urile pe care vrea sÄƒ le elimine ?i apasÄƒ â€AplicÄƒ eliminareaâ€. Acestea sunt ?terse imediat din folderul respectiv, fÄƒrÄƒ a fi ?terse din vocabularul â€Toateâ€ sau din alte foldere.
+  - AdÄƒugatÄƒ metoda eficientÄƒ `removeTagsFromGroup` Ã®n `useItemsStore.js`.
 
 ---
 
@@ -506,8 +516,8 @@ _(gol — urmãtoarea sarcinã va adãuga un bullet point aici)_
 ---
 
 ### [Commit 21941cc] - build: metrou | commit: castravete - Adaugare modul Import/Export in Dashboard
-- Adãugat modul de Import / Export pentru items ?i tags în `DashboardPage.jsx`.
-- Adãugatã metoda `importBackup` în `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
+- AdÄƒugat modul de Import / Export pentru items ?i tags Ã®n `DashboardPage.jsx`.
+- AdÄƒugatÄƒ metoda `importBackup` Ã®n `useItemsStore` pentru preluarea datelor dintr-un backup JSON.
 
 ---
 

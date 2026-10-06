@@ -17,18 +17,21 @@
 //   - Butoane „Salvează" / „Anulează"
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square, ChevronDown, RotateCcw, Trash } from 'lucide-react'
+import { Folder, FolderOpen, Tag, Plus, X, Check, AlignLeft, CheckSquare, Square, ChevronDown, RotateCcw, Trash, Shuffle } from 'lucide-react'
 import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { normalize } from '../../lib/search'
 import BottomSheet from '../catalog/BottomSheet'
+import TagTypeSheet from './TagTypeSheet'
 import { useAutocompleteGhost } from '../../hooks/useAutocompleteGhost'
 
 const SEARCH_CONTEXT_ID = 'tag-groups-picker'
 
-// ─── Folderul virtual „Toate" ─────────────────────────────────────────────────
+// ─── Foldere virtuale de sistem ────────────────────────────────────────────────
 const ALL_GROUP = { id: '__all__', name: 'Toate', isVirtual: true }
+// „Orfane": tag-uri care nu aparțin niciunui folder
+const ORPHAN_GROUP = { id: '__orphans__', name: 'Orfane', isVirtual: true }
 
 export default function TagGroupsPicker({
   allowOrganize = false,
@@ -63,13 +66,30 @@ export default function TagGroupsPicker({
   const [newFolderMode, setNewFolderMode] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [actionsSheetOpen, setActionsSheetOpen] = useState(false)
-  const [isPinnedCollapsed, setIsPinnedCollapsed] = useState(false)
+  const [tagTypeSheetOpen, setTagTypeSheetOpen] = useState(false)
+  const [isPinnedCollapsed, setIsPinnedCollapsed] = useState(true)
   const [titleValue, setTitleValue] = useState(initialTitle)
 
   // Sincronizare la schimbarea prop-ului initialTitle
   useEffect(() => {
     setTitleValue(initialTitle)
   }, [initialTitle])
+
+  // Fallback pe ALL_GROUP dacă folderul curent activ a fost șters / a rămas gol
+  useEffect(() => {
+    if (activeGroupId === ALL_GROUP.id) return
+    if (activeGroupId === ORPHAN_GROUP.id) {
+      // „Orfane" dispare când nu mai există tag-uri orfane
+      const hasOrphans = getTagVocabulary().some(
+        (t) => !Object.values(tagGroupMembers).some((m) => m.includes(t.value))
+      )
+      if (!hasOrphans) setActiveGroupId(ALL_GROUP.id)
+      return
+    }
+    if (!tagGroups.some((g) => g.id === activeGroupId)) {
+      setActiveGroupId(ALL_GROUP.id)
+    }
+  }, [activeGroupId, tagGroups, tagGroupMembers, getTagVocabulary, items])
 
   // ─── BottomBar search context ────────────────────────────────────────────
   useEffect(() => {
@@ -140,15 +160,29 @@ export default function TagGroupsPicker({
     )
   }, [filteredTags, tagGroups, tagGroupMembers])
 
+  // Tag-uri orfane: nu aparțin niciunui folder
+  const orphanTags = useMemo(
+    () => vocabulary.filter((t) => !(tagToGroups[t.value]?.length > 0)),
+    [vocabulary, tagToGroups]
+  )
+
   // ─── Lista de foldere afișată în coloana stângă ──────────────────────────
   const visibleGroups = useMemo(() => {
+    // Excludem folderele goale din afișare
+    const nonEmptyGroups = tagGroups.filter(
+      (g) => (tagGroupMembers[g.id] ?? []).length > 0
+    )
     if (isSearching) {
-      // La căutare: ascunde „Toate", arată doar foldere cu rezultate
-      return tagGroups.filter((g) => relevantGroupIds?.has(g.id))
+      // La căutare: ascunde „Toate"/„Orfane", arată doar foldere cu rezultate
+      return nonEmptyGroups.filter((g) => relevantGroupIds?.has(g.id))
     }
-    // Normal: „Toate" primul, apoi celelalte
-    return [ALL_GROUP, ...tagGroups]
-  }, [isSearching, tagGroups, relevantGroupIds])
+    // Normal: „Toate" primul, „Orfane" (dacă există), apoi celelalte
+    return [
+      ALL_GROUP,
+      ...(orphanTags.length > 0 ? [ORPHAN_GROUP] : []),
+      ...nonEmptyGroups,
+    ]
+  }, [isSearching, tagGroups, relevantGroupIds, tagGroupMembers, orphanTags])
 
   // ─── Tag-uri afișate în coloana dreaptă ──────────────────────────────────
   const visibleTags = useMemo(() => {
@@ -158,9 +192,12 @@ export default function TagGroupsPicker({
     if (activeGroupId === ALL_GROUP.id) {
       return vocabulary
     }
+    if (activeGroupId === ORPHAN_GROUP.id) {
+      return orphanTags
+    }
     const members = tagGroupMembers[activeGroupId] ?? []
     return vocabulary.filter((t) => members.includes(t.value))
-  }, [isSearching, filteredTags, activeGroupId, vocabulary, tagGroupMembers])
+  }, [isSearching, filteredTags, activeGroupId, vocabulary, tagGroupMembers, orphanTags])
 
   const pinnedTags = useMemo(() => {
     if (!organizeMode && !selectionMode) return []
@@ -179,8 +216,17 @@ export default function TagGroupsPicker({
   const toggleTagSelect = (tagValue) => {
     setSelectedTagValues((prev) => {
       const next = new Set(prev)
-      if (next.has(tagValue)) next.delete(tagValue)
-      else next.add(tagValue)
+      if (next.has(tagValue)) {
+        next.delete(tagValue)
+        if (next.size === 0) {
+          setIsPinnedCollapsed(true)
+        }
+      } else {
+        if (prev.size === 0) {
+          setIsPinnedCollapsed(true)
+        }
+        next.add(tagValue)
+      }
       return next
     })
   }
@@ -207,7 +253,7 @@ export default function TagGroupsPicker({
         })
       }
     } else if (organizeMode === 'remove') {
-      if (activeGroupId !== ALL_GROUP.id) {
+      if (activeGroupId !== ALL_GROUP.id && activeGroupId !== ORPHAN_GROUP.id) {
         removeTagsFromGroup(activeGroupId, [...selectedTagValues])
       }
     }
@@ -234,11 +280,13 @@ export default function TagGroupsPicker({
     setSelectedGroupIds(new Set())
     setNewFolderMode(false)
     setNewFolderName('')
+    setIsPinnedCollapsed(true)
   }
 
   // ─── Derivate ──────────────────────────────────────────────────────────────
   const hasTagsSelected = selectedTagValues.size > 0
   const hasGroupsSelected = selectedGroupIds.size > 0
+  const isRealGroupActive = activeGroupId !== ALL_GROUP.id && activeGroupId !== ORPHAN_GROUP.id
 
   // ─── Helper render tag ───────────────────────────────────────────────────
   const renderTag = (tag) => {
@@ -247,7 +295,7 @@ export default function TagGroupsPicker({
       ? selectedTagValues.has(tag.value)
       : organizeMode && selectedTagValues.has(tag.value)
     const belongsToCount = (tagToGroups[tag.value] ?? []).length
-    const showCheckbox = selectionMode || organizeMode === 'add' || (organizeMode === 'remove' && activeGroupId !== ALL_GROUP.id)
+    const showCheckbox = selectionMode || organizeMode === 'add' || (organizeMode === 'remove' && isRealGroupActive)
 
     return (
       <button
@@ -337,7 +385,9 @@ export default function TagGroupsPicker({
             {visibleGroups.map((group) => {
               const isVirtual = group.isVirtual
               const isActive = activeGroupId === group.id && !isSearching && (!organizeMode || organizeMode === 'remove')
-              const count = isVirtual ? vocabulary.length : groupCount(group.id)
+              const count = group.id === ORPHAN_GROUP.id
+                ? orphanTags.length
+                : isVirtual ? vocabulary.length : groupCount(group.id)
               const isSelectable = organizeMode === 'add' && !isVirtual
               const isGroupSelected = isSelectable && selectedGroupIds.has(group.id)
               // Număr de tag-uri relevante pentru căutare (în modul search)
@@ -385,6 +435,11 @@ export default function TagGroupsPicker({
                   <span className="flex-1 text-xs font-medium truncate leading-snug">
                     {group.name}
                   </span>
+                  {group.tagType === 'OR' && (
+                    <span className="text-[9px] font-bold text-orange-400 bg-orange-500/15 px-1 rounded shrink-0">
+                      OR
+                    </span>
+                  )}
                   <span className="text-[10px] text-zinc-600 shrink-0 tabular-nums">
                     {isSearching && searchCount !== null ? searchCount : count}
                   </span>
@@ -498,10 +553,10 @@ export default function TagGroupsPicker({
           ) : (
             <button
               onClick={handleSave}
-              disabled={!hasTagsSelected || activeGroupId === ALL_GROUP.id}
+              disabled={!hasTagsSelected || !isRealGroupActive}
               className={[
                 'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-colors',
-                hasTagsSelected && activeGroupId !== ALL_GROUP.id
+                hasTagsSelected && isRealGroupActive
                   ? 'bg-red-600 text-white hover:bg-red-500 active:bg-red-700'
                   : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
               ].join(' ')}
@@ -575,8 +630,20 @@ export default function TagGroupsPicker({
               {organizeMode === 'remove' ? 'Anulează eliminarea' : 'Scoate'}
             </span>
           </button>
+          <button
+            onClick={() => {
+              setActionsSheetOpen(false)
+              setTagTypeSheetOpen(true)
+            }}
+            className="w-full flex items-center gap-4 px-6 py-4 active:bg-zinc-800 transition-colors"
+          >
+            <Shuffle size={20} className="text-zinc-400 shrink-0" />
+            <span className="text-sm font-medium text-zinc-200">Tags type</span>
+          </button>
         </div>
       </BottomSheet>
+
+      <TagTypeSheet open={tagTypeSheetOpen} onClose={() => setTagTypeSheetOpen(false)} />
 
       {/* ── Modal Folder Nou ─────────────────────────────────────────────────── */}
       {newFolderMode && (

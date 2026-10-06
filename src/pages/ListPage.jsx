@@ -1,6 +1,6 @@
 // [ITEMS FEATURE] — Pagină izolată, removable. Șterge din App.jsx și DashboardPage pentru a elimina.
 import { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react'
-import { Plus, X, ArrowLeft, CheckSquare, Square, Archive, Tag } from 'lucide-react'
+import { Plus, X, ArrowLeft, CheckSquare, Square, Archive, Tag, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { useItemsStore } from '../store/useItemsStore'
@@ -10,6 +10,7 @@ import TagSuggestionsPanel from '../components/items/TagSuggestionsPanel'
 import TagGroupsPicker from '../components/items/TagGroupsPicker'
 import { useAutocompleteGhost } from '../hooks/useAutocompleteGhost'
 import BottomSheet from '../components/catalog/BottomSheet'
+import { getTagConflicts } from '../utils/tagConflicts'
 
 
 const SEARCH_CONTEXT_ID = 'items-list'
@@ -31,6 +32,8 @@ export default function ListPage() {
   const items = useItemsStore((s) => s.items)
   const getTagVocabulary = useItemsStore((s) => s.getTagVocabulary)
   const archiveItems = useItemsStore((s) => s.archiveItems)
+  const tagGroups = useItemsStore((s) => s.tagGroups)
+  const tagGroupMembers = useItemsStore((s) => s.tagGroupMembers)
 
   const searchQuery = useAppStore((s) => s.searchQuery)
   const setSearchQuery = useAppStore((s) => s.setSearchQuery)
@@ -142,6 +145,17 @@ export default function ListPage() {
 
   const totalValue = visibleItems.reduce((acc, item) => acc + (item.value || 0), 0)
 
+  // Stare efectivă: flag manual SAU conflict OR (derivat din foldere)
+  const itemStates = useMemo(() => {
+    const map = new Map()
+    for (const it of items) {
+      const hasConflict = getTagConflicts(it.tags, tagGroups, tagGroupMembers).groups.length > 0
+      map.set(it.id, { hasConflict, incomplete: !!it.isIncomplete || hasConflict })
+    }
+    return map
+  }, [items, tagGroups, tagGroupMembers])
+  const hasIncompleteVisible = visibleItems.some((it) => itemStates.get(it.id)?.incomplete)
+
   // Selecție helpers
   const toggleSelect = (id) => {
     setSelectedIds((prev) => {
@@ -194,7 +208,7 @@ export default function ListPage() {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xl font-bold text-zinc-100 tabular-nums leading-none">
+          <div className={`text-xl font-bold tabular-nums leading-none ${hasIncompleteVisible ? 'text-orange-400' : 'text-zinc-100'}`}>
             {totalValue}
           </div>
           <p className="text-[10px] uppercase tracking-wider text-zinc-500 mt-1 font-medium">Total</p>
@@ -270,7 +284,7 @@ export default function ListPage() {
                     onClick={() => {
                       if (inSelectionMode) {
                         toggleSelect(item.id)
-                      } else if (item.isIncomplete) {
+                      } else if (itemStates.get(item.id)?.incomplete) {
                         setEditItem(item)
                       } else {
                         setDetailItem(item)
@@ -291,7 +305,7 @@ export default function ListPage() {
                     )}
 
                     {/* Valoare — proeminentă stânga */}
-                    <span className={`text-2xl font-bold tabular-nums leading-none pt-0.5 shrink-0 min-w-[60px] text-right ${item.isIncomplete ? 'text-orange-400' : 'text-zinc-100'}`}>
+                    <span className={`text-2xl font-bold tabular-nums leading-none pt-0.5 shrink-0 min-w-[60px] text-right ${itemStates.get(item.id)?.incomplete ? 'text-orange-400' : 'text-zinc-100'}`}>
                       {item.value}
                     </span>
 
@@ -305,8 +319,11 @@ export default function ListPage() {
                     </div>
 
                     {/* Ora — Dreapta sus */}
-                    <div className="flex flex-col items-end shrink-0 pt-0.5">
+                    <div className="flex flex-col items-end shrink-0 pt-0.5 gap-1">
                       <span className="text-xs font-semibold text-zinc-300 tabular-nums">{curr.timeStr}</span>
+                      {itemStates.get(item.id)?.hasConflict && (
+                        <AlertTriangle size={14} className="text-orange-400" aria-label="Conflict tag-uri OR" />
+                      )}
                     </div>
                   </button>
                 </Fragment>

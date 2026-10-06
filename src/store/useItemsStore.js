@@ -135,6 +135,15 @@ export const useItemsStore = create(
         }))
       },
 
+      // Setează tipul tag-urilor din folder: 'AND' (implicit) sau 'OR' (exclusive)
+      setTagGroupType: (groupId, type) => {
+        set((s) => ({
+          tagGroups: s.tagGroups.map((g) =>
+            g.id === groupId ? { ...g, tagType: type === 'OR' ? 'OR' : 'AND' } : g
+          ),
+        }))
+      },
+
       // Șterge un folder (nu șterge tag-urile din items)
       deleteTagGroup: (groupId) => {
         set((s) => {
@@ -160,15 +169,25 @@ export const useItemsStore = create(
         })
       },
 
-      // Eliminare: șterge tagValues dintr-un grup specific
+      // Eliminare: șterge tagValues dintr-un grup specific (dacă grupul rămâne gol, se șterge automat)
       removeTagsFromGroup: (groupId, tagValues) => {
         set((s) => {
           const updated = { ...s.tagGroupMembers }
           if (updated[groupId]) {
             const toRemove = new Set(tagValues)
-            updated[groupId] = updated[groupId].filter(t => !toRemove.has(t))
+            const remaining = updated[groupId].filter((t) => !toRemove.has(t))
+            if (remaining.length === 0) {
+              delete updated[groupId]
+              return {
+                tagGroups: s.tagGroups.filter((g) => g.id !== groupId),
+                tagGroupMembers: updated,
+              }
+            } else {
+              updated[groupId] = remaining
+              return { tagGroupMembers: updated }
+            }
           }
-          return { tagGroupMembers: updated }
+          return {}
         })
       },
 
@@ -190,24 +209,44 @@ export const useItemsStore = create(
         return newGroup
       },
 
-      // Elimină un tag dintr-un folder specific
+      // Elimină un tag dintr-un folder specific (dacă grupul rămâne gol, se șterge automat)
       removeTagFromGroup: (groupId, tagValue) => {
-        set((s) => ({
-          tagGroupMembers: {
-            ...s.tagGroupMembers,
-            [groupId]: (s.tagGroupMembers[groupId] ?? []).filter((t) => t !== tagValue),
-          },
-        }))
+        set((s) => {
+          const updated = { ...s.tagGroupMembers }
+          if (updated[groupId]) {
+            const remaining = (updated[groupId] ?? []).filter((t) => t !== tagValue)
+            if (remaining.length === 0) {
+              delete updated[groupId]
+              return {
+                tagGroups: s.tagGroups.filter((g) => g.id !== groupId),
+                tagGroupMembers: updated,
+              }
+            } else {
+              updated[groupId] = remaining
+              return { tagGroupMembers: updated }
+            }
+          }
+          return {}
+        })
       },
 
-      // Setează lista completă de tagValues pentru un folder (suprascriere)
+      // Setează lista completă de tagValues pentru un folder (dacă devine gol, se șterge automat)
       setGroupMembers: (groupId, tagValues) => {
-        set((s) => ({
-          tagGroupMembers: {
-            ...s.tagGroupMembers,
-            [groupId]: [...tagValues],
-          },
-        }))
+        set((s) => {
+          if (!tagValues || tagValues.length === 0) {
+            const { [groupId]: _removed, ...rest } = s.tagGroupMembers
+            return {
+              tagGroups: s.tagGroups.filter((g) => g.id !== groupId),
+              tagGroupMembers: rest,
+            }
+          }
+          return {
+            tagGroupMembers: {
+              ...s.tagGroupMembers,
+              [groupId]: [...tagValues],
+            },
+          }
+        })
       },
 
       // Returnează ID-urile grupurilor care conțin un anumit tag

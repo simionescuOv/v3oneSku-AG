@@ -1,18 +1,21 @@
 // [ITEMS FEATURE] — ComponentA izolată, removable.
-import { useEffect, useState, useRef } from 'react'
-import { Tag, ChevronRight, Save, FastForward } from 'lucide-react'
+import { useEffect, useState, useRef, useMemo } from 'react'
+import { Tag, ChevronRight, Save, FastForward, AlertTriangle, X } from 'lucide-react'
 import BottomSheet from '../catalog/BottomSheet'
 import PickerSheet from '../catalog/PickerSheet'
 import MultiTagSheet from './MultiTagSheet'
 import { useItemsStore } from '../../store/useItemsStore'
 import { useAppStore } from '../../store/useAppStore'
 import { NO_AUTOFILL_PROPS } from '../../utils/formProps'
+import { getTagConflicts } from '../../utils/tagConflicts'
 
 export default function ItemFormSheet({ open, onClose, showToast, initialData }) {
   const addItem = useItemsStore((s) => s.addItem)
   const updateItem = useItemsStore((s) => s.updateItem)
   const getTagVocabulary = useItemsStore((s) => s.getTagVocabulary)
   const multiTags = useItemsStore((s) => s.multiTags)
+  const tagGroups = useItemsStore((s) => s.tagGroups)
+  const tagGroupMembers = useItemsStore((s) => s.tagGroupMembers)
   const setBottomBarHidden = useAppStore((s) => s.setBottomBarHidden)
 
   const [value, setValue] = useState('')
@@ -23,10 +26,25 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
   const [saving, setSaving] = useState(false)
   const [picker, setPicker] = useState(null)
   const [tagVocab, setTagVocab] = useState(null)
+  const [resolveGroupId, setResolveGroupId] = useState(null)
+
+  // Conflicte tag-uri OR (derivate din tag-uri + foldere curente)
+  const conflicts = useMemo(
+    () => getTagConflicts(tags, tagGroups, tagGroupMembers),
+    [tags, tagGroups, tagGroupMembers]
+  )
+  const hasConflicts = conflicts.groups.length > 0
 
   const descRef = useRef(null)
   const momentRef = useRef(null)
   const prevOpenRef = useRef(false)
+
+  // Închide sheet-ul de rezolvare când conflictul a dispărut
+  useEffect(() => {
+    if (picker === 'or_resolve' && !conflicts.groups.some((g) => g.groupId === resolveGroupId)) {
+      setPicker(null)
+    }
+  }, [picker, conflicts, resolveGroupId])
 
   useEffect(() => {
     setBottomBarHidden(open && picker !== 'tags' && picker !== 'multitag_apply' && picker !== 'multitag_manager')
@@ -112,6 +130,52 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
     )
   }
 
+  // SWAP: rezolvare conflict OR (alege un tag sau elimină cu „x")
+  if (picker === 'or_resolve') {
+    const grp = conflicts.groups.find((g) => g.groupId === resolveGroupId)
+    if (!grp) return null // efectul de mai sus închide sheet-ul
+    return (
+      <BottomSheet open onClose={() => setPicker(null)}>
+        <div className="pb-6">
+          <h3 className="px-4 pt-2 pb-1 text-sm font-semibold text-orange-400 text-center">
+            ⚠ {grp.name} — tip OR
+          </h3>
+          <p className="px-6 pb-3 text-xs text-zinc-500 text-center border-b border-zinc-800/50">
+            Poți păstra un singur tag din acest folder. Alege unul sau elimină-le cu „x”.
+          </p>
+          {grp.tags.map((t) => (
+            <div
+              key={t}
+              className="flex items-stretch border-b border-zinc-800/50 last:border-b-0"
+            >
+              <button
+                onClick={() => setTags((prev) => prev.filter((x) => x === t || !grp.tags.includes(x)))}
+                className="flex-1 px-6 py-3.5 text-left text-sm font-medium text-orange-300 active:bg-zinc-800"
+              >
+                {t}
+              </button>
+              <button
+                onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
+                className="w-12 flex items-center justify-center text-zinc-500 active:text-red-400 active:bg-zinc-800"
+                aria-label={`Elimină ${t}`}
+              >
+                <X size={18} />
+              </button>
+            </div>
+          ))}
+          <div className="px-4 pt-3">
+            <button
+              onClick={() => setPicker(null)}
+              className="w-full h-11 rounded-xl bg-zinc-800 text-sm text-zinc-300 active:bg-zinc-700"
+            >
+              Închide
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
+    )
+  }
+
   // SWAP: tags picker
   if (picker === 'tags') {
     if (tagVocab === null) {
@@ -162,13 +226,15 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
       showToast?.('Introduceți o valoare numerică')
       return
     }
+    // Incompatibilități OR → înregistrarea poate fi salvată doar ca nefinalizată
+    const finalIncomplete = forcedIncomplete || hasConflicts
     setSaving(true)
     if (initialData) {
-      updateItem(initialData.id, { value, description, tags, moment, isIncomplete: forcedIncomplete })
-      showToast?.('Element actualizat')
+      updateItem(initialData.id, { value, description, tags, moment, isIncomplete: finalIncomplete })
+      showToast?.(hasConflicts && !forcedIncomplete ? 'Salvat ca nefinalizat — incompatibilități tag-uri' : 'Element actualizat')
     } else {
-      addItem({ value, description, tags, moment, isIncomplete: forcedIncomplete })
-      showToast?.('Element adăugat')
+      addItem({ value, description, tags, moment, isIncomplete: finalIncomplete })
+      showToast?.(hasConflicts && !forcedIncomplete ? 'Salvat ca nefinalizat — incompatibilități tag-uri' : 'Element adăugat')
     }
     setSaving(false)
     onClose?.()
@@ -278,6 +344,46 @@ export default function ItemFormSheet({ open, onClose, showToast, initialData })
               <ChevronRight size={20} />
             </button>
           </div>
+
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {tags.map((t) => {
+                const isConflict = conflicts.conflictTags.has(t)
+                if (!isConflict) {
+                  return (
+                    <span
+                      key={t}
+                      className="px-2.5 py-0.5 rounded-full bg-zinc-800 text-xs text-zinc-300 border border-zinc-700"
+                    >
+                      {t}
+                    </span>
+                  )
+                }
+                const grp = conflicts.groups.find((g) => g.tags.includes(t))
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      setResolveGroupId(grp.groupId)
+                      setPicker('or_resolve')
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/20 text-xs font-medium text-orange-300 border border-orange-500/50 active:bg-orange-500/30"
+                  >
+                    <AlertTriangle size={11} />
+                    {t}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {hasConflicts && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-orange-400">
+              <AlertTriangle size={12} className="shrink-0" />
+              {conflicts.groups.length} {conflicts.groups.length === 1 ? 'incompatibilitate' : 'incompatibilități'} între tag-uri (OR). Apasă pe un tag portocaliu pentru rezolvare. Înregistrarea se salvează ca nefinalizată.
+            </p>
+          )}
         </div>
 
         {/* Moment */}
